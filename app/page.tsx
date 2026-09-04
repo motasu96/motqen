@@ -1,7 +1,7 @@
 import Link from "next/link";
+import Image from "next/image";
 import { programs } from "@/data/programs";
 import ProgramCard from "@/components/ProgramCard";
-import HeroIllustration from "@/components/HeroIllustration";
 import { Eyebrow, SectionHeading, Stat } from "@/components/ui";
 import {
   IconAward,
@@ -106,8 +106,15 @@ export default function HomePage() {
           </div>
 
           <div className="order-1 flex justify-center lg:order-2">
-            <div className="relative flex aspect-square w-full max-w-md items-center justify-center rounded-card-lg bg-card p-8 shadow-soft">
-              <HeroIllustration className="h-full w-full" />
+            <div className="relative flex aspect-square w-full max-w-md items-center justify-center overflow-hidden rounded-card-lg bg-card shadow-soft">
+              <Image
+                src="/images/hero-quran.jpg"
+                alt="مصحف القرآن الكريم موضوع على رحل خشبي أمام محراب"
+                fill
+                priority
+                sizes="(min-width: 1024px) 448px, 90vw"
+                className="object-cover"
+              />
               <div className="absolute right-4 top-4 flex items-center gap-2 rounded-2xl border border-line bg-card px-3 py-2 shadow-soft sm:right-6 sm:top-6">
                 <IconPlay className="h-5 w-5 text-gold-dark" aria-hidden="true" />
                 <span className="text-xs font-bold text-ink">تعليم تفاعلي لأطفالك</span>
