@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Breadcrumb } from "@/components/ui";
 import { IconEye, IconHeart, IconAward } from "@/components/icons";
 
@@ -39,11 +40,14 @@ export default function AboutPage() {
             ومحفزة تناسب جميع الأعمار والمستويات.
           </p>
         </div>
-        <div className="card flex aspect-[4/3] items-center justify-center p-8">
-          <svg viewBox="0 0 160 120" className="h-40 w-52 text-gold-dark" fill="none" stroke="currentColor" strokeWidth="1.4">
-            <path d="M40 90 L80 30 L120 90" />
-            <rect x="55" y="40" width="50" height="50" rx="4" opacity="0.15" fill="currentColor" />
-          </svg>
+        <div className="card relative aspect-[4/3] overflow-hidden">
+          <Image
+            src="/images/about-illustration.jpg"
+            alt="معلم يقدّم حصة تحفيظ عن بُعد عبر الحاسوب"
+            fill
+            sizes="(min-width: 1024px) 560px, 90vw"
+            className="object-cover"
+          />
         </div>
       </div>
 
