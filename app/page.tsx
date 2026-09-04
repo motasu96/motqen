@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { programs } from "@/data/programs";
 import ProgramCard from "@/components/ProgramCard";
+import HeroIllustration from "@/components/HeroIllustration";
 import { Eyebrow, SectionHeading, Stat } from "@/components/ui";
 import {
   IconAward,
@@ -105,16 +106,10 @@ export default function HomePage() {
           </div>
 
           <div className="order-1 flex justify-center lg:order-2">
-            <div className="relative flex aspect-square w-full max-w-md items-center justify-center rounded-card-lg bg-card shadow-soft">
-              <div className="flex h-52 w-52 items-center justify-center rounded-full border border-line/70 bg-bg sm:h-64 sm:w-64">
-                <svg viewBox="0 0 120 120" className="h-32 w-32 text-gold-dark sm:h-40 sm:w-40">
-                  <rect x="35" y="70" width="50" height="6" rx="2" fill="currentColor" opacity="0.5" />
-                  <path d="M40 70 L60 30 L80 70" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <rect x="45" y="35" width="30" height="35" rx="3" fill="currentColor" opacity="0.15" stroke="currentColor" strokeWidth="1.6" />
-                </svg>
-              </div>
+            <div className="relative flex aspect-square w-full max-w-md items-center justify-center rounded-card-lg bg-card p-8 shadow-soft">
+              <HeroIllustration className="h-full w-full" />
               <div className="absolute right-4 top-4 flex items-center gap-2 rounded-2xl border border-line bg-card px-3 py-2 shadow-soft sm:right-6 sm:top-6">
-                <IconPlay className="h-5 w-5 text-gold-dark" />
+                <IconPlay className="h-5 w-5 text-gold-dark" aria-hidden="true" />
                 <span className="text-xs font-bold text-ink">تعليم تفاعلي لأطفالك</span>
               </div>
             </div>
