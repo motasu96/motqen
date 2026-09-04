@@ -40,14 +40,16 @@ export default function AboutPage() {
             ومحفزة تناسب جميع الأعمار والمستويات.
           </p>
         </div>
-        <div className="card relative aspect-[4/3] overflow-hidden">
-          <Image
-            src="/images/about-illustration.jpg"
-            alt="معلم يقدّم حصة تحفيظ عن بُعد عبر الحاسوب"
-            fill
-            sizes="(min-width: 1024px) 560px, 90vw"
-            className="object-cover"
-          />
+        <div className="card relative aspect-[4/3] overflow-hidden p-6">
+          <div className="relative h-full w-full">
+            <Image
+              src="/images/about-illustration.jpg"
+              alt="معلم يقدّم حصة تحفيظ عن بُعد عبر الحاسوب"
+              fill
+              sizes="(min-width: 1024px) 500px, 85vw"
+              className="rounded-2xl object-cover"
+            />
+          </div>
         </div>
       </div>
 
