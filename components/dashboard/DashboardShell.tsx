@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { ComponentType } from "react";
 import { IconLogout, IconMenu, IconX } from "@/components/icons";
 import Logo from "@/components/Logo";
@@ -26,6 +26,15 @@ export default function DashboardShell({
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open]);
 
   const nav = (
     <div className="flex h-full flex-col gap-6 p-6">
@@ -52,15 +61,15 @@ export default function DashboardShell({
                 active ? "bg-gold-light text-gold-dark" : "text-ink-soft hover:bg-bg hover:text-ink"
               }`}
             >
-              <item.icon className="h-5 w-5" />
+              <item.icon className="h-5 w-5" aria-hidden="true" />
               {item.label}
             </Link>
           );
         })}
       </nav>
 
-      <Link href="/login" className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold text-ink-soft hover:bg-bg hover:text-red-500">
-        <IconLogout className="h-5 w-5" />
+      <Link href="/login" className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold text-ink-soft transition-colors hover:bg-bg hover:text-red-500">
+        <IconLogout className="h-5 w-5" aria-hidden="true" />
         تسجيل خروج
       </Link>
     </div>
@@ -77,23 +86,28 @@ export default function DashboardShell({
           <Logo />
           <button
             onClick={() => setOpen(true)}
-            className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-card"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-card transition-transform active:scale-95"
             aria-label="فتح القائمة"
+            aria-expanded={open}
+            aria-controls="dashboard-mobile-nav"
           >
-            <IconMenu className="h-5 w-5" />
+            <IconMenu className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 
         {open && (
-          <div className="fixed inset-0 z-50 lg:hidden">
-            <div className="absolute inset-0 bg-ink/40" onClick={() => setOpen(false)} />
-            <div className="absolute inset-y-0 right-0 w-80 max-w-[85vw] bg-card shadow-soft">
+          <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true">
+            <div className="animate-overlay-in absolute inset-0 bg-ink/40" onClick={() => setOpen(false)} />
+            <div
+              id="dashboard-mobile-nav"
+              className="animate-drawer-in absolute inset-y-0 right-0 w-80 max-w-[85vw] bg-card shadow-soft"
+            >
               <button
                 onClick={() => setOpen(false)}
-                className="absolute left-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-line"
+                className="absolute left-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-line transition-transform active:scale-95"
                 aria-label="إغلاق"
               >
-                <IconX className="h-4 w-4" />
+                <IconX className="h-4 w-4" aria-hidden="true" />
               </button>
               {nav}
             </div>

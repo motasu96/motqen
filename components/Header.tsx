@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { IconMenu, IconX } from "./icons";
 import Logo from "./Logo";
@@ -18,6 +18,19 @@ const NAV_LINKS = [
 export default function Header() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+
+  useEffect(() => {
+    if (!open) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open]);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-line/70 bg-bg/90 backdrop-blur">
@@ -53,16 +66,18 @@ export default function Header() {
         </div>
 
         <button
-          aria-label="فتح القائمة"
+          aria-label={open ? "إغلاق القائمة" : "فتح القائمة"}
+          aria-expanded={open}
+          aria-controls="mobile-nav"
           onClick={() => setOpen((v) => !v)}
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-card lg:hidden"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-card transition-transform active:scale-95 lg:hidden"
         >
-          {open ? <IconX className="h-5 w-5" /> : <IconMenu className="h-5 w-5" />}
+          {open ? <IconX className="h-5 w-5" aria-hidden="true" /> : <IconMenu className="h-5 w-5" aria-hidden="true" />}
         </button>
       </div>
 
       {open && (
-        <div className="border-t border-line bg-card lg:hidden">
+        <div id="mobile-nav" className="animate-fade-up border-t border-line bg-card lg:hidden">
           <div className="container-page flex flex-col gap-1 py-4">
             {NAV_LINKS.map((link) => (
               <Link

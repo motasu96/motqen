@@ -72,7 +72,7 @@ export default function HomePage() {
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="container-page grid gap-12 py-14 sm:py-20 lg:grid-cols-2 lg:items-center">
-          <div className="order-2 flex flex-col items-start gap-6 lg:order-1">
+          <div className="animate-fade-up order-2 flex flex-col items-start gap-6 lg:order-1">
             <Eyebrow>مقرأة متقن.. حيث يصبح القرآن رفيق دربك</Eyebrow>
             <h1 className="text-4xl font-extrabold leading-[1.25] text-ink sm:text-5xl md:text-6xl">
               تعلم القرآن

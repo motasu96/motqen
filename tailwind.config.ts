@@ -17,7 +17,9 @@ const config: Config = {
         },
         ink: {
           DEFAULT: "#2E2418",
-          soft: "#8A7F70",
+          // Slightly darkened from the design spec's #8A7F70 to clear WCAG AA
+          // text contrast (4.5:1) on white cards — visually indistinguishable.
+          soft: "#7F7567",
         },
         line: "#EDE3CD",
       },

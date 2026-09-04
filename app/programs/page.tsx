@@ -31,11 +31,12 @@ export default function ProgramsPage() {
         </p>
       </div>
 
-      <div className="mt-8 flex flex-wrap gap-2">
+      <div className="mt-8 flex flex-wrap gap-2" role="group" aria-label="تصفية البرامج">
         {FILTERS.map((f) => (
           <button
             key={f.key}
             onClick={() => setFilter(f.key)}
+            aria-pressed={filter === f.key}
             className={`rounded-pill px-5 py-2.5 text-sm font-bold transition-colors ${
               filter === f.key
                 ? "bg-gold-gradient text-white shadow-soft"
@@ -47,7 +48,7 @@ export default function ProgramsPage() {
         ))}
       </div>
 
-      <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div key={filter} className="animate-fade-up mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((p) => (
           <ProgramCard key={p.slug} program={p} />
         ))}

@@ -49,15 +49,15 @@ export default function Footer() {
         <div className="flex flex-col gap-3">
           <h4 className="text-sm font-extrabold text-ink">تواصل معنا</h4>
           <div className="flex items-center gap-2 text-sm text-ink-soft">
-            <IconMail className="h-4 w-4 shrink-0 text-gold" />
+            <IconMail className="h-4 w-4 shrink-0 text-gold" aria-hidden="true" />
             <span dir="ltr">info@motqen.com</span>
           </div>
           <div className="flex items-center gap-2 text-sm text-ink-soft">
-            <IconPhone className="h-4 w-4 shrink-0 text-gold" />
+            <IconPhone className="h-4 w-4 shrink-0 text-gold" aria-hidden="true" />
             <span dir="ltr">+966 50 123 4567</span>
           </div>
           <div className="flex items-center gap-2 text-sm text-ink-soft">
-            <IconMapPin className="h-4 w-4 shrink-0 text-gold" />
+            <IconMapPin className="h-4 w-4 shrink-0 text-gold" aria-hidden="true" />
             <span>الرياض، المملكة العربية السعودية</span>
           </div>
         </div>

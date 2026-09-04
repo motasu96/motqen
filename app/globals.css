@@ -12,6 +12,22 @@
   ::selection {
     @apply bg-gold-light text-ink;
   }
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  [tabindex] {
+    @apply outline-none;
+  }
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  [tabindex]:focus-visible {
+    @apply ring-2 ring-gold-dark ring-offset-2 ring-offset-bg;
+  }
 }
 
 @layer components {
@@ -23,10 +39,11 @@
     @apply block h-2 w-2 rounded-full bg-gold;
   }
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-pill px-6 py-3 text-sm font-bold transition-all duration-200 whitespace-nowrap;
+    @apply inline-flex items-center justify-center gap-2 rounded-pill px-6 py-3 text-sm font-bold transition-all duration-200 whitespace-nowrap active:scale-[0.97];
   }
   .btn-primary {
     @apply btn bg-gold-gradient text-white shadow-soft hover:brightness-105 active:brightness-95;
+    text-shadow: 0 1px 2px rgba(46, 36, 24, 0.35);
   }
   .btn-outline {
     @apply btn border border-line bg-card text-ink hover:border-gold hover:text-gold-dark;
@@ -35,7 +52,10 @@
     @apply btn text-ink hover:text-gold-dark;
   }
   .card {
-    @apply rounded-card-lg border border-line bg-card shadow-soft;
+    @apply rounded-card-lg border border-line bg-card shadow-soft transition-shadow duration-200;
+  }
+  .card-interactive {
+    @apply card transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_28px_54px_-24px_rgba(120,90,40,0.38)];
   }
   .badge {
     @apply inline-flex items-center gap-1.5 rounded-pill bg-gold-light px-3 py-1 text-xs font-bold text-gold-dark;
@@ -48,5 +68,97 @@
   }
   .input {
     @apply w-full rounded-2xl border border-line bg-card px-4 py-3 text-sm text-ink placeholder:text-ink-soft/70 outline-none transition focus:border-gold focus:ring-2 focus:ring-gold-light;
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes confirm-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(200, 155, 74, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(200, 155, 74, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(200, 155, 74, 0);
+  }
+}
+
+.animate-page-in {
+  animation: page-in 0.35s ease-out both;
+}
+.animate-toast-in {
+  animation: toast-in 0.25s ease-out both;
+}
+.animate-fade-up {
+  animation: fade-up 0.5s ease-out both;
+}
+.animate-confirm-pulse {
+  animation: confirm-pulse 0.7s ease-out;
+}
+
+@keyframes drawer-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-drawer-in {
+  animation: drawer-in 0.25s ease-out both;
+}
+.animate-overlay-in {
+  animation: overlay-in 0.25s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

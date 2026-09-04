@@ -33,17 +33,23 @@ export function Stat({ value, label }: { value: string; label: string }) {
 
 export function Breadcrumb({ items }: { items: { label: string; href?: string }[] }) {
   return (
-    <nav className="flex flex-wrap items-center gap-2 text-sm text-ink-soft">
+    <nav aria-label="مسار التنقل" className="flex flex-wrap items-center gap-2 text-sm text-ink-soft">
       {items.map((item, i) => (
         <span key={i} className="flex items-center gap-2">
           {item.href ? (
-            <Link href={item.href} className="hover:text-gold-dark">
+            <Link href={item.href} className="transition-colors hover:text-gold-dark">
               {item.label}
             </Link>
           ) : (
-            <span className="font-medium text-ink">{item.label}</span>
+            <span className="font-medium text-ink" aria-current="page">
+              {item.label}
+            </span>
           )}
-          {i < items.length - 1 && <span className="text-line">/</span>}
+          {i < items.length - 1 && (
+            <span className="text-line" aria-hidden="true">
+              /
+            </span>
+          )}
         </span>
       ))}
     </nav>
@@ -52,11 +58,12 @@ export function Breadcrumb({ items }: { items: { label: string; href?: string }[
 
 export function Rating({ value }: { value: number }) {
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1" role="img" aria-label={`التقييم: ${value} من 5`}>
       {Array.from({ length: 5 }).map((_, i) => (
         <svg
           key={i}
           viewBox="0 0 24 24"
+          aria-hidden="true"
           className={`h-4 w-4 ${i < Math.round(value) ? "text-gold" : "text-line"}`}
           fill="currentColor"
         >

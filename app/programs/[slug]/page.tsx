@@ -1,11 +1,26 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { getProgramBySlug, programs } from "@/data/programs";
 import { Breadcrumb } from "@/components/ui";
 import { IconCalendar, IconCheck, IconClock, IconUsers } from "@/components/icons";
 
 export function generateStaticParams() {
   return programs.map((p) => ({ slug: p.slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const program = getProgramBySlug(slug);
+  if (!program) return {};
+  return {
+    title: `${program.title} | متقن`,
+    description: program.short,
+  };
 }
 
 export default async function ProgramDetailPage({

@@ -3,13 +3,16 @@
 import { FormEvent, useState } from "react";
 import { Breadcrumb } from "@/components/ui";
 import { IconMail, IconMapPin, IconPhone } from "@/components/icons";
+import { useToast } from "@/components/Toast";
 
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
+  const { showToast } = useToast();
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSent(true);
+    showToast("تم إرسال رسالتك بنجاح، سيتواصل معك فريقنا قريبًا.", "success");
   }
 
   return (
@@ -24,7 +27,7 @@ export default function ContactPage() {
       <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_1.2fr]">
         <div className="flex flex-col gap-5">
           <div className="card flex items-center gap-4 p-6">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold-light">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold-light" aria-hidden="true">
               <IconMail className="h-5 w-5 text-gold-dark" />
             </span>
             <div>
@@ -33,7 +36,7 @@ export default function ContactPage() {
             </div>
           </div>
           <div className="card flex items-center gap-4 p-6">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold-light">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold-light" aria-hidden="true">
               <IconPhone className="h-5 w-5 text-gold-dark" />
             </span>
             <div>
@@ -42,7 +45,7 @@ export default function ContactPage() {
             </div>
           </div>
           <div className="card flex items-center gap-4 p-6">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold-light">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold-light" aria-hidden="true">
               <IconMapPin className="h-5 w-5 text-gold-dark" />
             </span>
             <div>
@@ -54,9 +57,9 @@ export default function ContactPage() {
 
         <div className="card p-7 sm:p-9">
           {sent ? (
-            <div className="flex flex-col items-center gap-3 py-10 text-center">
+            <div className="animate-fade-up flex flex-col items-center gap-3 py-10 text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gold-light">
-                <svg viewBox="0 0 24 24" className="h-8 w-8 text-gold-dark" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg viewBox="0 0 24 24" className="h-8 w-8 text-gold-dark" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 12.5 9 17.5 20 6.5" />
                 </svg>
               </div>
@@ -71,21 +74,21 @@ export default function ContactPage() {
               <h2 className="text-lg font-extrabold text-ink">أرسل لنا رسالة</h2>
               <div className="grid gap-5 sm:grid-cols-2">
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-bold text-ink">الاسم الكامل</label>
-                  <input required className="input" placeholder="اكتب اسمك" />
+                  <label htmlFor="contact-name" className="text-sm font-bold text-ink">الاسم الكامل</label>
+                  <input id="contact-name" required className="input" placeholder="اكتب اسمك" />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-bold text-ink">رقم الجوال</label>
-                  <input required dir="ltr" className="input" placeholder="05xxxxxxxx" />
+                  <label htmlFor="contact-phone" className="text-sm font-bold text-ink">رقم الجوال</label>
+                  <input id="contact-phone" required dir="ltr" className="input" placeholder="05xxxxxxxx" />
                 </div>
               </div>
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-ink">البريد الإلكتروني</label>
-                <input required type="email" dir="ltr" className="input" placeholder="example@email.com" />
+                <label htmlFor="contact-email" className="text-sm font-bold text-ink">البريد الإلكتروني</label>
+                <input id="contact-email" required type="email" dir="ltr" className="input" placeholder="example@email.com" />
               </div>
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-ink">الرسالة</label>
-                <textarea required rows={5} className="input resize-none" placeholder="اكتب رسالتك هنا..." />
+                <label htmlFor="contact-message" className="text-sm font-bold text-ink">الرسالة</label>
+                <textarea id="contact-message" required rows={5} className="input resize-none" placeholder="اكتب رسالتك هنا..." />
               </div>
               <button type="submit" className="btn-primary w-full sm:w-fit">
                 إرسال الرسالة

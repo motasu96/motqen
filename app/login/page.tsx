@@ -4,16 +4,19 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import Logo from "@/components/Logo";
+import { useToast } from "@/components/Toast";
 
 export default function LoginPage() {
   const router = useRouter();
   const [role, setRole] = useState<"student" | "teacher">("student");
   const [loading, setLoading] = useState(false);
+  const { showToast } = useToast();
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setTimeout(() => {
+      showToast("تم تسجيل الدخول بنجاح، مرحبًا بعودتك.", "success");
       router.push(role === "student" ? "/dashboard/student" : "/dashboard/teacher");
     }, 500);
   }
@@ -27,7 +30,7 @@ export default function LoginPage() {
           <p className="text-sm text-ink-soft">مرحبًا بعودتك، سجّل الدخول لمتابعة رحلتك مع القرآن الكريم</p>
         </div>
 
-        <div className="mb-6 grid grid-cols-2 gap-2 rounded-pill border border-line bg-bg p-1">
+        <div className="mb-6 grid grid-cols-2 gap-2 rounded-pill border border-line bg-bg p-1" role="group" aria-label="نوع الحساب">
           {(
             [
               { key: "student", label: "طالب" },
@@ -38,6 +41,7 @@ export default function LoginPage() {
               key={r.key}
               type="button"
               onClick={() => setRole(r.key)}
+              aria-pressed={role === r.key}
               className={`rounded-pill py-2.5 text-sm font-bold transition-colors ${
                 role === r.key ? "bg-gold-gradient text-white shadow-soft" : "text-ink-soft"
               }`}
@@ -49,15 +53,15 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-bold text-ink">البريد الإلكتروني</label>
-            <input required type="email" dir="ltr" className="input" placeholder="example@email.com" />
+            <label htmlFor="login-email" className="text-sm font-bold text-ink">البريد الإلكتروني</label>
+            <input id="login-email" required type="email" dir="ltr" className="input" placeholder="example@email.com" />
           </div>
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-bold text-ink">كلمة المرور</label>
+              <label htmlFor="login-password" className="text-sm font-bold text-ink">كلمة المرور</label>
               <Link href="/forgot-password" className="text-xs font-bold text-gold-dark">نسيت كلمة المرور؟</Link>
             </div>
-            <input required type="password" className="input" placeholder="••••••••" />
+            <input id="login-password" required type="password" className="input" placeholder="••••••••" />
           </div>
           <button type="submit" disabled={loading} className="btn-primary mt-2 w-full disabled:opacity-70">
             {loading ? "جارٍ الدخول..." : "تسجيل الدخول"}

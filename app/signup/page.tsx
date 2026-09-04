@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Logo from "@/components/Logo";
 import { programs } from "@/data/programs";
 import { IconCheck } from "@/components/icons";
+import { useToast } from "@/components/Toast";
 
 type StudentType = "kid" | "student" | "women";
 
@@ -24,6 +25,7 @@ function SignupFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedProgram = searchParams.get("program") ?? "";
+  const { showToast } = useToast();
 
   const [step, setStep] = useState(0);
   const [studentType, setStudentType] = useState<StudentType | null>(null);
@@ -39,14 +41,24 @@ function SignupFlow() {
     setSelectedDays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]));
   }
 
-  function canProceed() {
-    if (step === 0) return studentType !== null;
-    if (step === 1) return form.name.trim() && form.phone.trim() && programSlug;
-    if (step === 2) return selectedDays.length > 0 && selectedTime;
-    return true;
+  function validateStep(): string | null {
+    if (step === 0 && !studentType) return "الرجاء اختيار نوع الطالب للمتابعة.";
+    if (step === 1) {
+      if (!form.name.trim() || !form.phone.trim()) return "الرجاء تعبئة الاسم ورقم الجوال.";
+      if (!programSlug) return "الرجاء اختيار البرنامج التعليمي.";
+    }
+    if (step === 2 && (selectedDays.length === 0 || !selectedTime)) {
+      return "الرجاء اختيار يوم ووقت مناسب للحصص.";
+    }
+    return null;
   }
 
   function next() {
+    const error = validateStep();
+    if (error) {
+      showToast(error, "error");
+      return;
+    }
     if (step < STEPS.length - 1) setStep((s) => s + 1);
   }
   function back() {
@@ -61,6 +73,7 @@ function SignupFlow() {
         JSON.stringify({ studentType, programSlug, form, selectedDays, selectedTime, confirmedAt: new Date().toISOString() })
       );
     } catch {}
+    showToast("تم تأكيد اشتراكك بنجاح، مرحبًا بك في متقن.", "success");
     setTimeout(() => router.push("/dashboard/student"), 700);
   }
 
@@ -74,11 +87,12 @@ function SignupFlow() {
         </div>
 
         {/* Step indicator */}
-        <div className="mb-10 flex items-center justify-center gap-2 sm:gap-4">
+        <ol className="mb-10 flex items-center justify-center gap-2 sm:gap-4" aria-label="خطوات التسجيل">
           {STEPS.map((label, i) => (
-            <div key={label} className="flex items-center gap-2 sm:gap-4">
+            <li key={label} className="flex items-center gap-2 sm:gap-4">
               <div className="flex flex-col items-center gap-2">
                 <div
+                  aria-current={i === step ? "step" : undefined}
                   className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold transition-colors ${
                     i < step
                       ? "bg-gold-gradient text-white"
@@ -87,18 +101,18 @@ function SignupFlow() {
                       : "border border-line bg-card text-ink-soft"
                   }`}
                 >
-                  {i < step ? <IconCheck className="h-4 w-4" /> : i + 1}
+                  {i < step ? <IconCheck className="h-4 w-4" aria-hidden="true" /> : i + 1}
                 </div>
                 <span className={`hidden text-xs font-bold sm:block ${i <= step ? "text-ink" : "text-ink-soft"}`}>
                   {label}
                 </span>
               </div>
               {i < STEPS.length - 1 && <div className={`h-0.5 w-6 sm:w-12 ${i < step ? "bg-gold" : "bg-line"}`} />}
-            </div>
+            </li>
           ))}
-        </div>
+        </ol>
 
-        <div className="card p-7 sm:p-9">
+        <div key={step} className="card animate-fade-up p-7 sm:p-9">
           {step === 0 && (
             <div className="flex flex-col gap-5">
               <h2 className="text-lg font-extrabold text-ink">اختر نوع الطالب</h2>
@@ -107,6 +121,7 @@ function SignupFlow() {
                   <button
                     key={t.key}
                     onClick={() => setStudentType(t.key)}
+                    aria-pressed={studentType === t.key}
                     className={`flex flex-col items-center gap-3 rounded-2xl border p-6 text-center transition-colors ${
                       studentType === t.key ? "border-gold bg-gold-light" : "border-line bg-bg hover:border-gold/60"
                     }`}
@@ -128,8 +143,9 @@ function SignupFlow() {
             <div className="flex flex-col gap-5">
               <h2 className="text-lg font-extrabold text-ink">بيانات الطالب</h2>
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-ink">الاسم الكامل</label>
+                <label htmlFor="signup-name" className="text-sm font-bold text-ink">الاسم الكامل</label>
                 <input
+                  id="signup-name"
                   className="input"
                   value={form.name}
                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
@@ -138,8 +154,9 @@ function SignupFlow() {
               </div>
               <div className="grid gap-5 sm:grid-cols-2">
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-bold text-ink">رقم الجوال</label>
+                  <label htmlFor="signup-phone" className="text-sm font-bold text-ink">رقم الجوال</label>
                   <input
+                    id="signup-phone"
                     dir="ltr"
                     className="input"
                     value={form.phone}
@@ -148,8 +165,9 @@ function SignupFlow() {
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-bold text-ink">البريد الإلكتروني</label>
+                  <label htmlFor="signup-email" className="text-sm font-bold text-ink">البريد الإلكتروني</label>
                   <input
+                    id="signup-email"
                     dir="ltr"
                     type="email"
                     className="input"
@@ -160,8 +178,9 @@ function SignupFlow() {
                 </div>
               </div>
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-ink">البرنامج التعليمي</label>
+                <label htmlFor="signup-program" className="text-sm font-bold text-ink">البرنامج التعليمي</label>
                 <select
+                  id="signup-program"
                   className="input"
                   value={programSlug}
                   onChange={(e) => setProgramSlug(e.target.value)}
@@ -180,13 +199,14 @@ function SignupFlow() {
           {step === 2 && (
             <div className="flex flex-col gap-6">
               <h2 className="text-lg font-extrabold text-ink">اختيار الوقت المناسب</h2>
-              <div>
-                <label className="mb-3 block text-sm font-bold text-ink">أيام الحصص</label>
+              <fieldset>
+                <legend className="mb-3 text-sm font-bold text-ink">أيام الحصص</legend>
                 <div className="flex flex-wrap gap-2">
                   {WEEK_DAYS.map((day) => (
                     <button
                       key={day}
                       onClick={() => toggleDay(day)}
+                      aria-pressed={selectedDays.includes(day)}
                       className={`rounded-pill px-4 py-2 text-sm font-bold transition-colors ${
                         selectedDays.includes(day)
                           ? "bg-gold-gradient text-white shadow-soft"
@@ -197,14 +217,15 @@ function SignupFlow() {
                     </button>
                   ))}
                 </div>
-              </div>
-              <div>
-                <label className="mb-3 block text-sm font-bold text-ink">الوقت المناسب</label>
+              </fieldset>
+              <fieldset>
+                <legend className="mb-3 text-sm font-bold text-ink">الوقت المناسب</legend>
                 <div className="flex flex-wrap gap-2">
                   {TIME_SLOTS.map((t) => (
                     <button
                       key={t}
                       onClick={() => setSelectedTime(t)}
+                      aria-pressed={selectedTime === t}
                       className={`rounded-pill px-4 py-2 text-sm font-bold transition-colors ${
                         selectedTime === t
                           ? "bg-gold-gradient text-white shadow-soft"
@@ -215,7 +236,7 @@ function SignupFlow() {
                     </button>
                   ))}
                 </div>
-              </div>
+              </fieldset>
             </div>
           )}
 
@@ -249,7 +270,7 @@ function SignupFlow() {
             )}
 
             {step < STEPS.length - 1 ? (
-              <button onClick={next} disabled={!canProceed()} className="btn-primary disabled:opacity-50">
+              <button onClick={next} className="btn-primary">
                 التالي ‹
               </button>
             ) : (

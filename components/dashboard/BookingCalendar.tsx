@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useBookings } from "@/lib/useBookings";
+import { useToast } from "@/components/Toast";
 import { IconCalendar, IconCheck, IconClock } from "@/components/icons";
 
 const TIME_SLOTS = ["4:00 م", "5:30 م", "7:00 م", "8:30 م"];
@@ -24,12 +25,22 @@ export default function BookingCalendar() {
   const days = useMemo(() => buildNextDays(7), []);
   const [selectedDay, setSelectedDay] = useState(days[0].iso);
   const [confirmedFlash, setConfirmedFlash] = useState<string | null>(null);
+  const { showToast } = useToast();
 
   function handleBook(time: string) {
-    if (isSlotTaken(selectedDay, time)) return;
+    if (isSlotTaken(selectedDay, time)) {
+      showToast("هذا الموعد محجوز مسبقًا، اختر موعدًا آخر.", "error");
+      return;
+    }
     addBooking(selectedDay, time, TEACHER);
     setConfirmedFlash(time);
     setTimeout(() => setConfirmedFlash(null), 1800);
+    showToast(`تم حجز حصتك يوم ${selectedDay} الساعة ${time} بنجاح.`, "success");
+  }
+
+  function handleCancel(id: string) {
+    cancelBooking(id);
+    showToast("تم إلغاء الحصة.", "info");
   }
 
   return (
@@ -46,6 +57,8 @@ export default function BookingCalendar() {
           <button
             key={d.iso}
             onClick={() => setSelectedDay(d.iso)}
+            aria-pressed={selectedDay === d.iso}
+            aria-label={`اختر يوم ${d.label} ${d.dayNum}`}
             className={`flex shrink-0 flex-col items-center gap-1 rounded-2xl border px-4 py-3 text-center transition-colors ${
               selectedDay === d.iso ? "border-gold bg-gold-light" : "border-line bg-bg hover:border-gold/60"
             }`}
@@ -65,11 +78,12 @@ export default function BookingCalendar() {
               key={time}
               disabled={taken}
               onClick={() => handleBook(time)}
+              aria-label={taken ? `الساعة ${time}، محجوز` : `احجز الساعة ${time}`}
               className={`flex flex-col items-center gap-1 rounded-2xl border px-3 py-3 text-sm font-bold transition-colors ${
                 taken
                   ? "cursor-not-allowed border-line bg-bg text-ink-soft/60"
                   : justConfirmed
-                  ? "border-gold bg-gold-gradient text-white"
+                  ? "animate-confirm-pulse border-gold bg-gold-gradient text-white"
                   : "border-line bg-bg text-ink hover:border-gold hover:text-gold-dark"
               }`}
             >
@@ -100,8 +114,9 @@ export default function BookingCalendar() {
                   </div>
                 </div>
                 <button
-                  onClick={() => cancelBooking(b.id)}
-                  className="text-xs font-bold text-ink-soft hover:text-red-500"
+                  onClick={() => handleCancel(b.id)}
+                  aria-label={`إلغاء حصة ${b.date} الساعة ${b.time}`}
+                  className="text-xs font-bold text-ink-soft transition-colors hover:text-red-500"
                 >
                   إلغاء
                 </button>
