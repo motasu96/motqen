@@ -1,0 +1,107 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ReactNode, useState } from "react";
+import { ComponentType } from "react";
+import { IconLogout, IconMenu, IconX } from "@/components/icons";
+import Logo from "@/components/Logo";
+
+export type DashboardNavItem = {
+  href: string;
+  label: string;
+  icon: ComponentType<{ className?: string }>;
+};
+
+export default function DashboardShell({
+  navItems,
+  userName,
+  userSubtitle,
+  children,
+}: {
+  navItems: DashboardNavItem[];
+  userName: string;
+  userSubtitle: string;
+  children: ReactNode;
+}) {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+
+  const nav = (
+    <div className="flex h-full flex-col gap-6 p-6">
+      <Logo />
+      <div className="flex items-center gap-3 rounded-2xl bg-bg p-3">
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gold-light text-sm font-extrabold text-gold-dark">
+          {userName[0]}
+        </div>
+        <div>
+          <div className="text-sm font-extrabold text-ink">{userName}</div>
+          <div className="text-xs text-ink-soft">{userSubtitle}</div>
+        </div>
+      </div>
+
+      <nav className="flex flex-1 flex-col gap-1">
+        {navItems.map((item) => {
+          const active = pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setOpen(false)}
+              className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold transition-colors ${
+                active ? "bg-gold-light text-gold-dark" : "text-ink-soft hover:bg-bg hover:text-ink"
+              }`}
+            >
+              <item.icon className="h-5 w-5" />
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <Link href="/login" className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold text-ink-soft hover:bg-bg hover:text-red-500">
+        <IconLogout className="h-5 w-5" />
+        تسجيل خروج
+      </Link>
+    </div>
+  );
+
+  return (
+    <div className="container-page flex gap-6 py-6 sm:py-8">
+      <aside className="hidden w-72 shrink-0 lg:block">
+        <div className="card sticky top-24">{nav}</div>
+      </aside>
+
+      <div className="flex-1">
+        <div className="mb-4 flex items-center justify-between lg:hidden">
+          <Logo />
+          <button
+            onClick={() => setOpen(true)}
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-card"
+            aria-label="فتح القائمة"
+          >
+            <IconMenu className="h-5 w-5" />
+          </button>
+        </div>
+
+        {open && (
+          <div className="fixed inset-0 z-50 lg:hidden">
+            <div className="absolute inset-0 bg-ink/40" onClick={() => setOpen(false)} />
+            <div className="absolute inset-y-0 right-0 w-80 max-w-[85vw] bg-card shadow-soft">
+              <button
+                onClick={() => setOpen(false)}
+                className="absolute left-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-line"
+                aria-label="إغلاق"
+              >
+                <IconX className="h-4 w-4" />
+              </button>
+              {nav}
+            </div>
+          </div>
+        )}
+
+        {children}
+      </div>
+    </div>
+  );
+}
