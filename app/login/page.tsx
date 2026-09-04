@@ -55,7 +55,7 @@ export default function LoginPage() {
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <label className="text-sm font-bold text-ink">كلمة المرور</label>
-              <Link href="#" className="text-xs font-bold text-gold-dark">نسيت كلمة المرور؟</Link>
+              <Link href="/forgot-password" className="text-xs font-bold text-gold-dark">نسيت كلمة المرور؟</Link>
             </div>
             <input required type="password" className="input" placeholder="••••••••" />
           </div>
