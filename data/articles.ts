@@ -5,12 +5,14 @@ export type Article = {
   category: "الحفظ" | "التجويد" | "التربية" | "عام";
   date: string;
   readMinutes: number;
+  image: string;
   content: string[];
 };
 
 export const articles: Article[] = [
   {
     slug: "keeping-quran-after-hifz",
+    image: "/images/art-keeping-hifz.jpg",
     title: "كيف تحافظ على القرآن بعد حفظه؟",
     excerpt: "خطوات عملية ومجربة للحفاظ على المحفوظ من القرآن الكريم وعدم تفلته بعد إتمام الحفظ.",
     category: "الحفظ",
@@ -24,6 +26,7 @@ export const articles: Article[] = [
   },
   {
     slug: "raising-kids-on-quran",
+    image: "/images/art-raising-kids.jpg",
     title: "تربية الأطفال على حفظ القرآن",
     excerpt: "أساليب تربوية فعالة لغرس حب القرآن الكريم في نفوس الأطفال منذ الصغر.",
     category: "التربية",
@@ -37,6 +40,7 @@ export const articles: Article[] = [
   },
   {
     slug: "common-tilawa-mistakes",
+    image: "/images/art-tilawa-mistakes.jpg",
     title: "أخطاء شائعة في تعلم التلاوة",
     excerpt: "أبرز الأخطاء التي يقع فيها المتعلمون عند تلاوة القرآن الكريم وكيفية تجنبها.",
     category: "التجويد",
@@ -50,6 +54,7 @@ export const articles: Article[] = [
   },
   {
     slug: "virtue-of-hifz",
+    image: "/images/art-virtue-hifz.jpg",
     title: "فضل حفظ القرآن وتعلمه",
     excerpt: "نصوص وأحاديث نبوية تبين عظيم أجر من تعلم القرآن الكريم وعلّمه لغيره.",
     category: "عام",
@@ -63,6 +68,7 @@ export const articles: Article[] = [
   },
   {
     slug: "effective-revision-tips",
+    image: "/images/art-revision-tips.jpg",
     title: "نصائح للمراجعة الفعالة",
     excerpt: "طرق مجربة لتنظيم وقت المراجعة اليومية والأسبوعية لضمان ثبات المحفوظ.",
     category: "الحفظ",
@@ -76,6 +82,7 @@ export const articles: Article[] = [
   },
   {
     slug: "tajweed-rules-simplified",
+    image: "/images/art-tajweed-rules.jpg",
     title: "أحكام التجويد المبسطة للمبتدئين",
     excerpt: "شرح ميسّر لأهم أحكام التجويد التي يحتاجها كل متعلم في بداية طريقه.",
     category: "التجويد",

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { articles, Article } from "@/data/articles";
 import { Breadcrumb } from "@/components/ui";
 
@@ -48,10 +49,14 @@ export default function ArticlesPage() {
       <div key={cat} className="animate-fade-up mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((a) => (
           <Link key={a.slug} href={`/articles/${a.slug}`} className="card-interactive flex flex-col gap-4 p-6">
-            <div className="flex aspect-[16/10] items-center justify-center rounded-2xl bg-gold-light">
-              <svg viewBox="0 0 80 80" className="h-12 w-12 text-gold-dark" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
-                <path d="M20 24c8-3 16-3 26 1.6v34c-10-4.6-18-4.6-26-1.6V24Z" />
-              </svg>
+            <div className="relative aspect-[16/10] overflow-hidden rounded-2xl">
+              <Image
+                src={a.image}
+                alt={a.title}
+                fill
+                sizes="(min-width: 1024px) 380px, 90vw"
+                className="object-cover"
+              />
             </div>
             <span className="badge w-fit">{a.category}</span>
             <h2 className="text-lg font-extrabold leading-snug text-ink">{a.title}</h2>

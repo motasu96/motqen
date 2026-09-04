@@ -4,6 +4,7 @@ export type Program = {
   short: string;
   description: string;
   icon: "quran" | "tilawa" | "review" | "kids" | "family" | "women" | "qiraat";
+  image: string;
   category: "children" | "adults" | "women" | "all";
   featured?: boolean;
   price: number;
@@ -16,6 +17,7 @@ export type Program = {
 export const programs: Program[] = [
   {
     slug: "hifz-mutqan",
+    image: "/images/prog-hifz.jpg",
     title: "الحفظ المتقن",
     short: "حفظ القرآن الكريم بخطة متقنة ومتابعة مستمرة",
     description:
@@ -37,6 +39,7 @@ export const programs: Program[] = [
   },
   {
     slug: "tilawa-tajweed",
+    image: "/images/prog-tilawa.jpg",
     title: "التلاوة والتجويد",
     short: "تعلم القراءة الصحيحة وأحكام التجويد",
     description:
@@ -56,6 +59,7 @@ export const programs: Program[] = [
   },
   {
     slug: "muraja-hifz",
+    image: "/images/prog-muraja.jpg",
     title: "المراجعة والحفظ",
     short: "برامج مخصصة للمراجعة والحفظ بإشراف متخصص",
     description:
@@ -75,6 +79,7 @@ export const programs: Program[] = [
   },
   {
     slug: "bara-em-mutqin",
+    image: "/images/prog-kids.jpg",
     title: "براعم متقن",
     short: "برامج تعليمية للأطفال بأساليب ممتعة وتفاعلية",
     description:
@@ -94,6 +99,7 @@ export const programs: Program[] = [
   },
   {
     slug: "qiraat-ashr",
+    image: "/images/prog-qiraat.jpg",
     title: "القراءات العشر",
     short: "تعلم القراءات العشر وإجازاتها المتصلة السند",
     description:
@@ -113,6 +119,7 @@ export const programs: Program[] = [
   },
   {
     slug: "barnamej-nisaa",
+    image: "/images/prog-nisaa.jpg",
     title: "برامج النساء",
     short: "برامج خاصة للنساء بخصوصية تامة",
     description:

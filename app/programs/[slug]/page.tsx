@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getProgramBySlug, programs } from "@/data/programs";
@@ -45,11 +46,14 @@ export default async function ProgramDetailPage({
       <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_360px]">
         <div className="flex flex-col gap-8">
           <div className="card flex items-center gap-6 overflow-hidden p-8">
-            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-gold-light sm:h-28 sm:w-28">
-              <svg viewBox="0 0 120 120" className="h-14 w-14 text-gold-dark sm:h-16 sm:w-16">
-                <path d="M40 70 L60 30 L80 70" stroke="currentColor" strokeWidth="4" fill="none" />
-                <rect x="45" y="35" width="30" height="35" rx="3" fill="currentColor" opacity="0.15" stroke="currentColor" strokeWidth="1.6" />
-              </svg>
+            <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full sm:h-28 sm:w-28">
+              <Image
+                src={program.image}
+                alt={program.title}
+                fill
+                sizes="112px"
+                className="object-cover"
+              />
             </div>
             <div>
               <h1 className="text-2xl font-extrabold text-ink sm:text-3xl">{program.title}</h1>
