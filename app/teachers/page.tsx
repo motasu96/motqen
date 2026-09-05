@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { teachers } from "@/data/teachers";
 import { Breadcrumb, Rating } from "@/components/ui";
 
@@ -17,8 +18,8 @@ export default function TeachersPage() {
       <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {teachers.map((t) => (
           <Link key={t.slug} href={`/teachers/${t.slug}`} className="card-interactive flex flex-col items-center gap-4 p-7 text-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gold-light text-2xl font-extrabold text-gold-dark">
-              {t.avatarInitial}
+            <div className="relative h-20 w-20 overflow-hidden rounded-full">
+              <Image src={t.avatarUrl} alt={t.name} fill sizes="80px" className="object-cover" />
             </div>
             <div>
               <h3 className="text-base font-extrabold text-ink">{t.name}</h3>

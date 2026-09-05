@@ -10,7 +10,7 @@ export type Teacher = {
   name: string;
   title: string;
   bio: string;
-  avatarInitial: string;
+  avatarUrl: string;
   gender: "male" | "female";
   stats: {
     students: number;
@@ -28,7 +28,7 @@ export const teachers: Teacher[] = [
     name: "أ. عبدالله السلمي",
     title: "معلم قرآن كريم",
     bio: "معلم قرآن كريم بخبرة تزيد عن 10 سنوات في مجال تعليم القرآن الكريم والتجويد، لديه إسناد متصل وعمل بمعظم المنابر التعليمية المعتمدة.",
-    avatarInitial: "ع",
+    avatarUrl: "/images/teacher-male.jpg",
     gender: "male",
     stats: { students: 1200, yearsExperience: 10, completedSessions: 4500, rating: 4.9 },
     specialties: ["التحفيظ", "التجويد", "التلاوة", "المراجعة"],
@@ -58,7 +58,7 @@ export const teachers: Teacher[] = [
     name: "أ. فاطمة الزهراني",
     title: "معلمة قرآن كريم",
     bio: "معلمة متخصصة في تعليم القرآن الكريم للنساء والأطفال، حاصلة على إجازة في القراءات العشر وخبرة 8 سنوات في التحفيظ عن بُعد.",
-    avatarInitial: "ف",
+    avatarUrl: "/images/teacher-female.jpg",
     gender: "female",
     stats: { students: 950, yearsExperience: 8, completedSessions: 3200, rating: 4.8 },
     specialties: ["برامج النساء", "براعم متقن", "التجويد"],

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { getTeacherBySlug, teachers } from "@/data/teachers";
 import { Breadcrumb, Rating } from "@/components/ui";
 import TeacherProfileTabs from "@/components/TeacherProfileTabs";
@@ -44,8 +45,8 @@ export default async function TeacherProfilePage({
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[320px_1fr]">
         <aside className="card flex h-fit flex-col items-center gap-5 p-7 text-center">
-          <div className="flex h-28 w-28 items-center justify-center rounded-full bg-gold-light text-4xl font-extrabold text-gold-dark" aria-hidden="true">
-            {teacher.avatarInitial}
+          <div className="relative h-28 w-28 overflow-hidden rounded-full">
+            <Image src={teacher.avatarUrl} alt={teacher.name} fill sizes="112px" className="object-cover" />
           </div>
           <div>
             <h1 className="text-xl font-extrabold text-ink">{teacher.name}</h1>
