@@ -3,6 +3,7 @@
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { teacherNav } from "@/components/dashboard/teacherNav";
+import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
 import { teacherSchedule } from "@/data/dashboard";
 import { IconClock } from "@/components/icons";
 
@@ -33,7 +34,8 @@ export default function TeacherSchedulePage() {
                       {s.time}
                     </div>
                     <div className="text-sm font-bold text-ink">{s.student}</div>
-                    <div className="text-xs text-ink-soft">{s.program}</div>
+                    <div className="mb-3 text-xs text-ink-soft">{s.program}</div>
+                    <JoinMeetingButton url={s.meetingUrl} label="بدء الحصة" className="w-full justify-center" />
                   </div>
                 ))}
               </div>

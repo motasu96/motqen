@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useBookings } from "@/lib/useBookings";
 import { useToast } from "@/components/Toast";
+import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
 import { IconCalendar, IconCheck, IconClock } from "@/components/icons";
 
 const TIME_SLOTS = ["4:00 م", "5:30 م", "7:00 م", "8:30 م"];
@@ -113,13 +114,16 @@ export default function BookingCalendar() {
                     <div className="text-xs text-ink-soft">مع {b.teacher}</div>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleCancel(b.id)}
-                  aria-label={`إلغاء حصة ${b.date} الساعة ${b.time}`}
-                  className="text-xs font-bold text-ink-soft transition-colors hover:text-red-500"
-                >
-                  إلغاء
-                </button>
+                <div className="flex items-center gap-3">
+                  <JoinMeetingButton url={b.meetingUrl} label="انضمام" />
+                  <button
+                    onClick={() => handleCancel(b.id)}
+                    aria-label={`إلغاء حصة ${b.date} الساعة ${b.time}`}
+                    className="text-xs font-bold text-ink-soft transition-colors hover:text-red-500"
+                  >
+                    إلغاء
+                  </button>
+                </div>
               </li>
             ))}
           </ul>

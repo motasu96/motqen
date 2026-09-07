@@ -3,6 +3,7 @@
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { studentNav } from "@/components/dashboard/studentNav";
+import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
 import { lessons } from "@/data/dashboard";
 import { IconClock } from "@/components/icons";
 
@@ -29,9 +30,12 @@ export default function StudentLessonsPage() {
                 <div className="text-xs text-ink-soft">{l.date} · الساعة {l.time} · مع {l.teacher}</div>
               </div>
             </div>
-            <span className={`w-fit rounded-pill px-3 py-1 text-xs font-bold ${STATUS_STYLES[l.status]}`}>
-              {l.status}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className={`w-fit rounded-pill px-3 py-1 text-xs font-bold ${STATUS_STYLES[l.status]}`}>
+                {l.status}
+              </span>
+              {l.status === "قادمة" && l.meetingUrl && <JoinMeetingButton url={l.meetingUrl} />}
+            </div>
           </div>
         ))}
       </div>

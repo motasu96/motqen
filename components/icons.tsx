@@ -292,6 +292,14 @@ export function IconMegaphone(props: IconProps) {
     </svg>
   );
 }
+export function IconVideo(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="3" y="6.5" width="12.5" height="11" rx="2.5" />
+      <path d="m15.5 10.3 5-3v9.4l-5-3v-3.4Z" />
+    </svg>
+  );
+}
 export function IconTrophy(props: IconProps) {
   return (
     <svg {...base} {...props}>

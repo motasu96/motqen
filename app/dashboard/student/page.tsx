@@ -3,6 +3,7 @@
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { studentNav } from "@/components/dashboard/studentNav";
 import BookingCalendar from "@/components/dashboard/BookingCalendar";
+import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
 import { useBookings } from "@/lib/useBookings";
 import { IconTask, IconTrophy } from "@/components/icons";
 
@@ -77,9 +78,10 @@ export default function StudentDashboardPage() {
               <>
                 <h3 className="text-lg font-extrabold text-ink">{nextLesson.date}</h3>
                 <p className="text-xs text-ink-soft">الساعة {nextLesson.time}</p>
-                <span className="mt-auto w-fit rounded-pill bg-gold-light px-3 py-1 text-xs font-bold text-gold-dark">
+                <span className="w-fit rounded-pill bg-gold-light px-3 py-1 text-xs font-bold text-gold-dark">
                   مع {nextLesson.teacher}
                 </span>
+                <JoinMeetingButton url={nextLesson.meetingUrl} className="mt-auto w-full justify-center" />
               </>
             ) : (
               <p className="text-sm text-ink-soft">لا توجد حصص قادمة، احجز موعدك الآن.</p>

@@ -6,10 +6,11 @@ export type LessonRecord = {
   surah: string;
   range: string;
   status: "مكتملة" | "قادمة" | "ملغاة";
+  meetingUrl?: string;
 };
 
 export const lessons: LessonRecord[] = [
-  { id: "l1", date: "2026-09-06", time: "5:30 م", teacher: "أ. عبدالله السلمي", surah: "سورة البقرة", range: "من 120 إلى 145", status: "قادمة" },
+  { id: "l1", date: "2026-09-06", time: "5:30 م", teacher: "أ. عبدالله السلمي", surah: "سورة البقرة", range: "من 120 إلى 145", status: "قادمة", meetingUrl: "https://zoom.us/test" },
   { id: "l2", date: "2026-08-30", time: "5:30 م", teacher: "أ. عبدالله السلمي", surah: "سورة البقرة", range: "من 95 إلى 120", status: "مكتملة" },
   { id: "l3", date: "2026-08-23", time: "5:30 م", teacher: "أ. عبدالله السلمي", surah: "سورة البقرة", range: "من 70 إلى 95", status: "مكتملة" },
   { id: "l4", date: "2026-08-16", time: "5:30 م", teacher: "أ. عبدالله السلمي", surah: "سورة البقرة", range: "من 40 إلى 70", status: "مكتملة" },
@@ -104,15 +105,16 @@ export type ScheduleSlot = {
   time: string;
   student: string;
   program: string;
+  meetingUrl: string;
 };
 
 export const teacherSchedule: ScheduleSlot[] = [
-  { id: "sc1", day: "السبت", time: "4:00 م", student: "أحمد محمد", program: "الحفظ المتقن" },
-  { id: "sc2", day: "السبت", time: "5:30 م", student: "سلطان عبدالله", program: "الحفظ المتقن" },
-  { id: "sc3", day: "الأحد", time: "4:00 م", student: "يوسف باشا", program: "التلاوة والتجويد" },
-  { id: "sc4", day: "الاثنين", time: "7:00 م", student: "عبدالرحمن خالد", program: "الحفظ المتقن" },
-  { id: "sc5", day: "الثلاثاء", time: "5:30 م", student: "محمد ياسر", program: "المراجعة والحفظ" },
-  { id: "sc6", day: "الأربعاء", time: "8:30 م", student: "أحمد محمد", program: "الحفظ المتقن" },
+  { id: "sc1", day: "السبت", time: "4:00 م", student: "أحمد محمد", program: "الحفظ المتقن", meetingUrl: "https://zoom.us/test" },
+  { id: "sc2", day: "السبت", time: "5:30 م", student: "سلطان عبدالله", program: "الحفظ المتقن", meetingUrl: "https://zoom.us/test" },
+  { id: "sc3", day: "الأحد", time: "4:00 م", student: "يوسف باشا", program: "التلاوة والتجويد", meetingUrl: "https://zoom.us/test" },
+  { id: "sc4", day: "الاثنين", time: "7:00 م", student: "عبدالرحمن خالد", program: "الحفظ المتقن", meetingUrl: "https://zoom.us/test" },
+  { id: "sc5", day: "الثلاثاء", time: "5:30 م", student: "محمد ياسر", program: "المراجعة والحفظ", meetingUrl: "https://zoom.us/test" },
+  { id: "sc6", day: "الأربعاء", time: "8:30 م", student: "أحمد محمد", program: "الحفظ المتقن", meetingUrl: "https://zoom.us/test" },
 ];
 
 export type TeacherHomeworkReview = {
