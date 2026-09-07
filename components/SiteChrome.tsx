@@ -8,7 +8,7 @@ import PageTransition from "./PageTransition";
 
 export default function SiteChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const isDashboard = pathname?.startsWith("/dashboard");
+  const isDashboard = pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin");
 
   if (isDashboard) {
     return (

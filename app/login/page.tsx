@@ -8,22 +8,16 @@ import { useToast } from "@/components/Toast";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [role, setRole] = useState<"student" | "teacher" | "admin">("student");
+  const [role, setRole] = useState<"student" | "teacher">("student");
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
-
-  const ROLE_ROUTES: Record<typeof role, string> = {
-    student: "/dashboard/student",
-    teacher: "/dashboard/teacher",
-    admin: "/dashboard/admin",
-  };
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setTimeout(() => {
       showToast("تم تسجيل الدخول بنجاح، مرحبًا بعودتك.", "success");
-      router.push(ROLE_ROUTES[role]);
+      router.push(role === "student" ? "/dashboard/student" : "/dashboard/teacher");
     }, 500);
   }
 
@@ -36,12 +30,11 @@ export default function LoginPage() {
           <p className="text-sm text-ink-soft">مرحبًا بعودتك، سجّل الدخول لمتابعة رحلتك مع القرآن الكريم</p>
         </div>
 
-        <div className="mb-6 grid grid-cols-3 gap-2 rounded-pill border border-line bg-bg p-1" role="group" aria-label="نوع الحساب">
+        <div className="mb-6 grid grid-cols-2 gap-2 rounded-pill border border-line bg-bg p-1" role="group" aria-label="نوع الحساب">
           {(
             [
               { key: "student", label: "طالب" },
               { key: "teacher", label: "معلم" },
-              { key: "admin", label: "مدير" },
             ] as const
           ).map((r) => (
             <button
