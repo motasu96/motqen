@@ -48,8 +48,9 @@ export default function RoomClient({
         parentNode: containerRef.current,
         width: "100%",
         height: "100%",
+        lang: "ar",
         userInfo: { displayName },
-        configOverwrite: { prejoinPageEnabled: true, disableDeepLinking: true },
+        configOverwrite: { prejoinPageEnabled: true, disableDeepLinking: true, defaultLanguage: "ar" },
         interfaceConfigOverwrite: { SHOW_JITSI_WATERMARK: false, SHOW_WATERMARK_FOR_GUESTS: false, MOBILE_APP_PROMO: false },
       });
       api.executeCommand("subject", subject);
