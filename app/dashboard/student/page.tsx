@@ -81,7 +81,12 @@ export default function StudentDashboardPage() {
                 <span className="w-fit rounded-pill bg-gold-light px-3 py-1 text-xs font-bold text-gold-dark">
                   مع {nextLesson.teacher}
                 </span>
-                <JoinMeetingButton url={nextLesson.meetingUrl} className="mt-auto w-full justify-center" />
+                <JoinMeetingButton
+                  room={nextLesson.id}
+                  displayName="أحمد محمد"
+                  subject="حصة قرآن كريم"
+                  className="mt-auto w-full justify-center"
+                />
               </>
             ) : (
               <p className="text-sm text-ink-soft">لا توجد حصص قادمة، احجز موعدك الآن.</p>

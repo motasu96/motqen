@@ -115,7 +115,7 @@ export default function BookingCalendar() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <JoinMeetingButton url={b.meetingUrl} label="انضمام" />
+                  <JoinMeetingButton room={b.id} displayName="أحمد محمد" subject="حصة قرآن كريم" label="انضمام" />
                   <button
                     onClick={() => handleCancel(b.id)}
                     aria-label={`إلغاء حصة ${b.date} الساعة ${b.time}`}

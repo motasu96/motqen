@@ -35,7 +35,13 @@ export default function TeacherSchedulePage() {
                     </div>
                     <div className="text-sm font-bold text-ink">{s.student}</div>
                     <div className="mb-3 text-xs text-ink-soft">{s.program}</div>
-                    <JoinMeetingButton url={s.meetingUrl} label="بدء الحصة" className="w-full justify-center" />
+                    <JoinMeetingButton
+                      room={s.id}
+                      displayName="أ. عبدالله السلمي"
+                      subject={`${s.student} — ${s.program}`}
+                      label="بدء الحصة"
+                      className="w-full justify-center"
+                    />
                   </div>
                 ))}
               </div>

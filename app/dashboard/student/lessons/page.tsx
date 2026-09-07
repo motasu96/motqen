@@ -34,7 +34,9 @@ export default function StudentLessonsPage() {
               <span className={`w-fit rounded-pill px-3 py-1 text-xs font-bold ${STATUS_STYLES[l.status]}`}>
                 {l.status}
               </span>
-              {l.status === "قادمة" && l.meetingUrl && <JoinMeetingButton url={l.meetingUrl} />}
+              {l.status === "قادمة" && (
+                <JoinMeetingButton room={l.id} displayName="أحمد محمد" subject={`${l.surah} — ${l.range}`} />
+              )}
             </div>
           </div>
         ))}

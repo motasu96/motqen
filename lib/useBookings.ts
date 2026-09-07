@@ -8,7 +8,6 @@ export type Booking = {
   time: string; // e.g. "5:30 م"
   teacher: string;
   status: "upcoming" | "completed" | "cancelled";
-  meetingUrl: string;
 };
 
 const STORAGE_KEY = "motqen_sessions";
@@ -24,7 +23,6 @@ function defaultBookings(): Booking[] {
       time: "5:30 م",
       teacher: "أ. عبدالله السلمي",
       status: "upcoming",
-      meetingUrl: "https://zoom.us/test",
     },
   ];
 }
@@ -64,7 +62,6 @@ export function useBookings() {
         time,
         teacher,
         status: "upcoming",
-        meetingUrl: "https://zoom.us/test",
       };
       persist([...bookings, booking]);
       return booking;
