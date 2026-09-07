@@ -9,7 +9,7 @@ export type LessonRecord = {
 };
 
 export const lessons: LessonRecord[] = [
-  { id: "l1", date: "2026-09-06", time: "5:30 م", teacher: "أ. عبدالله السلمي", surah: "سورة البقرة", range: "من 120 إلى 145", status: "قادمة" },
+  { id: "session-ahmed-abdullah", date: "2026-09-06", time: "5:30 م", teacher: "أ. عبدالله السلمي", surah: "سورة البقرة", range: "من 120 إلى 145", status: "قادمة" },
   { id: "l2", date: "2026-08-30", time: "5:30 م", teacher: "أ. عبدالله السلمي", surah: "سورة البقرة", range: "من 95 إلى 120", status: "مكتملة" },
   { id: "l3", date: "2026-08-23", time: "5:30 م", teacher: "أ. عبدالله السلمي", surah: "سورة البقرة", range: "من 70 إلى 95", status: "مكتملة" },
   { id: "l4", date: "2026-08-16", time: "5:30 م", teacher: "أ. عبدالله السلمي", surah: "سورة البقرة", range: "من 40 إلى 70", status: "مكتملة" },
@@ -107,7 +107,7 @@ export type ScheduleSlot = {
 };
 
 export const teacherSchedule: ScheduleSlot[] = [
-  { id: "sc1", day: "السبت", time: "4:00 م", student: "أحمد محمد", program: "الحفظ المتقن" },
+  { id: "session-ahmed-abdullah", day: "الأحد", time: "5:30 م", student: "أحمد محمد", program: "الحفظ المتقن" },
   { id: "sc2", day: "السبت", time: "5:30 م", student: "سلطان عبدالله", program: "الحفظ المتقن" },
   { id: "sc3", day: "الأحد", time: "4:00 م", student: "يوسف باشا", program: "التلاوة والتجويد" },
   { id: "sc4", day: "الاثنين", time: "7:00 م", student: "عبدالرحمن خالد", program: "الحفظ المتقن" },

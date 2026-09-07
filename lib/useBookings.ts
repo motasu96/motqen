@@ -18,7 +18,7 @@ function defaultBookings(): Booking[] {
   next.setDate(today.getDate() + 2);
   return [
     {
-      id: "seed-1",
+      id: "session-ahmed-abdullah",
       date: next.toISOString().slice(0, 10),
       time: "5:30 م",
       teacher: "أ. عبدالله السلمي",
