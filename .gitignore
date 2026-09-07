@@ -1,0 +1,14 @@
+node_modules/
+.next/
+.open-next/
+.wrangler/
+.data/
+*.local.json
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
+next-env.d.ts
+.vercel/
+*.tsbuildinfo

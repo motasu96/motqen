@@ -1,0 +1,21 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"main": ".open-next/worker.js",
+	"name": "emerald-portfolio",
+	"compatibility_date": "2025-09-01",
+	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "emerald-portfolio-db",
+			// Create with `wrangler d1 create emerald-portfolio-db`, then paste the
+			// returned database_id here before deploying.
+			"database_id": "<D1_DATABASE_ID>",
+			"migrations_dir": "drizzle"
+		}
+	]
+}
