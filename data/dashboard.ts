@@ -131,3 +131,98 @@ export const teacherHomeworkReviews: TeacherHomeworkReview[] = [
   { id: "th4", student: "عبدالرحمن خالد", title: "تسميع الآيات 40 إلى 70", submittedDate: "2026-08-29", status: "تمت المراجعة", grade: "8.5 / 10" },
   { id: "th5", student: "محمد ياسر", title: "مراجعة سورة الملك", submittedDate: "2026-08-27", status: "تمت المراجعة", grade: "7 / 10" },
 ];
+
+export type PlatformStat = {
+  label: string;
+  value: string;
+  delta?: string;
+};
+
+export const platformStats: PlatformStat[] = [
+  { label: "إجمالي الطلاب", value: "2,480", delta: "+12% عن الشهر الماضي" },
+  { label: "إجمالي المعلمين", value: "34", delta: "+3 معلمين جدد" },
+  { label: "البرامج النشطة", value: "6" },
+  { label: "الإيرادات الشهرية", value: "412,500 ر.س", delta: "+8% عن الشهر الماضي" },
+];
+
+export type AdminTeacher = {
+  id: string;
+  name: string;
+  specialty: string;
+  students: number;
+  rating: number;
+  status: "نشط" | "موقوف" | "قيد المراجعة";
+  joinDate: string;
+};
+
+export const adminTeachers: AdminTeacher[] = [
+  { id: "at1", name: "أ. عبدالله السلمي", specialty: "التحفيظ والتجويد", students: 1200, rating: 4.9, status: "نشط", joinDate: "2019-03-12" },
+  { id: "at2", name: "أ. فاطمة الزهراني", specialty: "برامج النساء والأطفال", students: 950, rating: 4.8, status: "نشط", joinDate: "2020-07-01" },
+  { id: "at3", name: "أ. خالد المطيري", specialty: "القراءات العشر", students: 180, rating: 4.7, status: "نشط", joinDate: "2021-01-20" },
+  { id: "at4", name: "أ. سارة الحربي", specialty: "براعم متقن", students: 410, rating: 4.6, status: "نشط", joinDate: "2021-09-15" },
+  { id: "at5", name: "أ. ماجد القحطاني", specialty: "المراجعة والحفظ", students: 260, rating: 4.5, status: "قيد المراجعة", joinDate: "2026-08-01" },
+  { id: "at6", name: "أ. نورة العتيبي", specialty: "التلاوة والتجويد", students: 95, rating: 4.9, status: "موقوف", joinDate: "2022-02-10" },
+];
+
+export type AdminStudent = {
+  id: string;
+  name: string;
+  program: string;
+  teacher: string;
+  progress: number;
+  status: "منتظم" | "متأخر" | "متعثر";
+  joinDate: string;
+};
+
+export const adminStudents: AdminStudent[] = [
+  { id: "as1", name: "أحمد محمد", program: "الحفظ المتقن", teacher: "أ. عبدالله السلمي", progress: 68, status: "منتظم", joinDate: "2025-10-02" },
+  { id: "as2", name: "عبدالرحمن خالد", program: "الحفظ المتقن", teacher: "أ. عبدالله السلمي", progress: 41, status: "متأخر", joinDate: "2025-11-19" },
+  { id: "as3", name: "يوسف باشا", program: "التلاوة والتجويد", teacher: "أ. نورة العتيبي", progress: 77, status: "منتظم", joinDate: "2025-09-05" },
+  { id: "as4", name: "محمد ياسر", program: "المراجعة والحفظ", teacher: "أ. ماجد القحطاني", progress: 22, status: "متعثر", joinDate: "2026-01-14" },
+  { id: "as5", name: "سلطان عبدالله", program: "الحفظ المتقن", teacher: "أ. عبدالله السلمي", progress: 85, status: "منتظم", joinDate: "2025-08-30" },
+  { id: "as6", name: "نورة القحطاني", program: "برامج النساء", teacher: "أ. فاطمة الزهراني", progress: 90, status: "منتظم", joinDate: "2025-07-11" },
+  { id: "as7", name: "هند السبيعي", program: "براعم متقن", teacher: "أ. سارة الحربي", progress: 55, status: "منتظم", joinDate: "2026-02-20" },
+  { id: "as8", name: "منى العتيبي", program: "القراءات العشر", teacher: "أ. خالد المطيري", progress: 30, status: "متأخر", joinDate: "2026-03-08" },
+];
+
+export type AdminProgram = {
+  slug: string;
+  title: string;
+  enrolled: number;
+  teachers: number;
+  monthlyRevenue: number;
+  status: "منشور" | "مسودة";
+};
+
+export const adminPrograms: AdminProgram[] = [
+  { slug: "hifz-mutqan", title: "الحفظ المتقن", enrolled: 980, teachers: 14, monthlyRevenue: 168000, status: "منشور" },
+  { slug: "tilawa-tajweed", title: "التلاوة والتجويد", enrolled: 540, teachers: 8, monthlyRevenue: 92000, status: "منشور" },
+  { slug: "muraja-hifz", title: "المراجعة والحفظ", enrolled: 320, teachers: 5, monthlyRevenue: 58000, status: "منشور" },
+  { slug: "bara-em-mutqin", title: "براعم متقن", enrolled: 410, teachers: 6, monthlyRevenue: 61000, status: "منشور" },
+  { slug: "qiraat-ashr", title: "القراءات العشر", enrolled: 95, teachers: 3, monthlyRevenue: 22500, status: "منشور" },
+  { slug: "barnamej-nisaa", title: "برامج النساء", enrolled: 135, teachers: 4, monthlyRevenue: 27000, status: "مسودة" },
+];
+
+export type AdminArticle = {
+  slug: string;
+  title: string;
+  author: string;
+  status: "منشور" | "مسودة";
+  views: number;
+  date: string;
+};
+
+export const adminArticles: AdminArticle[] = [
+  { slug: "keeping-quran-after-hifz", title: "كيف تحافظ على القرآن بعد حفظه؟", author: "أ. عبدالله السلمي", status: "منشور", views: 3420, date: "2024-05-30" },
+  { slug: "raising-kids-on-quran", title: "تربية الأطفال على حفظ القرآن", author: "أ. فاطمة الزهراني", status: "منشور", views: 2810, date: "2024-05-18" },
+  { slug: "common-tilawa-mistakes", title: "أخطاء شائعة في تعلم التلاوة", author: "أ. خالد المطيري", status: "منشور", views: 1950, date: "2024-05-10" },
+  { slug: "virtue-of-hifz", title: "فضل حفظ القرآن وتعلمه", author: "فريق متقن", status: "منشور", views: 4100, date: "2024-05-05" },
+  { slug: "effective-revision-tips", title: "نصائح للمراجعة الفعالة", author: "أ. ماجد القحطاني", status: "مسودة", views: 0, date: "2024-04-28" },
+  { slug: "tajweed-rules-simplified", title: "أحكام التجويد المبسطة للمبتدئين", author: "أ. سارة الحربي", status: "منشور", views: 2260, date: "2024-04-20" },
+];
+
+export const adminNotices: Notice[] = [
+  { id: "an1", title: "تحديث سياسة الخصوصية", body: "تم تحديث سياسة الخصوصية وشروط الاستخدام لجميع مستخدمي المنصة، يرجى الاطلاع عليها من صفحة الإعدادات.", date: "2026-09-03" },
+  { id: "an2", title: "صيانة مجدولة للمنصة", body: "ستشهد المنصة صيانة تقنية مجدولة يوم الجمعة من الساعة 2 إلى 4 فجرًا، قد يتوقف الوصول للمنصة خلال هذه الفترة.", date: "2026-08-28" },
+  { id: "an3", title: "إطلاق نظام تقييم المعلمين", body: "تم إطلاق نظام تقييم جديد للمعلمين يعتمد على أداء الحصص ورضا الطلاب، سيظهر في تقارير المعلمين الشهرية.", date: "2026-08-18" },
+];
