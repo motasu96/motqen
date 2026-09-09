@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import DashboardChrome from "@/components/DashboardChrome";
 
 export const metadata: Metadata = {
   title: "لوحة التحكم | متقن",
@@ -6,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return <DashboardChrome>{children}</DashboardChrome>;
 }
