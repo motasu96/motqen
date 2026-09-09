@@ -10,16 +10,19 @@ export default function JoinMeetingButton({
   subject,
   label = "الانضمام للحصة",
   className = "",
+  lobby = false,
 }: {
   room: string;
   displayName: string;
   subject: string;
   label?: string;
   className?: string;
+  lobby?: boolean;
 }) {
   const { showToast } = useToast();
 
   const params = new URLSearchParams({ name: displayName, subject });
+  if (lobby) params.set("lobby", "1");
   const href = `/dashboard/room/${encodeURIComponent(room)}?${params.toString()}`;
 
   return (

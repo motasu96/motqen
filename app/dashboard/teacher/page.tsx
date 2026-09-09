@@ -2,7 +2,8 @@
 
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { teacherNav } from "@/components/dashboard/teacherNav";
-import { IconCalendar, IconChart, IconTask, IconUsers } from "@/components/icons";
+import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
+import { IconCalendar, IconChart, IconTask, IconUsers, IconShield } from "@/components/icons";
 
 const STATS = [
   { icon: IconUsers, value: "125", label: "إجمالي الطلاب" },
@@ -43,6 +44,28 @@ export default function TeacherDashboardPage() {
               <span className="text-xs text-ink-soft">{s.label}</span>
             </div>
           ))}
+        </div>
+
+        <div className="card flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gold-light">
+              <IconShield className="h-5 w-5 text-gold-dark" />
+            </span>
+            <div>
+              <h3 className="text-base font-extrabold text-ink">الدخول المباشر</h3>
+              <p className="text-sm text-ink-soft">
+                افتح غرفتك لاستقبال الطلاب مباشرة بلا حجز مسبق — الغرفة تبقى محمية، ويجب أن تقبل كل طالب يحاول الدخول بنفسك.
+              </p>
+            </div>
+          </div>
+          <JoinMeetingButton
+            room="teacher-abdullah-alsalmi"
+            displayName="أ. عبدالله السلمي"
+            subject="استقبال طلاب مباشر"
+            label="فتح غرفتي المباشرة"
+            lobby
+            className="shrink-0 justify-center"
+          />
         </div>
 
         <div className="card overflow-hidden p-0">

@@ -5,7 +5,7 @@ import { studentNav } from "@/components/dashboard/studentNav";
 import BookingCalendar from "@/components/dashboard/BookingCalendar";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
 import { useBookings } from "@/lib/useBookings";
-import { IconTask, IconTrophy } from "@/components/icons";
+import { IconTask, IconTrophy, IconShield } from "@/components/icons";
 
 const HOMEWORK = [
   { title: "تسميع الآيات 120 إلى 145", type: "تسميع", due: "24 مايو 2026" },
@@ -92,6 +92,27 @@ export default function StudentDashboardPage() {
               <p className="text-sm text-ink-soft">لا توجد حصص قادمة، احجز موعدك الآن.</p>
             )}
           </div>
+        </div>
+
+        <div className="card flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gold-light">
+              <IconShield className="h-5 w-5 text-gold-dark" />
+            </span>
+            <div>
+              <h3 className="text-base font-extrabold text-ink">تواصل مباشر مع معلمك</h3>
+              <p className="text-sm text-ink-soft">
+                إن كان معلمك متصلًا الآن، يمكنك طلب الدخول لحصة مباشرة بلا حجز مسبق. سينضم طلبك إلى الحصة بعد موافقته عليه.
+              </p>
+            </div>
+          </div>
+          <JoinMeetingButton
+            room="teacher-abdullah-alsalmi"
+            displayName="أحمد محمد"
+            subject="طلب دخول مباشر"
+            label="طلب الدخول الآن"
+            className="shrink-0 justify-center"
+          />
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">

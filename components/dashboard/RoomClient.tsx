@@ -28,10 +28,12 @@ export default function RoomClient({
   room,
   displayName,
   subject,
+  enableLobby,
 }: {
   room: string;
   displayName: string;
   subject: string;
+  enableLobby?: boolean;
 }) {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -55,6 +57,11 @@ export default function RoomClient({
       });
       api.executeCommand("subject", subject);
       api.addEventListener("readyToClose", () => router.back());
+      if (enableLobby) {
+        api.addEventListener("videoConferenceJoined", () => {
+          api.executeCommand("toggleLobby", true);
+        });
+      }
       apiRef.current = api;
     }
 
@@ -75,14 +82,21 @@ export default function RoomClient({
       apiRef.current?.dispose();
       apiRef.current = null;
     };
-  }, [room, displayName, subject, router]);
+  }, [room, displayName, subject, enableLobby, router]);
 
   return (
     <>
       <Script src={`https://${JITSI_DOMAIN}/external_api.js`} strategy="afterInteractive" />
       <div className="flex h-screen flex-col bg-ink">
         <div className="flex items-center justify-between border-b border-white/10 px-5 py-3">
-          <span className="rounded-xl bg-[#FBF7EE] px-3 py-1.5 text-sm font-extrabold text-gold-dark">مُتقن</span>
+          <div className="flex items-center gap-3">
+            <span className="rounded-xl bg-[#FBF7EE] px-3 py-1.5 text-sm font-extrabold text-gold-dark">مُتقن</span>
+            {enableLobby && (
+              <span className="rounded-pill bg-white/10 px-3 py-1.5 text-xs font-bold text-white/80">
+                غرفة محمية — يلزم موافقتك لإدخال الطلاب
+              </span>
+            )}
+          </div>
           <button
             onClick={() => router.back()}
             className="flex items-center gap-2 rounded-pill bg-white/10 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-white/20"

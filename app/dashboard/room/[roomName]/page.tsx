@@ -11,16 +11,17 @@ export default async function RoomPage({
   searchParams,
 }: {
   params: Promise<{ roomName: string }>;
-  searchParams: Promise<{ name?: string; subject?: string }>;
+  searchParams: Promise<{ name?: string; subject?: string; lobby?: string }>;
 }) {
   const { roomName } = await params;
-  const { name, subject } = await searchParams;
+  const { name, subject, lobby } = await searchParams;
 
   return (
     <RoomClient
       room={roomName}
       displayName={name || "ضيف"}
       subject={subject || "حصة متقن"}
+      enableLobby={lobby === "1"}
     />
   );
 }
