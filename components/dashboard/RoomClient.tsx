@@ -17,7 +17,7 @@ type JitsiMeetAPI = {
   addEventListener: (event: string, handler: () => void) => void;
 };
 
-const JITSI_DOMAIN = "64.225.110.147.nip.io";
+const JITSI_DOMAIN = "meet.motqen.site";
 
 function sanitizeRoomName(raw: string) {
   const cleaned = raw.replace(/[^a-zA-Z0-9]/g, "");
