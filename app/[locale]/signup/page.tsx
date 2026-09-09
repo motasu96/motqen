@@ -2,8 +2,8 @@
 
 import { Suspense, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { useSearchParams } from "next/navigation";
-import { Link, useRouter } from "@/i18n/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Link } from "@/i18n/navigation";
 import Logo from "@/components/Logo";
 import { programs } from "@/data/programs";
 import { IconCheck } from "@/components/icons";
