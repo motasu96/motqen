@@ -32,7 +32,7 @@ export default function ContactPage() {
             </span>
             <div>
               <div className="text-sm text-ink-soft">البريد الإلكتروني</div>
-              <div dir="ltr" className="font-bold text-ink">info@motqen.com</div>
+              <div dir="ltr" className="font-bold text-ink">info@motqen.site</div>
             </div>
           </div>
           <div className="card flex items-center gap-4 p-6">

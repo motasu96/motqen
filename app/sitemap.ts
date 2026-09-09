@@ -3,7 +3,7 @@ import { programs } from "@/data/programs";
 import { teachers } from "@/data/teachers";
 import { articles } from "@/data/articles";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://motqen.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.motqen.site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes = ["", "/about", "/programs", "/teachers", "/articles", "/contact"].map(

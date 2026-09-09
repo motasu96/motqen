@@ -11,7 +11,7 @@ const tajawal = Tajawal({
   display: "swap",
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://motqen.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.motqen.site";
 const SITE_TITLE = "متقن | مقرأة القرآن الكريم";
 const SITE_DESCRIPTION =
   "منصة تعليمية إلكترونية متخصصة في تعليم القرآن الكريم عن بُعد، بإشراف نخبة من المعلمين والمعلمات.";

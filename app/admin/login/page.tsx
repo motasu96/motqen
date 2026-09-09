@@ -35,7 +35,7 @@ export default function AdminLoginPage() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <label htmlFor="admin-login-email" className="text-sm font-bold text-ink">البريد الإلكتروني</label>
-            <input id="admin-login-email" required type="email" dir="ltr" className="input" placeholder="admin@motqen.com" />
+            <input id="admin-login-email" required type="email" dir="ltr" className="input" placeholder="admin@motqen.site" />
           </div>
           <div className="flex flex-col gap-2">
             <label htmlFor="admin-login-password" className="text-sm font-bold text-ink">كلمة المرور</label>

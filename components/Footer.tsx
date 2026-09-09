@@ -50,7 +50,7 @@ export default function Footer() {
           <h4 className="text-sm font-extrabold text-ink">تواصل معنا</h4>
           <div className="flex items-center gap-2 text-sm text-ink-soft">
             <IconMail className="h-4 w-4 shrink-0 text-gold" aria-hidden="true" />
-            <span dir="ltr">info@motqen.com</span>
+            <span dir="ltr">info@motqen.site</span>
           </div>
           <div className="flex items-center gap-2 text-sm text-ink-soft">
             <IconPhone className="h-4 w-4 shrink-0 text-gold" aria-hidden="true" />
