@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { IconVideo } from "@/components/icons";
 import { useToast } from "@/components/Toast";
 
@@ -8,7 +9,7 @@ export default function JoinMeetingButton({
   room,
   displayName,
   subject,
-  label = "الانضمام للحصة",
+  label,
   className = "",
   lobby = false,
 }: {
@@ -20,6 +21,7 @@ export default function JoinMeetingButton({
   lobby?: boolean;
 }) {
   const { showToast } = useToast();
+  const t = useTranslations("Dashboard.common");
 
   const params = new URLSearchParams({ name: displayName, subject });
   if (lobby) params.set("lobby", "1");
@@ -28,11 +30,11 @@ export default function JoinMeetingButton({
   return (
     <Link
       href={href}
-      onClick={() => showToast("جارٍ فتح غرفة الحصة...", "success")}
+      onClick={() => showToast(t("joiningToast"), "success")}
       className={`flex items-center gap-2 rounded-pill bg-gold-gradient px-4 py-2 text-xs font-bold text-white shadow-soft transition-transform active:scale-95 ${className}`}
     >
       <IconVideo className="h-4 w-4" aria-hidden="true" />
-      {label}
+      {label ?? t("joinLesson")}
     </Link>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { Link, usePathname } from "@/i18n/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import { ComponentType } from "react";
 import { IconLogout, IconMenu, IconX } from "@/components/icons";
@@ -26,6 +26,7 @@ export default function DashboardShell({
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const t = useTranslations("Dashboard");
 
   useEffect(() => {
     if (!open) return;
@@ -70,7 +71,7 @@ export default function DashboardShell({
 
       <Link href="/login" className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold text-ink-soft transition-colors hover:bg-bg hover:text-red-500">
         <IconLogout className="h-5 w-5" aria-hidden="true" />
-        تسجيل خروج
+        {t("logout")}
       </Link>
     </div>
   );
@@ -87,7 +88,7 @@ export default function DashboardShell({
           <button
             onClick={() => setOpen(true)}
             className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-card transition-transform active:scale-95"
-            aria-label="فتح القائمة"
+            aria-label={t("openMenu")}
             aria-expanded={open}
             aria-controls="dashboard-mobile-nav"
           >
@@ -105,7 +106,7 @@ export default function DashboardShell({
               <button
                 onClick={() => setOpen(false)}
                 className="absolute left-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-line transition-transform active:scale-95"
-                aria-label="إغلاق"
+                aria-label={t("closeMenu")}
               >
                 <IconX className="h-4 w-4" aria-hidden="true" />
               </button>

@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import {
   IconBell,
   IconChart,
@@ -8,11 +9,14 @@ import {
 } from "@/components/icons";
 import { DashboardNavItem } from "./DashboardShell";
 
-export const teacherNav: DashboardNavItem[] = [
-  { href: "/dashboard/teacher", label: "الرئيسية", icon: IconHome },
-  { href: "/dashboard/teacher/students", label: "الطلاب", icon: IconUsers },
-  { href: "/dashboard/teacher/schedule", label: "الجدول", icon: IconCalendar },
-  { href: "/dashboard/teacher/homework", label: "الواجبات", icon: IconTask },
-  { href: "/dashboard/teacher/reports", label: "التقارير", icon: IconChart },
-  { href: "/dashboard/teacher/notices", label: "الإعلانات", icon: IconBell },
-];
+export function useTeacherNav(): DashboardNavItem[] {
+  const t = useTranslations("Dashboard.nav");
+  return [
+    { href: "/dashboard/teacher", label: t("home"), icon: IconHome },
+    { href: "/dashboard/teacher/students", label: t("students"), icon: IconUsers },
+    { href: "/dashboard/teacher/schedule", label: t("schedule"), icon: IconCalendar },
+    { href: "/dashboard/teacher/homework", label: t("homework"), icon: IconTask },
+    { href: "/dashboard/teacher/reports", label: t("reports"), icon: IconChart },
+    { href: "/dashboard/teacher/notices", label: t("notices"), icon: IconBell },
+  ];
+}

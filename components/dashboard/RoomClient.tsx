@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import Script from "next/script";
 import { IconX } from "@/components/icons";
 
@@ -36,6 +37,8 @@ export default function RoomClient({
   enableLobby?: boolean;
 }) {
   const router = useRouter();
+  const locale = useLocale();
+  const t = useTranslations("Dashboard.common");
   const containerRef = useRef<HTMLDivElement>(null);
   const apiRef = useRef<JitsiMeetAPI | null>(null);
 
@@ -50,9 +53,9 @@ export default function RoomClient({
         parentNode: containerRef.current,
         width: "100%",
         height: "100%",
-        lang: "ar",
+        lang: locale,
         userInfo: { displayName },
-        configOverwrite: { prejoinPageEnabled: true, disableDeepLinking: true, defaultLanguage: "ar" },
+        configOverwrite: { prejoinPageEnabled: true, disableDeepLinking: true, defaultLanguage: locale },
         interfaceConfigOverwrite: { SHOW_JITSI_WATERMARK: false, SHOW_WATERMARK_FOR_GUESTS: false, MOBILE_APP_PROMO: false },
       });
       api.executeCommand("subject", subject);
@@ -82,7 +85,7 @@ export default function RoomClient({
       apiRef.current?.dispose();
       apiRef.current = null;
     };
-  }, [room, displayName, subject, enableLobby, router]);
+  }, [room, displayName, subject, enableLobby, router, locale]);
 
   return (
     <>
@@ -93,7 +96,7 @@ export default function RoomClient({
             <span className="rounded-xl bg-[#FBF7EE] px-3 py-1.5 text-sm font-extrabold text-gold-dark">مُتقن</span>
             {enableLobby && (
               <span className="rounded-pill bg-white/10 px-3 py-1.5 text-xs font-bold text-white/80">
-                غرفة محمية — يلزم موافقتك لإدخال الطلاب
+                {t("protectedRoomBadge")}
               </span>
             )}
           </div>
@@ -102,7 +105,7 @@ export default function RoomClient({
             className="flex items-center gap-2 rounded-pill bg-white/10 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-white/20"
           >
             <IconX className="h-4 w-4" aria-hidden="true" />
-            مغادرة الغرفة
+            {t("leaveRoom")}
           </button>
         </div>
         <div ref={containerRef} className="flex-1" />

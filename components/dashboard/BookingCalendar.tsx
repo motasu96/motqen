@@ -1,47 +1,51 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useBookings } from "@/lib/useBookings";
 import { useToast } from "@/components/Toast";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
 import { IconCalendar, IconCheck, IconClock } from "@/components/icons";
 
-const TIME_SLOTS = ["4:00 م", "5:30 م", "7:00 م", "8:30 م"];
-const DAY_LABELS = ["أحد", "اثنين", "ثلاثاء", "أربعاء", "خميس", "جمعة", "سبت"];
-const TEACHER = "أ. عبدالله السلمي";
-
-function buildNextDays(count: number) {
+function buildNextDays(count: number, dayLabels: string[]) {
   const days: { iso: string; label: string; dayNum: number }[] = [];
   const today = new Date();
   for (let i = 0; i < count; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
-    days.push({ iso: d.toISOString().slice(0, 10), label: DAY_LABELS[d.getDay()], dayNum: d.getDate() });
+    days.push({ iso: d.toISOString().slice(0, 10), label: dayLabels[d.getDay()], dayNum: d.getDate() });
   }
   return days;
 }
 
 export default function BookingCalendar() {
   const { addBooking, cancelBooking, isSlotTaken, upcoming, ready } = useBookings();
-  const days = useMemo(() => buildNextDays(7), []);
+  const { showToast } = useToast();
+  const t = useTranslations("Dashboard.student");
+  const tc = useTranslations("Dashboard.common");
+
+  const TIME_SLOTS = tc.raw("timeSlots") as string[];
+  const DAY_LABELS = tc.raw("weekDaysShort") as string[];
+  const TEACHER = tc("teacherName");
+
+  const days = useMemo(() => buildNextDays(7, DAY_LABELS), [DAY_LABELS]);
   const [selectedDay, setSelectedDay] = useState(days[0].iso);
   const [confirmedFlash, setConfirmedFlash] = useState<string | null>(null);
-  const { showToast } = useToast();
 
   function handleBook(time: string) {
     if (isSlotTaken(selectedDay, time)) {
-      showToast("هذا الموعد محجوز مسبقًا، اختر موعدًا آخر.", "error");
+      showToast(t("toastSlotTaken"), "error");
       return;
     }
     addBooking(selectedDay, time, TEACHER);
     setConfirmedFlash(time);
     setTimeout(() => setConfirmedFlash(null), 1800);
-    showToast(`تم حجز حصتك يوم ${selectedDay} الساعة ${time} بنجاح.`, "success");
+    showToast(t("toastBooked", { date: selectedDay, time }), "success");
   }
 
   function handleCancel(id: string) {
     cancelBooking(id);
-    showToast("تم إلغاء الحصة.", "info");
+    showToast(t("toastCancelled"), "info");
   }
 
   return (
@@ -49,7 +53,7 @@ export default function BookingCalendar() {
       <div className="flex items-center justify-between">
         <h3 className="flex items-center gap-2 text-base font-extrabold text-ink">
           <IconCalendar className="h-5 w-5 text-gold-dark" />
-          حجز حصة جديدة
+          {t("bookingTitle")}
         </h3>
       </div>
 
@@ -59,7 +63,7 @@ export default function BookingCalendar() {
             key={d.iso}
             onClick={() => setSelectedDay(d.iso)}
             aria-pressed={selectedDay === d.iso}
-            aria-label={`اختر يوم ${d.label} ${d.dayNum}`}
+            aria-label={t("bookingDaySelectAria", { label: d.label, num: d.dayNum })}
             className={`flex shrink-0 flex-col items-center gap-1 rounded-2xl border px-4 py-3 text-center transition-colors ${
               selectedDay === d.iso ? "border-gold bg-gold-light" : "border-line bg-bg hover:border-gold/60"
             }`}
@@ -79,7 +83,7 @@ export default function BookingCalendar() {
               key={time}
               disabled={taken}
               onClick={() => handleBook(time)}
-              aria-label={taken ? `الساعة ${time}، محجوز` : `احجز الساعة ${time}`}
+              aria-label={taken ? t("bookingSlotTakenAria", { time }) : t("bookingSlotFreeAria", { time })}
               className={`flex flex-col items-center gap-1 rounded-2xl border px-3 py-3 text-sm font-bold transition-colors ${
                 taken
                   ? "cursor-not-allowed border-line bg-bg text-ink-soft/60"
@@ -90,17 +94,17 @@ export default function BookingCalendar() {
             >
               <IconClock className="h-4 w-4" />
               {time}
-              {taken && <span className="text-[10px] font-normal">محجوز</span>}
-              {justConfirmed && <span className="text-[10px] font-normal">تم الحجز ✓</span>}
+              {taken && <span className="text-[10px] font-normal">{t("bookingSlotTaken")}</span>}
+              {justConfirmed && <span className="text-[10px] font-normal">{t("bookingSlotConfirmed")}</span>}
             </button>
           );
         })}
       </div>
 
       <div className="border-t border-line pt-5">
-        <h4 className="mb-3 text-sm font-extrabold text-ink">حصصك القادمة</h4>
+        <h4 className="mb-3 text-sm font-extrabold text-ink">{t("upcomingSessionsTitle")}</h4>
         {upcoming.length === 0 ? (
-          <p className="text-sm text-ink-soft">لا توجد حصص محجوزة حاليًا، اختر موعدًا مناسبًا لك أعلاه.</p>
+          <p className="text-sm text-ink-soft">{t("noUpcomingSessions")}</p>
         ) : (
           <ul className="flex flex-col gap-3">
             {upcoming.map((b) => (
@@ -111,17 +115,17 @@ export default function BookingCalendar() {
                   </span>
                   <div>
                     <div className="text-sm font-bold text-ink">{b.date} — {b.time}</div>
-                    <div className="text-xs text-ink-soft">مع {b.teacher}</div>
+                    <div className="text-xs text-ink-soft">{tc("with")} {b.teacher}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <JoinMeetingButton room={b.id} displayName="أحمد محمد" subject="حصة قرآن كريم" label="انضمام" />
+                  <JoinMeetingButton room={b.id} displayName={tc("studentName")} subject={t("sessionSubject")} label={tc("join")} />
                   <button
                     onClick={() => handleCancel(b.id)}
-                    aria-label={`إلغاء حصة ${b.date} الساعة ${b.time}`}
+                    aria-label={t("cancelSessionAria", { date: b.date, time: b.time })}
                     className="text-xs font-bold text-ink-soft transition-colors hover:text-red-500"
                   >
-                    إلغاء
+                    {tc("cancel")}
                   </button>
                 </div>
               </li>

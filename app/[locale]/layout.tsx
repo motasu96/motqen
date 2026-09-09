@@ -4,7 +4,7 @@ import { hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import HtmlAttributesSync from "@/components/HtmlAttributesSync";
-import PublicChrome from "@/components/PublicChrome";
+import SiteChrome from "@/components/SiteChrome";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -26,7 +26,7 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <HtmlAttributesSync />
-      <PublicChrome>{children}</PublicChrome>
+      <SiteChrome>{children}</SiteChrome>
     </NextIntlClientProvider>
   );
 }
