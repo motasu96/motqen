@@ -17,7 +17,7 @@ type JitsiMeetAPI = {
   addEventListener: (event: string, handler: () => void) => void;
 };
 
-const JITSI_DOMAIN = "meet.jit.si";
+const JITSI_DOMAIN = "64.225.110.147.nip.io";
 
 function sanitizeRoomName(raw: string) {
   const cleaned = raw.replace(/[^a-zA-Z0-9]/g, "");
@@ -79,7 +79,7 @@ export default function RoomClient({
 
   return (
     <>
-      <Script src="https://meet.jit.si/external_api.js" strategy="afterInteractive" />
+      <Script src={`https://${JITSI_DOMAIN}/external_api.js`} strategy="afterInteractive" />
       <div className="flex h-screen flex-col bg-ink">
         <div className="flex items-center justify-between border-b border-white/10 px-5 py-3">
           <span className="rounded-xl bg-[#FBF7EE] px-3 py-1.5 text-sm font-extrabold text-gold-dark">مُتقن</span>
