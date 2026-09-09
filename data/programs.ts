@@ -1,3 +1,11 @@
+export type ProgramTranslation = {
+  title: string;
+  short: string;
+  description: string;
+  ageGroup: string;
+  features: string[];
+};
+
 export type Program = {
   slug: string;
   title: string;
@@ -12,6 +20,7 @@ export type Program = {
   sessionsPerWeek: number;
   ageGroup: string;
   features: string[];
+  en: ProgramTranslation;
 };
 
 export const programs: Program[] = [
@@ -36,6 +45,20 @@ export const programs: Program[] = [
       "تقارير مستمرة لأولياء الأمور",
       "شهادة عند إتمام كل جزء",
     ],
+    en: {
+      title: "Mastery Memorization",
+      short: "Memorize the Holy Quran with a precise plan and continuous follow-up",
+      description:
+        "An interactive program designed to memorize the Book of Allah according to a well-structured plan that considers the student's level, with daily teacher follow-up and periodic tests that ensure the memorization is solid and mastered.",
+      ageGroup: "6 years and up",
+      features: [
+        "A memorization plan tailored to each student",
+        "Daily follow-up from the teacher",
+        "Periodic tests and reviews",
+        "Continuous reports for parents",
+        "A certificate upon completing each juz'",
+      ],
+    },
   },
   {
     slug: "tilawa-tajweed",
@@ -56,6 +79,19 @@ export const programs: Program[] = [
       "تدريب صوتي مباشر",
       "متابعة فردية دقيقة",
     ],
+    en: {
+      title: "Recitation & Tajweed",
+      short: "Learn correct recitation and the rules of Tajweed",
+      description:
+        "A specialized program to correct recitation and master the theoretical and practical rules of Tajweed, supervised by teachers holding certified licenses (Ijazahs) in the Quranic readings.",
+      ageGroup: "All ages",
+      features: [
+        "Correcting letter articulation points",
+        "Tajweed rules, theory and practice",
+        "Live vocal training",
+        "Precise individual follow-up",
+      ],
+    },
   },
   {
     slug: "muraja-hifz",
@@ -76,6 +112,19 @@ export const programs: Program[] = [
       "تقارير أداء أسبوعية",
       "مرونة في اختيار المقدار اليومي",
     ],
+    en: {
+      title: "Review & Retention",
+      short: "Specialized programs for reviewing and retaining memorization",
+      description:
+        "A program designed for those who have completed memorizing the Quran, or part of it, and want to preserve it, through an organized periodic review plan that prevents forgetting and reinforces what has been memorized.",
+      ageGroup: "All ages",
+      features: [
+        "An organized periodic review plan",
+        "Specialized supervision for retention",
+        "Weekly performance reports",
+        "Flexibility in choosing the daily amount",
+      ],
+    },
   },
   {
     slug: "bara-em-mutqin",
@@ -96,6 +145,19 @@ export const programs: Program[] = [
       "شارات وتحفيز مستمر",
       "تقارير يومية لولي الأمر",
     ],
+    en: {
+      title: "Motqen Kids",
+      short: "Educational programs for children with fun, interactive methods",
+      description:
+        "A program dedicated to children that combines memorizing the Quran with learning its manners through interactive, motivating methods, in a safe environment that accounts for each child's age differences.",
+      ageGroup: "4 to 12 years old",
+      features: [
+        "Fun, interactive teaching methods",
+        "Female teachers specialized in child education",
+        "Badges and continuous motivation",
+        "Daily reports for parents",
+      ],
+    },
   },
   {
     slug: "qiraat-ashr",
@@ -116,6 +178,19 @@ export const programs: Program[] = [
       "مشايخ متخصصون في علم القراءات",
       "مواعيد مرنة تناسب المجازين",
     ],
+    en: {
+      title: "The Ten Readings",
+      short: "Learn the Ten Readings (Qira'at) with a connected chain of transmission",
+      description:
+        "An advanced program for students of the Ten Readings that prepares the student to obtain a connected-chain Ijazah, supervised by sheikhs specialized in the science of Qira'at.",
+      ageGroup: "For those who have memorized the Quran",
+      features: [
+        "Studying the minor and major Ten Readings",
+        "Connected-chain Ijazah",
+        "Sheikhs specialized in the science of Qira'at",
+        "Flexible timing for licensed reciters",
+      ],
+    },
   },
   {
     slug: "barnamej-nisaa",
@@ -136,6 +211,19 @@ export const programs: Program[] = [
       "خطط مرنة تناسب انشغال المرأة",
       "جميع المسارات: حفظ، تلاوة، مراجعة",
     ],
+    en: {
+      title: "Women's Programs",
+      short: "Dedicated programs for women with complete privacy",
+      description:
+        "Comprehensive educational programs (memorization, recitation, Tajweed) dedicated to women, fully supervised by masterful female teachers and in complete privacy suited to their needs.",
+      ageGroup: "A program dedicated to women",
+      features: [
+        "Masterful female teachers only",
+        "Complete privacy in sessions",
+        "Flexible plans that fit a woman's schedule",
+        "All tracks: memorization, recitation, review",
+      ],
+    },
   },
 ];
 

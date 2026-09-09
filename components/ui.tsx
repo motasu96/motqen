@@ -1,5 +1,6 @@
-import Link from "next/link";
 import { ReactNode } from "react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 export function Eyebrow({ children }: { children: ReactNode }) {
   return <span className="eyebrow">{children}</span>;
@@ -32,8 +33,9 @@ export function Stat({ value, label }: { value: string; label: string }) {
 }
 
 export function Breadcrumb({ items }: { items: { label: string; href?: string }[] }) {
+  const t = useTranslations("Breadcrumb");
   return (
-    <nav aria-label="مسار التنقل" className="flex flex-wrap items-center gap-2 text-sm text-ink-soft">
+    <nav aria-label={t("nav")} className="flex flex-wrap items-center gap-2 text-sm text-ink-soft">
       {items.map((item, i) => (
         <span key={i} className="flex items-center gap-2">
           {item.href ? (
@@ -57,8 +59,9 @@ export function Breadcrumb({ items }: { items: { label: string; href?: string }[
 }
 
 export function Rating({ value }: { value: number }) {
+  const t = useTranslations("Teachers");
   return (
-    <div className="flex items-center gap-1" role="img" aria-label={`التقييم: ${value} من 5`}>
+    <div className="flex items-center gap-1" role="img" aria-label={t("ratingLabel", { value })}>
       {Array.from({ length: 5 }).map((_, i) => (
         <svg
           key={i}

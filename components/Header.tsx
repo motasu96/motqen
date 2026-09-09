@@ -1,23 +1,25 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { Link, usePathname } from "@/i18n/navigation";
 import { IconMenu, IconX } from "./icons";
 import Logo from "./Logo";
-
-const NAV_LINKS = [
-  { href: "/", label: "الرئيسية" },
-  { href: "/about", label: "عن متقن" },
-  { href: "/programs", label: "برامجنا" },
-  { href: "/teachers", label: "المعلمون" },
-  { href: "/articles", label: "المقالات" },
-  { href: "/contact", label: "التواصل" },
-];
+import LocaleSwitcher from "./LocaleSwitcher";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const t = useTranslations("Nav");
+
+  const NAV_LINKS = [
+    { href: "/", label: t("home") },
+    { href: "/about", label: t("about") },
+    { href: "/programs", label: t("programs") },
+    { href: "/teachers", label: t("teachers") },
+    { href: "/articles", label: t("articles") },
+    { href: "/contact", label: t("contact") },
+  ];
 
   useEffect(() => {
     if (!open) return;
@@ -57,16 +59,17 @@ export default function Header() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
+          <LocaleSwitcher />
           <Link href="/login" className="text-sm font-bold text-ink hover:text-gold-dark">
-            تسجيل دخول
+            {t("login")}
           </Link>
           <Link href="/signup" className="btn-primary">
-            سجل الآن
+            {t("signup")}
           </Link>
         </div>
 
         <button
-          aria-label={open ? "إغلاق القائمة" : "فتح القائمة"}
+          aria-label={open ? t("closeMenu") : t("openMenu")}
           aria-expanded={open}
           aria-controls="mobile-nav"
           onClick={() => setOpen((v) => !v)}
@@ -89,12 +92,15 @@ export default function Header() {
                 {link.label}
               </Link>
             ))}
-            <div className="mt-2 flex flex-col gap-2 border-t border-line pt-4">
+            <div className="mt-2 flex items-center justify-between border-t border-line pt-4">
+              <LocaleSwitcher />
+            </div>
+            <div className="mt-2 flex flex-col gap-2">
               <Link href="/login" onClick={() => setOpen(false)} className="btn-outline w-full">
-                تسجيل دخول
+                {t("login")}
               </Link>
               <Link href="/signup" onClick={() => setOpen(false)} className="btn-primary w-full">
-                سجل الآن
+                {t("signup")}
               </Link>
             </div>
           </div>

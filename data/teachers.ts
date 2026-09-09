@@ -5,6 +5,13 @@ export type Review = {
   date: string;
 };
 
+export type TeacherTranslation = {
+  name: string;
+  title: string;
+  bio: string;
+  specialties: string[];
+};
+
 export type Teacher = {
   slug: string;
   name: string;
@@ -20,6 +27,7 @@ export type Teacher = {
   };
   specialties: string[];
   reviews: Review[];
+  en: TeacherTranslation;
 };
 
 export const teachers: Teacher[] = [
@@ -52,6 +60,12 @@ export const teachers: Teacher[] = [
         date: "2024-03-15",
       },
     ],
+    en: {
+      name: "Ust. Abdullah Al-Salmi",
+      title: "Quran Teacher",
+      bio: "A Quran teacher with over 10 years of experience in teaching the Holy Quran and Tajweed, holding a connected chain of transmission (Ijazah) and having worked with most accredited teaching platforms.",
+      specialties: ["Memorization", "Tajweed", "Recitation", "Review"],
+    },
   },
   {
     slug: "fatima-alzahrani",
@@ -76,6 +90,12 @@ export const teachers: Teacher[] = [
         date: "2024-04-11",
       },
     ],
+    en: {
+      name: "Ust. Fatima Al-Zahrani",
+      title: "Quran Teacher",
+      bio: "A teacher specialized in teaching the Holy Quran to women and children, holding an Ijazah in the Ten Readings and with 8 years of experience in remote memorization instruction.",
+      specialties: ["Women's Programs", "Motqen Kids", "Tajweed"],
+    },
   },
 ];
 

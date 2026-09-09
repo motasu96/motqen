@@ -5,28 +5,31 @@ import { articles } from "@/data/articles";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.motqen.site";
 
+function entry(path: string, lastModified: Date): MetadataRoute.Sitemap[number] {
+  return {
+    url: `${SITE_URL}${path}`,
+    lastModified,
+    alternates: {
+      languages: {
+        ar: `${SITE_URL}${path}`,
+        en: `${SITE_URL}/en${path}`,
+      },
+    },
+  };
+}
+
 export default function sitemap(): MetadataRoute.Sitemap {
+  const now = new Date();
+
   const staticRoutes = ["", "/about", "/programs", "/teachers", "/articles", "/contact"].map(
-    (path) => ({
-      url: `${SITE_URL}${path}`,
-      lastModified: new Date(),
-    })
+    (path) => entry(path, now)
   );
 
-  const programRoutes = programs.map((p) => ({
-    url: `${SITE_URL}/programs/${p.slug}`,
-    lastModified: new Date(),
-  }));
+  const programRoutes = programs.map((p) => entry(`/programs/${p.slug}`, now));
 
-  const teacherRoutes = teachers.map((t) => ({
-    url: `${SITE_URL}/teachers/${t.slug}`,
-    lastModified: new Date(),
-  }));
+  const teacherRoutes = teachers.map((t) => entry(`/teachers/${t.slug}`, now));
 
-  const articleRoutes = articles.map((a) => ({
-    url: `${SITE_URL}/articles/${a.slug}`,
-    lastModified: new Date(a.date),
-  }));
+  const articleRoutes = articles.map((a) => entry(`/articles/${a.slug}`, new Date(a.date)));
 
   return [...staticRoutes, ...programRoutes, ...teacherRoutes, ...articleRoutes];
 }
