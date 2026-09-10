@@ -25,6 +25,13 @@ export default function HomePage() {
     { icon: IconPlay, title: t("feature4Title"), desc: t("feature4Desc") },
   ];
 
+  const HERO_BADGES = [
+    { ...FEATURES[3], position: "right-3 top-3 sm:right-6 sm:top-6" },
+    { ...FEATURES[0], position: "left-3 top-3 sm:left-6 sm:top-6" },
+    { ...FEATURES[2], position: "right-3 bottom-3 sm:right-6 sm:bottom-6" },
+    { ...FEATURES[1], position: "left-3 bottom-3 sm:left-6 sm:bottom-6" },
+  ];
+
   const STATS = [
     { value: "+1000", label: t("stat1Label") },
     { value: "+30", label: t("stat2Label") },
@@ -80,10 +87,15 @@ export default function HomePage() {
                 sizes="(min-width: 1024px) 448px, 90vw"
                 className="object-cover"
               />
-              <div className="absolute right-4 top-4 flex items-center gap-2 rounded-2xl border border-line bg-card px-3 py-2 shadow-soft sm:right-6 sm:top-6">
-                <IconPlay className="h-5 w-5 text-gold-dark" aria-hidden="true" />
-                <span className="text-xs font-bold text-ink">{t("heroCorner")}</span>
-              </div>
+              {HERO_BADGES.map((b) => (
+                <div
+                  key={b.title}
+                  className={`absolute flex max-w-[112px] items-center gap-1.5 rounded-2xl border border-line bg-card px-2.5 py-1.5 shadow-soft sm:max-w-[150px] sm:gap-2 sm:px-3 sm:py-2 ${b.position}`}
+                >
+                  <b.icon className="h-4 w-4 shrink-0 text-gold-dark sm:h-5 sm:w-5" aria-hidden="true" />
+                  <span className="text-[10px] font-bold leading-tight text-ink sm:text-xs">{b.title}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
