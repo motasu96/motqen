@@ -1,12 +1,13 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { useTeacherNav } from "@/components/dashboard/teacherNav";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
 import { teacherStudents, TeacherStudent } from "@/data/dashboard";
 import { localize } from "@/lib/localize";
-import { IconCalendar, IconChart, IconTask, IconUsers, IconShield } from "@/components/icons";
+import { IconCalendar, IconChart, IconFamily, IconTask, IconUsers, IconShield } from "@/components/icons";
 
 const STATUS_KEYS: Record<TeacherStudent["status"], "personRegular" | "personLate" | "personStruggling"> = {
   منتظم: "personRegular",
@@ -74,6 +75,21 @@ export default function TeacherDashboardPage() {
             lobby
             className="shrink-0 justify-center"
           />
+        </div>
+
+        <div className="card flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gold-light">
+              <IconFamily className="h-5 w-5 text-gold-dark" />
+            </span>
+            <div>
+              <h3 className="text-base font-extrabold text-ink">{t("groupsTeaserTitle")}</h3>
+              <p className="text-sm text-ink-soft">{t("groupsTeaserDesc")}</p>
+            </div>
+          </div>
+          <Link href="/dashboard/teacher/groups" className="btn-outline shrink-0 justify-center">
+            {t("viewGroups")}
+          </Link>
         </div>
 
         <div className="card overflow-hidden p-0">

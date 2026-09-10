@@ -274,7 +274,8 @@
       "schedule": "الجدول",
       "teachers": "المعلمون",
       "programs": "البرامج",
-      "articles": "المقالات"
+      "articles": "المقالات",
+      "groups": "الحصص الجماعية"
     },
     "status": {
       "lessonCompleted": "مكتملة",
@@ -347,7 +348,11 @@
       "defaultSessionSubject": "حصة متقن",
       "weekDaysSaturdayFirst": ["السبت", "الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"],
       "weekDaysShort": ["أحد", "اثنين", "ثلاثاء", "أربعاء", "خميس", "جمعة", "سبت"],
-      "timeSlots": ["4:00 م", "5:30 م", "7:00 م", "8:30 م"]
+      "timeSlots": ["4:00 م", "5:30 م", "7:00 م", "8:30 م"],
+      "spotsLeft": "{count} مقاعد متبقية",
+      "full": "مكتملة",
+      "capacityLabel": "السعة",
+      "enrolledLabel": "المسجلون"
     },
     "student": {
       "greeting": "مرحبًا، {name} 👋",
@@ -398,7 +403,18 @@
       "cancelSessionAria": "إلغاء حصة {date} الساعة {time}",
       "toastSlotTaken": "هذا الموعد محجوز مسبقًا، اختر موعدًا آخر.",
       "toastBooked": "تم حجز حصتك يوم {date} الساعة {time} بنجاح.",
-      "toastCancelled": "تم إلغاء الحصة."
+      "toastCancelled": "تم إلغاء الحصة.",
+      "groupsTitle": "الحصص الجماعية",
+      "groupsSubtitle": "انضم إلى حلقات جماعية مع معلمين متقنين وطلاب آخرين",
+      "joinGroup": "الانضمام للحلقة",
+      "leaveGroup": "إلغاء الانضمام",
+      "enrolledBadge": "أنت مسجل ✓",
+      "joinRoom": "دخول الغرفة",
+      "toastJoinedGroup": "تم انضمامك إلى الحلقة بنجاح.",
+      "toastLeftGroup": "تم إلغاء انضمامك من الحلقة.",
+      "groupsTeaserTitle": "حصص جماعية متاحة الآن",
+      "groupsTeaserDesc": "انضم لحلقة جماعية مع معلمك وطلاب آخرين بنفس السعر.",
+      "browseGroups": "تصفح الحلقات"
     },
     "teacher": {
       "dashboardTitle": "لوحة المعلم",
@@ -429,7 +445,13 @@
       "statCompletedThisMonth": "حصص مكتملة هذا الشهر",
       "weeklySessionsChart": "الحصص المكتملة أسبوعيًا",
       "noticesTitle": "الإعلانات",
-      "noticesSubtitle": "آخر الإعلانات والتحديثات الموجهة للمعلمين"
+      "noticesSubtitle": "آخر الإعلانات والتحديثات الموجهة للمعلمين",
+      "groupsTitle": "الحصص الجماعية",
+      "groupsSubtitle": "إدارة حلقاتك الجماعية والطلاب المسجلين فيها",
+      "startGroupSession": "بدء الحصة الجماعية",
+      "groupsTeaserTitle": "حلقاتك الجماعية",
+      "groupsTeaserDesc": "أدر حلقاتك الجماعية وابدأ الحصة عند الموعد.",
+      "viewGroups": "عرض الحلقات"
     },
     "admin": {
       "dashboardTitle": "لوحة تحكم المدير",

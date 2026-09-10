@@ -445,3 +445,69 @@ export const adminNotices: Notice[] = [
     },
   },
 ];
+
+export type GroupSession = {
+  id: string;
+  title: string;
+  program: string;
+  teacher: string;
+  day: string;
+  time: string;
+  capacity: number;
+  enrolledStudents: string[];
+  en: { title: string; program: string; teacher: string; time: string; enrolledStudents: string[] };
+};
+
+export const groupSessions: GroupSession[] = [
+  {
+    id: "group-juz-amma",
+    title: "حلقة حفظ جزء عمّ الجماعية",
+    program: "الحفظ المتقن",
+    teacher: "أ. عبدالله السلمي",
+    day: "السبت",
+    time: "7:00 م",
+    capacity: 6,
+    enrolledStudents: ["سلطان عبدالله", "يوسف باشا"],
+    en: {
+      title: "Group Circle — Memorizing Juz' Amma",
+      program: "Mastery Memorization",
+      teacher: "Ust. Abdullah Al-Salmi",
+      time: "7:00 PM",
+      enrolledStudents: ["Sultan Abdullah", "Yousef Basha"],
+    },
+  },
+  {
+    id: "group-baqarah-review",
+    title: "حلقة مراجعة سورة البقرة",
+    program: "المراجعة والحفظ",
+    teacher: "أ. عبدالله السلمي",
+    day: "الثلاثاء",
+    time: "8:00 م",
+    capacity: 8,
+    enrolledStudents: ["محمد ياسر", "عبدالرحمن خالد", "سلطان عبدالله"],
+    en: {
+      title: "Group Circle — Reviewing Surah Al-Baqarah",
+      program: "Review & Retention",
+      teacher: "Ust. Abdullah Al-Salmi",
+      time: "8:00 PM",
+      enrolledStudents: ["Mohammed Yasser", "Abdulrahman Khaled", "Sultan Abdullah"],
+    },
+  },
+  {
+    id: "group-tajweed-circle",
+    title: "حلقة التلاوة والتجويد الجماعية",
+    program: "التلاوة والتجويد",
+    teacher: "أ. عبدالله السلمي",
+    day: "الأحد",
+    time: "6:00 م",
+    capacity: 5,
+    enrolledStudents: ["يوسف باشا", "عبدالرحمن خالد", "محمد ياسر", "سلطان عبدالله", "نورة القحطاني"],
+    en: {
+      title: "Group Circle — Recitation & Tajweed",
+      program: "Recitation & Tajweed",
+      teacher: "Ust. Abdullah Al-Salmi",
+      time: "6:00 PM",
+      enrolledStudents: ["Yousef Basha", "Abdulrahman Khaled", "Mohammed Yasser", "Sultan Abdullah", "Noura Al-Qahtani"],
+    },
+  },
+];

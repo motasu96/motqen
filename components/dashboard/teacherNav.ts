@@ -2,6 +2,7 @@ import { useTranslations } from "next-intl";
 import {
   IconBell,
   IconChart,
+  IconFamily,
   IconHome,
   IconTask,
   IconUsers,
@@ -14,6 +15,7 @@ export function useTeacherNav(): DashboardNavItem[] {
   return [
     { href: "/dashboard/teacher", label: t("home"), icon: IconHome },
     { href: "/dashboard/teacher/students", label: t("students"), icon: IconUsers },
+    { href: "/dashboard/teacher/groups", label: t("groups"), icon: IconFamily },
     { href: "/dashboard/teacher/schedule", label: t("schedule"), icon: IconCalendar },
     { href: "/dashboard/teacher/homework", label: t("homework"), icon: IconTask },
     { href: "/dashboard/teacher/reports", label: t("reports"), icon: IconChart },

@@ -4,6 +4,7 @@ import {
   IconBook,
   IconChart,
   IconExam,
+  IconFamily,
   IconFolder,
   IconHome,
   IconTask,
@@ -15,6 +16,7 @@ export function useStudentNav(): DashboardNavItem[] {
   return [
     { href: "/dashboard/student", label: t("home"), icon: IconHome },
     { href: "/dashboard/student/lessons", label: t("myLessons"), icon: IconBook },
+    { href: "/dashboard/student/groups", label: t("groups"), icon: IconFamily },
     { href: "/dashboard/student/homework", label: t("homework"), icon: IconTask },
     { href: "/dashboard/student/reports", label: t("reports"), icon: IconChart },
     { href: "/dashboard/student/exams", label: t("exams"), icon: IconExam },

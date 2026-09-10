@@ -274,7 +274,8 @@
       "schedule": "Schedule",
       "teachers": "Teachers",
       "programs": "Programs",
-      "articles": "Articles"
+      "articles": "Articles",
+      "groups": "Group Classes"
     },
     "status": {
       "lessonCompleted": "Completed",
@@ -347,7 +348,11 @@
       "defaultSessionSubject": "Motqen session",
       "weekDaysSaturdayFirst": ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
       "weekDaysShort": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-      "timeSlots": ["4:00 PM", "5:30 PM", "7:00 PM", "8:30 PM"]
+      "timeSlots": ["4:00 PM", "5:30 PM", "7:00 PM", "8:30 PM"],
+      "spotsLeft": "{count} spots left",
+      "full": "Full",
+      "capacityLabel": "Capacity",
+      "enrolledLabel": "Enrolled"
     },
     "student": {
       "greeting": "Hello, {name} 👋",
@@ -398,7 +403,18 @@
       "cancelSessionAria": "Cancel session on {date} at {time}",
       "toastSlotTaken": "This slot is already booked, choose another one.",
       "toastBooked": "Your session on {date} at {time} has been booked successfully.",
-      "toastCancelled": "The session has been cancelled."
+      "toastCancelled": "The session has been cancelled.",
+      "groupsTitle": "Group Classes",
+      "groupsSubtitle": "Join group circles with masterful teachers and fellow students",
+      "joinGroup": "Join the Circle",
+      "leaveGroup": "Leave the Circle",
+      "enrolledBadge": "You're enrolled ✓",
+      "joinRoom": "Enter Room",
+      "toastJoinedGroup": "You've successfully joined the circle.",
+      "toastLeftGroup": "You've left the circle.",
+      "groupsTeaserTitle": "Group Classes Available Now",
+      "groupsTeaserDesc": "Join a group circle with your teacher and other students at no extra cost.",
+      "browseGroups": "Browse Circles"
     },
     "teacher": {
       "dashboardTitle": "Teacher Dashboard",
@@ -429,7 +445,13 @@
       "statCompletedThisMonth": "Sessions Completed This Month",
       "weeklySessionsChart": "Sessions Completed Weekly",
       "noticesTitle": "Notices",
-      "noticesSubtitle": "Latest notices and updates for teachers"
+      "noticesSubtitle": "Latest notices and updates for teachers",
+      "groupsTitle": "Group Classes",
+      "groupsSubtitle": "Manage your group circles and their enrolled students",
+      "startGroupSession": "Start Group Session",
+      "groupsTeaserTitle": "Your Group Circles",
+      "groupsTeaserDesc": "Manage your group circles and start the session on time.",
+      "viewGroups": "View Circles"
     },
     "admin": {
       "dashboardTitle": "Admin Dashboard",

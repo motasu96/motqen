@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { useStudentNav } from "@/components/dashboard/studentNav";
 import BookingCalendar from "@/components/dashboard/BookingCalendar";
@@ -8,7 +9,7 @@ import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
 import { useBookings } from "@/lib/useBookings";
 import { homework, HomeworkItem } from "@/data/dashboard";
 import { localize } from "@/lib/localize";
-import { IconTask, IconTrophy, IconShield } from "@/components/icons";
+import { IconTask, IconTrophy, IconShield, IconFamily } from "@/components/icons";
 
 const TYPE_KEYS: Record<HomeworkItem["type"], "typeRecitation" | "typeReview" | "typeTajweed"> = {
   تسميع: "typeRecitation",
@@ -123,6 +124,21 @@ export default function StudentDashboardPage() {
             label={t("directCta")}
             className="shrink-0 justify-center"
           />
+        </div>
+
+        <div className="card flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gold-light">
+              <IconFamily className="h-5 w-5 text-gold-dark" />
+            </span>
+            <div>
+              <h3 className="text-base font-extrabold text-ink">{t("groupsTeaserTitle")}</h3>
+              <p className="text-sm text-ink-soft">{t("groupsTeaserDesc")}</p>
+            </div>
+          </div>
+          <Link href="/dashboard/student/groups" className="btn-outline shrink-0 justify-center">
+            {t("browseGroups")}
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
