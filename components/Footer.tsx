@@ -19,6 +19,7 @@ export default function Footer() {
   const HELP_LINKS = [
     { href: "/about", label: tNav("about") },
     { href: "/contact", label: tNav("contact") },
+    { href: "/donate", label: tNav("donate") },
     { href: "/login", label: tNav("login") },
     { href: "/signup", label: t("signupLink") },
   ];

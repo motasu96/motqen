@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
-import { IconMenu, IconX } from "./icons";
+import { IconHeart, IconMenu, IconX } from "./icons";
 import Logo from "./Logo";
 import LocaleSwitcher from "./LocaleSwitcher";
 import ThemeToggle from "./ThemeToggle";
@@ -62,6 +62,13 @@ export default function Header() {
         <div className="hidden items-center gap-3 lg:flex">
           <ThemeToggle className="h-9 w-9" />
           <LocaleSwitcher />
+          <Link
+            href="/donate"
+            className="inline-flex items-center gap-1.5 rounded-pill border border-gold/40 bg-gold-light px-4 py-2 text-sm font-bold text-gold-dark transition-colors hover:bg-gold/20"
+          >
+            <IconHeart className="h-4 w-4" aria-hidden="true" />
+            {t("donate")}
+          </Link>
           <Link href="/login" className="text-sm font-bold text-ink hover:text-gold-dark">
             {t("login")}
           </Link>
@@ -99,6 +106,14 @@ export default function Header() {
               <ThemeToggle className="h-9 w-9" />
             </div>
             <div className="mt-2 flex flex-col gap-2">
+              <Link
+                href="/donate"
+                onClick={() => setOpen(false)}
+                className="inline-flex w-full items-center justify-center gap-1.5 rounded-pill border border-gold/40 bg-gold-light px-4 py-2.5 text-sm font-bold text-gold-dark"
+              >
+                <IconHeart className="h-4 w-4" aria-hidden="true" />
+                {t("donate")}
+              </Link>
               <Link href="/login" onClick={() => setOpen(false)} className="btn-outline w-full">
                 {t("login")}
               </Link>
