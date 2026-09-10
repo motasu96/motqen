@@ -87,13 +87,16 @@ export default function HomePage() {
                 sizes="(min-width: 1024px) 448px, 90vw"
                 className="object-cover"
               />
-              {HERO_BADGES.map((b) => (
+              {HERO_BADGES.map((b, i) => (
                 <div
                   key={b.title}
-                  className={`absolute flex max-w-[112px] items-center gap-1.5 rounded-2xl border border-line bg-card px-2.5 py-1.5 shadow-soft sm:max-w-[150px] sm:gap-2 sm:px-3 sm:py-2 ${b.position}`}
+                  style={{ animationDelay: `${i * 0.5}s` }}
+                  className={`animate-float absolute ${b.position}`}
                 >
-                  <b.icon className="h-4 w-4 shrink-0 text-gold-dark sm:h-5 sm:w-5" aria-hidden="true" />
-                  <span className="text-[10px] font-bold leading-tight text-ink sm:text-xs">{b.title}</span>
+                  <div className="group flex max-w-[112px] cursor-default items-center gap-1.5 rounded-2xl border border-line bg-card px-2.5 py-1.5 shadow-soft transition-all duration-300 hover:-translate-y-1.5 hover:scale-105 hover:border-gold/50 hover:shadow-[0_20px_36px_-16px_rgba(200,155,74,0.45)] sm:max-w-[150px] sm:gap-2 sm:px-3 sm:py-2">
+                    <b.icon className="h-4 w-4 shrink-0 text-gold-dark transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110 sm:h-5 sm:w-5" aria-hidden="true" />
+                    <span className="text-[10px] font-bold leading-tight text-ink sm:text-xs">{b.title}</span>
+                  </div>
                 </div>
               ))}
             </div>
