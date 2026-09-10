@@ -16,9 +16,9 @@ const STATUS_KEYS: Record<(typeof lessons)[number]["status"], "lessonCompleted" 
 };
 
 const STATUS_STYLES: Record<(typeof lessons)[number]["status"], string> = {
-  مكتملة: "bg-emerald-50 text-emerald-600",
+  مكتملة: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400",
   قادمة: "bg-gold-light text-gold-dark",
-  ملغاة: "bg-red-50 text-red-500",
+  ملغاة: "bg-red-50 text-red-500 dark:bg-red-500/15 dark:text-red-400",
 };
 
 export default function StudentLessonsPage() {

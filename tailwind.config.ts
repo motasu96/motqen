@@ -1,6 +1,11 @@
 import type { Config } from "tailwindcss";
 
+function withAlpha(cssVar: string) {
+  return `rgb(var(${cssVar}) / <alpha-value>)`;
+}
+
 const config: Config = {
+  darkMode: "class",
   content: [
     "./app/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
@@ -8,20 +13,18 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        bg: "#FBF7EE",
-        card: "#FFFFFF",
+        bg: withAlpha("--color-bg"),
+        card: withAlpha("--color-card"),
         gold: {
-          DEFAULT: "#C89B4A",
-          dark: "#A97F32",
-          light: "#F1E3C4",
+          DEFAULT: withAlpha("--color-gold"),
+          dark: withAlpha("--color-gold-dark"),
+          light: withAlpha("--color-gold-light"),
         },
         ink: {
-          DEFAULT: "#2E2418",
-          // Slightly darkened from the design spec's #8A7F70 to clear WCAG AA
-          // text contrast (4.5:1) on white cards — visually indistinguishable.
-          soft: "#7F7567",
+          DEFAULT: withAlpha("--color-ink"),
+          soft: withAlpha("--color-ink-soft"),
         },
-        line: "#EDE3CD",
+        line: withAlpha("--color-line"),
       },
       fontFamily: {
         sans: ["var(--font-tajawal)", "Tajawal", "sans-serif"],
@@ -32,10 +35,10 @@ const config: Config = {
         pill: "999px",
       },
       boxShadow: {
-        soft: "0 20px 44px -24px rgba(120,90,40,0.30)",
+        soft: "var(--shadow-soft)",
       },
       backgroundImage: {
-        "gold-gradient": "linear-gradient(135deg, #C89B4A 0%, #A97F32 100%)",
+        "gold-gradient": "linear-gradient(135deg, rgb(var(--color-gold)) 0%, rgb(var(--color-gold-dark)) 100%)",
       },
     },
   },

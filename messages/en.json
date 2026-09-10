@@ -234,6 +234,23 @@
   "Breadcrumb": {
     "nav": "Breadcrumb"
   },
+  "Theme": {
+    "toggleToDark": "Switch to dark mode",
+    "toggleToLight": "Switch to light mode"
+  },
+  "EmptyState": {
+    "noProgramsTitle": "No programs in this category",
+    "noProgramsDesc": "Try choosing a different category or browse all our programs.",
+    "noArticlesTitle": "No articles in this category",
+    "noArticlesDesc": "Try choosing a different category or browse all articles.",
+    "showAll": "Show All"
+  },
+  "NotFound": {
+    "title": "Page Not Found",
+    "description": "Sorry, the page you're looking for isn't available — it may have been moved or removed.",
+    "backHome": "Back to Home",
+    "browsePrograms": "Browse Programs"
+  },
   "AdminLogin": {
     "metaTitle": "Admin Login | Motqen",
     "title": "Project Manager Login",

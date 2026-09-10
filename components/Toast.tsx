@@ -19,13 +19,13 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 
 const VARIANT_STYLES: Record<ToastVariant, string> = {
   success: "border-gold/40 bg-card text-ink",
-  error: "border-red-200 bg-card text-ink",
+  error: "border-red-200 bg-card text-ink dark:border-red-500/30",
   info: "border-line bg-card text-ink",
 };
 
 const VARIANT_ICON_BG: Record<ToastVariant, string> = {
   success: "bg-gold-light text-gold-dark",
-  error: "bg-red-50 text-red-500",
+  error: "bg-red-50 text-red-500 dark:bg-red-500/15 dark:text-red-400",
   info: "bg-gold-light text-gold-dark",
 };
 

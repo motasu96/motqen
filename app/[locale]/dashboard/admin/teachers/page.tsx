@@ -15,9 +15,9 @@ const STATUS_KEYS: Record<AdminTeacher["status"], "teacherActive" | "teacherPend
 };
 
 const STATUS_STYLES: Record<AdminTeacher["status"], string> = {
-  نشط: "bg-emerald-50 text-emerald-600",
+  نشط: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400",
   "قيد المراجعة": "bg-gold-light text-gold-dark",
-  موقوف: "bg-red-50 text-red-500",
+  موقوف: "bg-red-50 text-red-500 dark:bg-red-500/15 dark:text-red-400",
 };
 
 export default function AdminTeachersPage() {

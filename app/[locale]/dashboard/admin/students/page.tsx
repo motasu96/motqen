@@ -14,9 +14,9 @@ const STATUS_KEYS: Record<AdminStudent["status"], "personRegular" | "personLate"
 };
 
 const STATUS_STYLES: Record<AdminStudent["status"], string> = {
-  منتظم: "bg-emerald-50 text-emerald-600",
+  منتظم: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400",
   متأخر: "bg-gold-light text-gold-dark",
-  متعثر: "bg-red-50 text-red-500",
+  متعثر: "bg-red-50 text-red-500 dark:bg-red-500/15 dark:text-red-400",
 };
 
 export default function AdminStudentsPage() {

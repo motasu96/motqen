@@ -1,8 +1,19 @@
 import type { Metadata } from "next";
 import { Tajawal } from "next/font/google";
+import Script from "next/script";
 import { getLocale, getTranslations } from "next-intl/server";
 import "./globals.css";
 import { ToastProvider } from "@/components/Toast";
+
+const THEME_INIT_SCRIPT = `
+(function () {
+  try {
+    var stored = localStorage.getItem("motqen_theme");
+    var dark = stored ? stored === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+    if (dark) document.documentElement.classList.add("dark");
+  } catch (e) {}
+})();
+`;
 
 const tajawal = Tajawal({
   subsets: ["arabic"],
@@ -48,6 +59,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang={locale} dir={dir} className={tajawal.variable}>
+      <head>
+        <Script id="theme-init" strategy="beforeInteractive">
+          {THEME_INIT_SCRIPT}
+        </Script>
+      </head>
       <body className="flex min-h-screen flex-col bg-bg font-sans text-ink antialiased">
         <ToastProvider>{children}</ToastProvider>
       </body>

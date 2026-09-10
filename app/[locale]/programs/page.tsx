@@ -5,12 +5,15 @@ import { useTranslations } from "next-intl";
 import { programs } from "@/data/programs";
 import ProgramCard from "@/components/ProgramCard";
 import { Breadcrumb } from "@/components/ui";
+import EmptyState from "@/components/EmptyState";
+import { IconInbox } from "@/components/icons";
 
 type FilterKey = "all" | "children" | "adults" | "women";
 
 export default function ProgramsPage() {
   const t = useTranslations("Programs");
   const tNav = useTranslations("Nav");
+  const tEmpty = useTranslations("EmptyState");
   const [filter, setFilter] = useState<FilterKey>("all");
 
   const FILTERS: { key: FilterKey; label: string }[] = [
@@ -51,11 +54,26 @@ export default function ProgramsPage() {
         ))}
       </div>
 
-      <div key={filter} className="animate-fade-up mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((p) => (
-          <ProgramCard key={p.slug} program={p} />
-        ))}
-      </div>
+      {filtered.length === 0 ? (
+        <div className="mt-10">
+          <EmptyState
+            icon={IconInbox}
+            title={tEmpty("noProgramsTitle")}
+            description={tEmpty("noProgramsDesc")}
+            action={
+              <button onClick={() => setFilter("all")} className="btn-outline">
+                {tEmpty("showAll")}
+              </button>
+            }
+          />
+        </div>
+      ) : (
+        <div key={filter} className="animate-fade-up mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((p) => (
+            <ProgramCard key={p.slug} program={p} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

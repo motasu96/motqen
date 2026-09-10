@@ -34,7 +34,7 @@ export default function TeacherHomeworkPage() {
                 {h0.status === "بانتظار المراجعة" ? (
                   <button className="btn-primary px-4 py-2 text-xs">{tc("reviewNow")}</button>
                 ) : (
-                  <span className="rounded-pill bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600">
+                  <span className="rounded-pill bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400">
                     {tStatus("reviewDone")}
                   </span>
                 )}

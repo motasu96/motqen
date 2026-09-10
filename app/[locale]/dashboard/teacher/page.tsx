@@ -15,9 +15,9 @@ const STATUS_KEYS: Record<TeacherStudent["status"], "personRegular" | "personLat
 };
 
 const STATUS_STYLES: Record<TeacherStudent["status"], string> = {
-  منتظم: "bg-emerald-50 text-emerald-600",
+  منتظم: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400",
   متأخر: "bg-gold-light text-gold-dark",
-  متعثر: "bg-red-50 text-red-500",
+  متعثر: "bg-red-50 text-red-500 dark:bg-red-500/15 dark:text-red-400",
 };
 
 export default function TeacherDashboardPage() {

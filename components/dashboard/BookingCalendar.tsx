@@ -104,7 +104,12 @@ export default function BookingCalendar() {
       <div className="border-t border-line pt-5">
         <h4 className="mb-3 text-sm font-extrabold text-ink">{t("upcomingSessionsTitle")}</h4>
         {upcoming.length === 0 ? (
-          <p className="text-sm text-ink-soft">{t("noUpcomingSessions")}</p>
+          <div className="flex items-center gap-3 rounded-2xl border border-dashed border-line px-4 py-4">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold-light">
+              <IconCalendar className="h-4 w-4 text-gold-dark" />
+            </span>
+            <p className="text-sm text-ink-soft">{t("noUpcomingSessions")}</p>
+          </div>
         ) : (
           <ul className="flex flex-col gap-3">
             {upcoming.map((b) => (

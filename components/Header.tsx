@@ -6,6 +6,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 import { IconMenu, IconX } from "./icons";
 import Logo from "./Logo";
 import LocaleSwitcher from "./LocaleSwitcher";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
@@ -59,6 +60,7 @@ export default function Header() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
+          <ThemeToggle className="h-9 w-9" />
           <LocaleSwitcher />
           <Link href="/login" className="text-sm font-bold text-ink hover:text-gold-dark">
             {t("login")}
@@ -94,6 +96,7 @@ export default function Header() {
             ))}
             <div className="mt-2 flex items-center justify-between border-t border-line pt-4">
               <LocaleSwitcher />
+              <ThemeToggle className="h-9 w-9" />
             </div>
             <div className="mt-2 flex flex-col gap-2">
               <Link href="/login" onClick={() => setOpen(false)} className="btn-outline w-full">

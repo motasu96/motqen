@@ -22,13 +22,13 @@ function ProgressRing({ percent }: { percent: number }) {
   const offset = c - (percent / 100) * c;
   return (
     <svg viewBox="0 0 100 100" className="h-28 w-28 -rotate-90">
-      <circle cx="50" cy="50" r={r} fill="none" stroke="#EDE3CD" strokeWidth="9" />
+      <circle cx="50" cy="50" r={r} fill="none" className="stroke-line" strokeWidth="9" />
       <circle
         cx="50"
         cy="50"
         r={r}
         fill="none"
-        stroke="#C89B4A"
+        className="stroke-gold"
         strokeWidth="9"
         strokeLinecap="round"
         strokeDasharray={c}
@@ -39,8 +39,8 @@ function ProgressRing({ percent }: { percent: number }) {
         y="50"
         textAnchor="middle"
         dominantBaseline="middle"
-        className="rotate-90"
-        style={{ transform: "rotate(90deg)", transformOrigin: "50px 50px", fill: "#2E2418", fontSize: "18px", fontWeight: 800 }}
+        className="rotate-90 fill-ink"
+        style={{ transform: "rotate(90deg)", transformOrigin: "50px 50px", fontSize: "18px", fontWeight: 800 }}
       >
         {percent}%
       </text>

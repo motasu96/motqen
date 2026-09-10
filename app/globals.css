@@ -3,11 +3,40 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-bg: 251 247 238;
+    --color-card: 255 255 255;
+    --color-gold: 200 155 74;
+    --color-gold-dark: 169 127 50;
+    --color-gold-light: 241 227 196;
+    --color-ink: 46 36 24;
+    /* Slightly darkened from the design spec's #8A7F70 to clear WCAG AA
+       text contrast (4.5:1) on white cards — visually indistinguishable. */
+    --color-ink-soft: 127 117 103;
+    --color-line: 237 227 205;
+    --shadow-soft: 0 20px 44px -24px rgba(120, 90, 40, 0.3);
+    color-scheme: light;
+  }
+
+  .dark {
+    --color-bg: 22 18 14;
+    --color-card: 34 28 21;
+    --color-gold: 210 165 88;
+    --color-gold-dark: 231 194 128;
+    --color-gold-light: 58 47 30;
+    --color-ink: 240 234 222;
+    --color-ink-soft: 168 157 140;
+    --color-line: 56 47 35;
+    --shadow-soft: 0 20px 44px -24px rgba(0, 0, 0, 0.55);
+    color-scheme: dark;
+  }
+
   html {
     scroll-behavior: smooth;
   }
   body {
     @apply bg-bg text-ink font-sans;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
   ::selection {
     @apply bg-gold-light text-ink;
@@ -55,7 +84,7 @@
     @apply rounded-card-lg border border-line bg-card shadow-soft transition-shadow duration-200;
   }
   .card-interactive {
-    @apply card transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_28px_54px_-24px_rgba(120,90,40,0.38)];
+    @apply card transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_28px_54px_-24px_rgba(120,90,40,0.38)] dark:hover:shadow-[0_28px_54px_-24px_rgba(0,0,0,0.6)];
   }
   .badge {
     @apply inline-flex items-center gap-1.5 rounded-pill bg-gold-light px-3 py-1 text-xs font-bold text-gold-dark;

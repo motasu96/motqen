@@ -19,9 +19,9 @@ const STATUS_KEYS: Record<AdminStudent["status"], "personRegular" | "personLate"
 };
 
 const STATUS_STYLES: Record<AdminStudent["status"], string> = {
-  منتظم: "bg-emerald-50 text-emerald-600",
+  منتظم: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400",
   متأخر: "bg-gold-light text-gold-dark",
-  متعثر: "bg-red-50 text-red-500",
+  متعثر: "bg-red-50 text-red-500 dark:bg-red-500/15 dark:text-red-400",
 };
 
 const maxEnrolled = Math.max(...adminPrograms.map((p) => p.enrolled));
@@ -48,7 +48,7 @@ export default function AdminDashboardPage() {
               <div key={s0.label} className="card flex flex-col gap-2 p-5 sm:p-6">
                 <span className="text-2xl font-extrabold text-ink">{s.value}</span>
                 <span className="text-xs text-ink-soft">{s.label}</span>
-                {s.delta && <span className="text-xs font-bold text-emerald-600">{s.delta}</span>}
+                {s.delta && <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{s.delta}</span>}
               </div>
             );
           })}
@@ -85,7 +85,12 @@ export default function AdminDashboardPage() {
               {t("pendingTeachers")}
             </h3>
             {pendingTeachers.length === 0 ? (
-              <p className="text-sm text-ink-soft">{t("noPendingTeachers")}</p>
+              <div className="flex items-center gap-3 rounded-2xl border border-dashed border-line px-4 py-4">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold-light">
+                  <IconUsers className="h-4 w-4 text-gold-dark" />
+                </span>
+                <p className="text-sm text-ink-soft">{t("noPendingTeachers")}</p>
+              </div>
             ) : (
               <ul className="flex flex-col gap-3">
                 {pendingTeachers.map((t0) => {

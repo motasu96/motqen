@@ -13,7 +13,7 @@ const STATUS_KEYS: Record<AdminArticle["status"], "published" | "draft"> = {
 };
 
 const STATUS_STYLES: Record<AdminArticle["status"], string> = {
-  منشور: "bg-emerald-50 text-emerald-600",
+  منشور: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400",
   مسودة: "bg-gold-light text-gold-dark",
 };
 

@@ -90,7 +90,7 @@ export default function RoomClient({
   return (
     <>
       <Script src={`https://${JITSI_DOMAIN}/external_api.js`} strategy="afterInteractive" />
-      <div className="flex h-screen flex-col bg-ink">
+      <div className="flex h-screen flex-col bg-[#2E2418]">
         <div className="flex items-center justify-between border-b border-white/10 px-5 py-3">
           <div className="flex items-center gap-3">
             <span className="rounded-xl bg-[#FBF7EE] px-3 py-1.5 text-sm font-extrabold text-gold-dark">مُتقن</span>

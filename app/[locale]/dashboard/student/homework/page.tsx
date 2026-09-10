@@ -21,8 +21,8 @@ const STATUS_KEYS: Record<HomeworkItem["status"], "homeworkPending" | "homeworkS
 
 const STATUS_STYLES: Record<HomeworkItem["status"], string> = {
   "بانتظار التسليم": "bg-gold-light text-gold-dark",
-  "تم التسليم": "bg-sky-50 text-sky-600",
-  "تم التصحيح": "bg-emerald-50 text-emerald-600",
+  "تم التسليم": "bg-sky-50 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400",
+  "تم التصحيح": "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400",
 };
 
 export default function StudentHomeworkPage() {

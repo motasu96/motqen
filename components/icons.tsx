@@ -13,6 +13,38 @@ const base = {
   strokeLinejoin: "round" as const,
 };
 
+export function IconSun(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="12" r="4.2" />
+      <path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.55 1.55M18.25 18.25l1.55 1.55M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.55-1.55M18.25 5.75l1.55-1.55" />
+    </svg>
+  );
+}
+export function IconMoon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 0 0 11 11Z" />
+    </svg>
+  );
+}
+export function IconInbox(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M3.5 12h4.7l1.5 2.5h4.6l1.5-2.5h4.7" />
+      <path d="M5.5 6.5 3.5 12v6a1.5 1.5 0 0 0 1.5 1.5h14a1.5 1.5 0 0 0 1.5-1.5v-6l-2-5.5a1.5 1.5 0 0 0-1.4-1H6.9a1.5 1.5 0 0 0-1.4 1Z" />
+    </svg>
+  );
+}
+export function IconCompassOff(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m14.5 9.5-1.8 4.2a1 1 0 0 1-1.4 1.4l-4.2 1.8 1.8-4.2a1 1 0 0 1 1.4-1.4l4.2-1.8Z" />
+      <path d="M3.5 3.5 20.5 20.5" />
+    </svg>
+  );
+}
 export function IconQuran(props: IconProps) {
   return (
     <svg {...base} {...props}>

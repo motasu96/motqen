@@ -6,6 +6,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { ComponentType } from "react";
 import { IconLogout, IconMenu, IconX } from "@/components/icons";
 import Logo from "@/components/Logo";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export type DashboardNavItem = {
   href: string;
@@ -39,7 +40,10 @@ export default function DashboardShell({
 
   const nav = (
     <div className="flex h-full flex-col gap-6 p-6">
-      <Logo />
+      <div className="flex items-center justify-between">
+        <Logo />
+        <ThemeToggle className="h-9 w-9" />
+      </div>
       <div className="flex items-center gap-3 rounded-2xl bg-bg p-3">
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gold-light text-sm font-extrabold text-gold-dark">
           {userName[0]}
@@ -85,20 +89,23 @@ export default function DashboardShell({
       <div className="flex-1">
         <div className="mb-4 flex items-center justify-between lg:hidden">
           <Logo />
-          <button
-            onClick={() => setOpen(true)}
-            className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-card transition-transform active:scale-95"
-            aria-label={t("openMenu")}
-            aria-expanded={open}
-            aria-controls="dashboard-mobile-nav"
-          >
-            <IconMenu className="h-5 w-5" aria-hidden="true" />
-          </button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle className="h-9 w-9" />
+            <button
+              onClick={() => setOpen(true)}
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-card transition-transform active:scale-95"
+              aria-label={t("openMenu")}
+              aria-expanded={open}
+              aria-controls="dashboard-mobile-nav"
+            >
+              <IconMenu className="h-5 w-5" aria-hidden="true" />
+            </button>
+          </div>
         </div>
 
         {open && (
           <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true">
-            <div className="animate-overlay-in absolute inset-0 bg-ink/40" onClick={() => setOpen(false)} />
+            <div className="animate-overlay-in absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
             <div
               id="dashboard-mobile-nav"
               className="animate-drawer-in absolute inset-y-0 right-0 w-80 max-w-[85vw] bg-card shadow-soft"

@@ -7,6 +7,8 @@ import { Link } from "@/i18n/navigation";
 import { articles, Article } from "@/data/articles";
 import { Breadcrumb } from "@/components/ui";
 import { localize } from "@/lib/localize";
+import EmptyState from "@/components/EmptyState";
+import { IconInbox } from "@/components/icons";
 
 const CATEGORY_KEYS: Record<Article["category"], "catHifz" | "catTajweed" | "catTarbiya" | "catGeneral"> = {
   الحفظ: "catHifz",
@@ -18,6 +20,7 @@ const CATEGORY_KEYS: Record<Article["category"], "catHifz" | "catTajweed" | "cat
 export default function ArticlesPage() {
   const t = useTranslations("Articles");
   const tNav = useTranslations("Nav");
+  const tEmpty = useTranslations("EmptyState");
   const locale = useLocale();
   const [cat, setCat] = useState<Article["category"] | "الكل">("الكل");
 
@@ -58,31 +61,46 @@ export default function ArticlesPage() {
         ))}
       </div>
 
-      <div key={cat} className="animate-fade-up mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((a) => {
-          const la = localize(a, locale);
-          return (
-            <Link key={a.slug} href={`/articles/${a.slug}`} className="card-interactive flex flex-col gap-4 p-6">
-              <div className="relative aspect-[16/10] overflow-hidden rounded-2xl">
-                <Image
-                  src={a.image}
-                  alt={la.title}
-                  fill
-                  sizes="(min-width: 1024px) 380px, 90vw"
-                  className="object-cover"
-                />
-              </div>
-              <span className="badge w-fit">{t(CATEGORY_KEYS[a.category])}</span>
-              <h2 className="text-lg font-extrabold leading-snug text-ink">{la.title}</h2>
-              <p className="text-sm leading-relaxed text-ink-soft">{la.excerpt}</p>
-              <div className="mt-auto flex items-center justify-between border-t border-line pt-4">
-                <span className="text-xs text-ink-soft">{a.date} · {a.readMinutes} {t("readMinutes")}</span>
-                <span className="text-sm font-bold text-gold-dark">{t("readMore")} ‹</span>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
+      {filtered.length === 0 ? (
+        <div className="mt-10">
+          <EmptyState
+            icon={IconInbox}
+            title={tEmpty("noArticlesTitle")}
+            description={tEmpty("noArticlesDesc")}
+            action={
+              <button onClick={() => setCat("الكل")} className="btn-outline">
+                {tEmpty("showAll")}
+              </button>
+            }
+          />
+        </div>
+      ) : (
+        <div key={cat} className="animate-fade-up mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((a) => {
+            const la = localize(a, locale);
+            return (
+              <Link key={a.slug} href={`/articles/${a.slug}`} className="card-interactive flex flex-col gap-4 p-6">
+                <div className="relative aspect-[16/10] overflow-hidden rounded-2xl">
+                  <Image
+                    src={a.image}
+                    alt={la.title}
+                    fill
+                    sizes="(min-width: 1024px) 380px, 90vw"
+                    className="object-cover"
+                  />
+                </div>
+                <span className="badge w-fit">{t(CATEGORY_KEYS[a.category])}</span>
+                <h2 className="text-lg font-extrabold leading-snug text-ink">{la.title}</h2>
+                <p className="text-sm leading-relaxed text-ink-soft">{la.excerpt}</p>
+                <div className="mt-auto flex items-center justify-between border-t border-line pt-4">
+                  <span className="text-xs text-ink-soft">{a.date} · {a.readMinutes} {t("readMinutes")}</span>
+                  <span className="text-sm font-bold text-gold-dark">{t("readMore")} ‹</span>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
