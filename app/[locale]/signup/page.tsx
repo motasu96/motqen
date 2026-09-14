@@ -79,6 +79,13 @@ function SignupFlow() {
         JSON.stringify({ studentType, programSlug, form, selectedDays, selectedTime, confirmedAt: new Date().toISOString() })
       );
     } catch {}
+    if (form.email) {
+      fetch("/api/welcome-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: form.name, email: form.email, locale }),
+      }).catch(() => {});
+    }
     showToast(t("toastSuccess"), "success");
     setTimeout(() => router.push("/onboarding"), 700);
   }
