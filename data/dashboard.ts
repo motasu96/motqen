@@ -446,6 +446,26 @@ export const adminNotices: Notice[] = [
   },
 ];
 
+export type TodayPortion = {
+  hasPortion: boolean;
+  surah: string;
+  range: string;
+  note: string;
+  en: { surah: string; range: string; note: string };
+};
+
+export const todayPortion: TodayPortion = {
+  hasPortion: true,
+  surah: "سورة البقرة",
+  range: "من الآية 146 إلى 160",
+  note: "ركّز على أحكام المد والإخفاء في هذا المقطع.",
+  en: {
+    surah: "Surah Al-Baqarah",
+    range: "Verses 146–160",
+    note: "Focus on the rules of elongation (madd) and concealment (ikhfa) in this passage.",
+  },
+};
+
 export type GroupSession = {
   id: string;
   title: string;

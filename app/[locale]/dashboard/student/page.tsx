@@ -7,9 +7,9 @@ import { useStudentNav } from "@/components/dashboard/studentNav";
 import BookingCalendar from "@/components/dashboard/BookingCalendar";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
 import { useBookings } from "@/lib/useBookings";
-import { homework, HomeworkItem } from "@/data/dashboard";
+import { homework, HomeworkItem, todayPortion } from "@/data/dashboard";
 import { localize } from "@/lib/localize";
-import { IconTask, IconTrophy, IconShield, IconFamily } from "@/components/icons";
+import { IconTask, IconTrophy, IconShield, IconFamily, IconBook, IconInbox } from "@/components/icons";
 
 const TYPE_KEYS: Record<HomeworkItem["type"], "typeRecitation" | "typeReview" | "typeTajweed"> = {
   تسميع: "typeRecitation",
@@ -60,6 +60,7 @@ export default function StudentDashboardPage() {
   const studentName = tc("studentName");
   const studentTitle = tc("studentTitle");
   const recentHomework = homework.slice(0, 2).map((h) => localize(h, locale));
+  const portion = localize(todayPortion, locale);
 
   return (
     <DashboardShell navItems={studentNav} userName={studentName} userSubtitle={studentTitle}>
@@ -105,6 +106,32 @@ export default function StudentDashboardPage() {
               <p className="text-sm text-ink-soft">{t("noUpcoming")}</p>
             )}
           </div>
+        </div>
+
+        <div className="card flex flex-col gap-4 p-6">
+          <div className="flex items-center justify-between">
+            <h3 className="flex items-center gap-2 text-base font-extrabold text-ink">
+              <IconBook className="h-5 w-5 text-gold-dark" />
+              {t("todayPortionTitle")}
+            </h3>
+          </div>
+          {portion.hasPortion ? (
+            <div className="flex flex-col gap-2 rounded-2xl border border-line bg-bg p-4">
+              <h4 className="text-lg font-extrabold text-ink">{portion.surah}</h4>
+              <p className="text-sm text-ink-soft">{portion.range}</p>
+              <p className="text-xs text-ink-soft">{portion.note}</p>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3 rounded-2xl border border-dashed border-line px-4 py-4">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold-light">
+                <IconInbox className="h-4 w-4 text-gold-dark" />
+              </span>
+              <div>
+                <p className="text-sm font-bold text-ink">{t("todayPortionEmptyTitle")}</p>
+                <p className="text-xs text-ink-soft">{t("todayPortionEmptyDesc")}</p>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="card flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">

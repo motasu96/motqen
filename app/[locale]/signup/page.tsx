@@ -80,7 +80,7 @@ function SignupFlow() {
       );
     } catch {}
     showToast(t("toastSuccess"), "success");
-    setTimeout(() => router.push("/dashboard/student"), 700);
+    setTimeout(() => router.push("/onboarding"), 700);
   }
 
   return (
