@@ -29,10 +29,9 @@ export async function POST(req: NextRequest) {
   const { subject, html } = buildWelcomeEmail(name || (locale === "en" ? "there" : "بك"), locale);
 
   try {
-    // Sender uses Resend's shared test domain until motqen.site is verified
-    // in the Resend dashboard (Domains tab) with its own "from" address.
     const { error } = await resend.emails.send({
-      from: "Motqen <onboarding@resend.dev>",
+      from: "متقن | Motqen <no-reply@motqen.site>",
+      replyTo: "info@motqen.site",
       to: email,
       subject,
       html,
