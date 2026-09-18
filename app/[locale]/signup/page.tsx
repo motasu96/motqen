@@ -266,7 +266,6 @@ function SignupFlow() {
                 <SummaryRow label={t("summaryPhone")} value={form.phone || t("dash")} />
                 <SummaryRow label={t("summaryDays")} value={selectedDays.join("، ") || t("dash")} />
                 <SummaryRow label={t("summaryTime")} value={selectedTime || t("dash")} />
-                {selectedProgram && <SummaryRow label={t("summaryPrice")} value={`${selectedProgram.price} ${t("rial")}`} />}
               </div>
               <p className="text-xs leading-relaxed text-ink-soft">{t("termsNotice")}</p>
             </div>

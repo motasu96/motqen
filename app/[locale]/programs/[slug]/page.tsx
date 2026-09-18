@@ -6,7 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { getProgramBySlug, programs } from "@/data/programs";
 import { Breadcrumb } from "@/components/ui";
-import { IconCalendar, IconCheck, IconClock, IconUsers } from "@/components/icons";
+import { IconCalendar, IconCheck, IconClock, IconHeart, IconUsers } from "@/components/icons";
 import { localize } from "@/lib/localize";
 
 export function generateStaticParams() {
@@ -97,11 +97,13 @@ function ProgramDetailContent({ program }: { program: NonNullable<ReturnType<typ
 
         <aside className="h-fit lg:sticky lg:top-28">
           <div className="card flex flex-col gap-6 p-7">
-            <div>
-              <span className="text-sm text-ink-soft">{t("startsFrom")}</span>
-              <div className="mt-1 flex items-baseline gap-1">
-                <span className="text-3xl font-extrabold text-gold-dark">{program.price}</span>
-                <span className="text-sm font-bold text-ink-soft">{t("perMonth")}</span>
+            <div className="flex items-center gap-3 rounded-2xl bg-gold-light px-4 py-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-card">
+                <IconHeart className="h-5 w-5 text-gold-dark" />
+              </span>
+              <div>
+                <div className="text-sm font-extrabold text-ink">{t("freeTitle")}</div>
+                <div className="text-xs text-ink-soft">{t("freeDesc")}</div>
               </div>
             </div>
 

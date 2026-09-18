@@ -6,7 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { useBookings } from "@/lib/useBookings";
 import { useToast } from "@/components/Toast";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
-import { IconCalendar, IconCheck, IconClock, IconFamily, IconTask } from "@/components/icons";
+import { IconCalendar, IconCheck, IconClock, IconFamily } from "@/components/icons";
 
 const HOLD_DURATION_MS = 10 * 60 * 1000;
 
@@ -28,7 +28,7 @@ function formatCountdown(ms: number) {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
-type BookingType = "trial" | "package" | "group";
+type BookingType = "trial" | "group";
 
 export default function BookingCalendar() {
   const { addBooking, cancelBooking, isSlotTaken, upcoming, ready } = useBookings();
@@ -63,7 +63,6 @@ export default function BookingCalendar() {
 
   const BOOKING_TYPES: { key: BookingType; label: string }[] = [
     { key: "trial", label: t("bookingTypeTrial") },
-    { key: "package", label: t("bookingTypePackage") },
     { key: "group", label: t("bookingTypeGroup") },
   ];
 
@@ -103,7 +102,7 @@ export default function BookingCalendar() {
       </div>
 
       <div
-        className="grid grid-cols-3 gap-2 rounded-pill border border-line bg-bg p-1"
+        className="grid grid-cols-2 gap-2 rounded-pill border border-line bg-bg p-1"
         role="group"
         aria-label={t("bookingTitle")}
       >
@@ -121,21 +120,6 @@ export default function BookingCalendar() {
           </button>
         ))}
       </div>
-
-      {bookingType === "package" && (
-        <div className="flex flex-col items-start gap-3 rounded-2xl border border-line bg-bg p-5">
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gold-light">
-            <IconTask className="h-5 w-5 text-gold-dark" />
-          </span>
-          <div>
-            <h4 className="text-sm font-extrabold text-ink">{t("bookingTypePackageTitle")}</h4>
-            <p className="text-sm text-ink-soft">{t("bookingTypePackageDesc")}</p>
-          </div>
-          <Link href="/programs" className="btn-outline">
-            {t("bookingTypePackageCta")}
-          </Link>
-        </div>
-      )}
 
       {bookingType === "group" && (
         <div className="flex flex-col items-start gap-3 rounded-2xl border border-line bg-bg p-5">
