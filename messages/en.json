@@ -144,6 +144,13 @@
     "bankTitle": "Direct bank transfer",
     "bankDesc": "You can also donate directly via bank transfer — we'll send you the full details after you submit the form."
   },
+  "DonatePopup": {
+    "title": "Our platform is completely free",
+    "description": "Motqen charges its students no fees, and keeps running thanks to donor support. Your contribution, however small, helps us continue our mission.",
+    "cta": "Support Motqen Now",
+    "dismiss": "Maybe later",
+    "closeAria": "Close"
+  },
   "Login": {
     "metaTitle": "Log In | Motqen",
     "metaDescription": "Log in to your Motqen account to continue your journey learning the Holy Quran.",
