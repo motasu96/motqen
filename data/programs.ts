@@ -129,7 +129,7 @@ export const programs: Program[] = [
   {
     slug: "bara-em-mutqin",
     image: "/images/prog-kids.jpg",
-    title: "براعم متقن",
+    title: "برامج الأطفال",
     short: "برامج تعليمية للأطفال بأساليب ممتعة وتفاعلية",
     description:
       "برنامج خاص بالأطفال يجمع بين حفظ القرآن وتعلم آدابه بأساليب تفاعلية ومحفزة، في بيئة آمنة تراعي الفروق العمرية لكل طفل.",
@@ -146,7 +146,7 @@ export const programs: Program[] = [
       "تقارير يومية لولي الأمر",
     ],
     en: {
-      title: "Motqen Kids",
+      title: "Children's Programs",
       short: "Educational programs for children with fun, interactive methods",
       description:
         "A program dedicated to children that combines memorizing the Quran with learning its manners through interactive, motivating methods, in a safe environment that accounts for each child's age differences.",
@@ -162,7 +162,7 @@ export const programs: Program[] = [
   {
     slug: "qiraat-ashr",
     image: "/images/prog-qiraat.jpg",
-    title: "القراءات العشر",
+    title: "الإجازة بالسند",
     short: "تعلم القراءات العشر وإجازاتها المتصلة السند",
     description:
       "برنامج متقدم لدارسي القراءات العشر يؤهل الطالب لأخذ الإجازة المتصلة السند بإشراف مشايخ متخصصين في علم القراءات.",
@@ -179,7 +179,7 @@ export const programs: Program[] = [
       "مواعيد مرنة تناسب المجازين",
     ],
     en: {
-      title: "The Ten Readings",
+      title: "Ijazah with Sanad",
       short: "Learn the Ten Readings (Qira'at) with a connected chain of transmission",
       description:
         "An advanced program for students of the Ten Readings that prepares the student to obtain a connected-chain Ijazah, supervised by sheikhs specialized in the science of Qira'at.",
