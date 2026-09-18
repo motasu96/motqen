@@ -96,7 +96,7 @@ export const programs: Program[] = [
   {
     slug: "muraja-hifz",
     image: "/images/prog-muraja.jpg",
-    title: "المراجعة والحفظ",
+    title: "الحفظ والمراجعة",
     short: "برامج مخصصة للمراجعة والحفظ بإشراف متخصص",
     description:
       "برنامج مصمم لمن أتم حفظ القرآن أو جزء منه ويريد المحافظة عليه، عبر خطة مراجعة دورية منظمة تمنع التفلت وتثبت المحفوظ.",
@@ -113,7 +113,7 @@ export const programs: Program[] = [
       "مرونة في اختيار المقدار اليومي",
     ],
     en: {
-      title: "Review & Retention",
+      title: "Memorization & Review",
       short: "Specialized programs for reviewing and retaining memorization",
       description:
         "A program designed for those who have completed memorizing the Quran, or part of it, and want to preserve it, through an organized periodic review plan that prevents forgetting and reinforces what has been memorized.",
