@@ -96,6 +96,7 @@
     "messageLabel": "Message",
     "messagePlaceholder": "Write your message here...",
     "submit": "Send Message",
+    "submitting": "Sending...",
     "toastSuccess": "Your message has been sent successfully, our team will contact you soon."
   },
   "Donate": {

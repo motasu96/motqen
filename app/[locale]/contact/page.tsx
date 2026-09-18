@@ -8,12 +8,29 @@ import { useToast } from "@/components/Toast";
 
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const { showToast } = useToast();
   const t = useTranslations("Contact");
   const tNav = useTranslations("Nav");
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const form = e.currentTarget;
+    const data = new FormData(form);
+    setSubmitting(true);
+    try {
+      await fetch("/api/contact-message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: data.get("name"),
+          phone: data.get("phone"),
+          email: data.get("email"),
+          message: data.get("message"),
+        }),
+      });
+    } catch {}
+    setSubmitting(false);
     setSent(true);
     showToast(t("toastSuccess"), "success");
   }
@@ -78,23 +95,23 @@ export default function ContactPage() {
               <div className="grid gap-5 sm:grid-cols-2">
                 <div className="flex flex-col gap-2">
                   <label htmlFor="contact-name" className="text-sm font-bold text-ink">{t("nameLabel")}</label>
-                  <input id="contact-name" required className="input" placeholder={t("namePlaceholder")} />
+                  <input id="contact-name" name="name" required className="input" placeholder={t("namePlaceholder")} />
                 </div>
                 <div className="flex flex-col gap-2">
                   <label htmlFor="contact-phone" className="text-sm font-bold text-ink">{t("phoneLabel")}</label>
-                  <input id="contact-phone" required dir="ltr" className="input" placeholder={t("phonePlaceholder")} />
+                  <input id="contact-phone" name="phone" required dir="ltr" className="input" placeholder={t("phonePlaceholder")} />
                 </div>
               </div>
               <div className="flex flex-col gap-2">
                 <label htmlFor="contact-email" className="text-sm font-bold text-ink">{t("emailLabel")}</label>
-                <input id="contact-email" required type="email" dir="ltr" className="input" placeholder={t("emailPlaceholder")} />
+                <input id="contact-email" name="email" required type="email" dir="ltr" className="input" placeholder={t("emailPlaceholder")} />
               </div>
               <div className="flex flex-col gap-2">
                 <label htmlFor="contact-message" className="text-sm font-bold text-ink">{t("messageLabel")}</label>
-                <textarea id="contact-message" required rows={5} className="input resize-none" placeholder={t("messagePlaceholder")} />
+                <textarea id="contact-message" name="message" required rows={5} className="input resize-none" placeholder={t("messagePlaceholder")} />
               </div>
-              <button type="submit" className="btn-primary w-full sm:w-fit">
-                {t("submit")}
+              <button type="submit" disabled={submitting} className="btn-primary w-full disabled:opacity-70 sm:w-fit">
+                {submitting ? t("submitting") : t("submit")}
               </button>
             </form>
           )}

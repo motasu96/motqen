@@ -96,6 +96,7 @@
     "messageLabel": "الرسالة",
     "messagePlaceholder": "اكتب رسالتك هنا...",
     "submit": "إرسال الرسالة",
+    "submitting": "جارٍ الإرسال...",
     "toastSuccess": "تم إرسال رسالتك بنجاح، سيتواصل معك فريقنا قريبًا."
   },
   "Donate": {
