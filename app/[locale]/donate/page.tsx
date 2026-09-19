@@ -12,9 +12,10 @@ export default function DonatePage() {
   const { showToast } = useToast();
 
   const TIERS = [
-    { amount: t("tier1Amount"), period: t("tier1Period"), title: t("tier1Title"), desc: t("tier1Desc"), popular: false },
-    { amount: t("tier2Amount"), period: t("tier2Period"), title: t("tier2Title"), desc: t("tier2Desc"), popular: true },
-    { amount: t("tier3Amount"), period: t("tier3Period"), title: t("tier3Title"), desc: t("tier3Desc"), popular: false },
+    { amount: t("tier1Amount"), period: t("tier1Period"), title: t("tier1Title"), desc: t("tier1Desc"), type: t("tier1Type"), popular: false },
+    { amount: t("tier2Amount"), period: t("tier2Period"), title: t("tier2Title"), desc: t("tier2Desc"), type: t("tier2Type"), popular: true },
+    { amount: t("tier3Amount"), period: t("tier3Period"), title: t("tier3Title"), desc: t("tier3Desc"), type: t("tier3Type"), popular: false },
+    { amount: t("tier4Amount"), period: t("tier4Period"), title: t("tier4Title"), desc: t("tier4Desc"), type: t("tier4Type"), popular: false },
   ];
 
   const REASONS = [
@@ -23,7 +24,7 @@ export default function DonatePage() {
     { icon: IconEye, title: t("reason3Title"), desc: t("reason3Desc") },
   ];
 
-  const AMOUNT_OPTIONS = [t("tier1Amount"), t("tier2Amount"), t("tier3Amount")];
+  const AMOUNT_OPTIONS = [t("tier1Amount"), t("tier2Amount"), t("tier3Amount"), t("tier4Amount")];
 
   const [amount, setAmount] = useState(AMOUNT_OPTIONS[1]);
   const [customAmount, setCustomAmount] = useState("");
@@ -53,7 +54,7 @@ export default function DonatePage() {
 
       <div className="mt-14">
         <h2 className="mb-6 text-xl font-extrabold text-ink sm:text-2xl">{t("tiersTitle")}</h2>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {TIERS.map((tier) => (
             <div
               key={tier.title}
@@ -64,6 +65,9 @@ export default function DonatePage() {
                   {t("popularBadge")}
                 </span>
               )}
+              <span className="w-fit rounded-pill bg-bg px-2.5 py-1 text-[11px] font-bold text-ink-soft">
+                {tier.type === "group" ? t("typeGroup") : t("typeIndividual")}
+              </span>
               <div className="flex items-baseline gap-1.5">
                 <span className="text-3xl font-extrabold text-gold-dark">{tier.amount}</span>
                 <span className="text-sm text-ink-soft">{tier.period}</span>
@@ -110,7 +114,7 @@ export default function DonatePage() {
 
               <div className="flex flex-col gap-2">
                 <span className="text-sm font-bold text-ink">{t("amountLabel")}</span>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {AMOUNT_OPTIONS.map((opt) => (
                     <button
                       key={opt}
