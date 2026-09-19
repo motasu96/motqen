@@ -68,9 +68,19 @@ export default function Footer() {
       </div>
 
       <div className="border-t border-line py-5">
-        <p className="container-page text-center text-xs text-ink-soft">
-          © {new Date().getFullYear()} {tSite("siteName")} — {t("rights")}
-        </p>
+        <div className="container-page flex flex-col items-center gap-3 text-center sm:flex-row sm:justify-between">
+          <p className="text-xs text-ink-soft">
+            © {new Date().getFullYear()} {tSite("siteName")} — {t("rights")}
+          </p>
+          <div className="flex items-center gap-4">
+            <Link href="/privacy" className="text-xs text-ink-soft hover:text-gold-dark">
+              {tNav("privacy")}
+            </Link>
+            <Link href="/terms" className="text-xs text-ink-soft hover:text-gold-dark">
+              {tNav("terms")}
+            </Link>
+          </div>
+        </div>
       </div>
     </footer>
   );

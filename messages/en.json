@@ -18,7 +18,9 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "skipToContent": "Skip to main content",
-    "language": "العربية"
+    "language": "العربية",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Use"
   },
   "Footer": {
     "description": "An online learning platform specialized in remote Quran education, supervised by a select group of qualified teachers, in a safe and motivating learning environment.",
@@ -585,5 +587,130 @@
       "noticesTitle": "Notices",
       "noticesSubtitle": "Notices addressed to all platform users"
     }
+  },
+  "Privacy": {
+    "metaTitle": "Privacy Policy | Motqen",
+    "eyebrow": "Privacy Policy",
+    "title": "How we handle your data",
+    "lastUpdated": "Last updated: September 19, 2026",
+    "intro": "Motqen is an online educational initiative for teaching the Quran remotely, currently run independently by its founder in a personal capacity while formal legal registration is being completed. This page explains how we collect, use, and protect your data when you use motqen.site and its services.",
+    "sections": [
+      {
+        "title": "Data we collect",
+        "body": [
+          "We only collect data you provide directly: when you sign up (name and email), fill out the contact form (name, phone number, email, and message), or submit the donation interest form (name, email, and suggested amount).",
+          "We never collect payment or bank card details through the website, since donations are currently coordinated manually rather than through an online payment gateway."
+        ]
+      },
+      {
+        "title": "Children's data and parental consent",
+        "body": [
+          "Some of our programs (such as the children's programs) are designed for children. In these cases, a parent or guardian completes the registration and provides the data, and is responsible for consenting to the platform's use on the child's behalf. We never ask a child to provide personal data directly and independently of their guardian."
+        ]
+      },
+      {
+        "title": "Live teaching sessions",
+        "body": [
+          "Sessions take place over a video meeting service that Motqen runs on its own servers, not a third-party commercial service. Sessions are not recorded by default; any future recording for quality or safety purposes will be clearly disclosed with prior consent from the guardian or adult student."
+        ]
+      },
+      {
+        "title": "How we use your data",
+        "body": [
+          "We use your data solely to communicate with you about your registration or inquiry, send a welcome email upon signup, follow up on your donation interest, and improve the platform. We never use your data for advertising, and we never sell or rent it to any third party."
+        ]
+      },
+      {
+        "title": "Sharing data with third parties",
+        "body": [
+          "We use an external email provider (Resend) solely to send emails (such as the welcome message or confirmation that we received your message); it is a data processor that follows recognized data protection standards. We do not share your data with anyone else for marketing or commercial purposes."
+        ]
+      },
+      {
+        "title": "Cookies and local storage",
+        "body": [
+          "The site uses your browser's local storage (localStorage) only to remember simple preferences, such as dark mode or not showing the donation popup again after you dismiss it. We do not use any advertising trackers or third-party analytics."
+        ]
+      },
+      {
+        "title": "Data security",
+        "body": [
+          "The platform is currently in an early development stage, and we are continuously working to improve account protection and verification. We recommend not sharing any sensitive information beyond what's needed to register until this stage is complete."
+        ]
+      },
+      {
+        "title": "Your rights",
+        "body": [
+          "You may at any time request to see the data we hold about you, correct it, or have it permanently deleted, by emailing us at info@motqen.site."
+        ]
+      },
+      {
+        "title": "Changes to this policy",
+        "body": [
+          "We may update this policy from time to time as the platform evolves or its formal legal registration is completed. The date at the top of this page will always reflect the latest update."
+        ]
+      }
+    ],
+    "contactTitle": "Have a question about your data?",
+    "contactDesc": "Email us anytime at info@motqen.site and we'll get back to you as soon as possible."
+  },
+  "Terms": {
+    "metaTitle": "Terms of Use | Motqen",
+    "eyebrow": "Terms of Use",
+    "title": "Rules for using the Motqen platform",
+    "lastUpdated": "Last updated: September 19, 2026",
+    "intro": "By using the Motqen website and services, you agree to the following terms. Please read them carefully before using the platform.",
+    "sections": [
+      {
+        "title": "Nature of the service",
+        "body": [
+          "Motqen is an online educational platform for teaching the Quran remotely, completely free for every student, and sustained solely by donations. The platform does not charge any subscription fee for teaching sessions."
+        ]
+      },
+      {
+        "title": "Current stage of the platform",
+        "body": [
+          "Motqen currently operates as an independent initiative while formal legal registration is being completed. These terms will be updated once registration is complete to reflect the platform's official legal entity."
+        ]
+      },
+      {
+        "title": "Accounts",
+        "body": [
+          "Accurate information must be provided when registering. The platform is currently in development, and some account verification mechanisms are still being built and improved."
+        ]
+      },
+      {
+        "title": "Rules of use",
+        "body": [
+          "Platform users (students and teachers) must treat each other respectfully during sessions, must not use the platform for any purpose that violates public decency or applicable law, and must not share their account login details with anyone else."
+        ]
+      },
+      {
+        "title": "Content and Ijazah credentials",
+        "body": [
+          "Motqen strives to connect students with qualified teachers, but does not take responsibility for fully verifying every individual Ijazah or chain of transmission a teacher declares. Students seeking officially certified Ijazahs are advised to verify them directly with the issuing source."
+        ]
+      },
+      {
+        "title": "Donations",
+        "body": [
+          "Donations through the platform are entirely optional and grant no privilege or priority in sessions. The form currently available is only a donation-interest form; no amount is charged automatically through the website. We follow up manually to complete the donation through whatever channels are actually available at the time of contact."
+        ]
+      },
+      {
+        "title": "Limitation of liability",
+        "body": [
+          "The service is provided as-is, without express or implied warranties. Motqen makes every effort to ensure the quality and continuity of the service, without absolutely guaranteeing it, particularly at this early stage of the platform's operation."
+        ]
+      },
+      {
+        "title": "Changes to these terms",
+        "body": [
+          "These terms may be updated at any time, and any update will be published on this page along with the date of the latest revision."
+        ]
+      }
+    ],
+    "contactTitle": "Have a question about these terms?",
+    "contactDesc": "Email us anytime at info@motqen.site and we'll get back to you as soon as possible."
   }
 }
