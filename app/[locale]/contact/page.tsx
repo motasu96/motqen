@@ -7,6 +7,7 @@ import { IconMail, IconMapPin, IconPhone, IconWhatsApp } from "@/components/icon
 import { useToast } from "@/components/Toast";
 
 const WHATSAPP_NUMBER = "970567841689";
+const PHONE_DISPLAY = "+970 56 784 1689";
 
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
@@ -65,7 +66,7 @@ export default function ContactPage() {
             </span>
             <div>
               <div className="text-sm text-ink-soft">{t("phoneLabel")}</div>
-              <div dir="ltr" className="font-bold text-ink">+966 50 123 4567</div>
+              <div dir="ltr" className="font-bold text-ink">{PHONE_DISPLAY}</div>
             </div>
           </div>
           <a
@@ -77,11 +78,10 @@ export default function ContactPage() {
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold-light" aria-hidden="true">
               <IconWhatsApp className="h-5 w-5 text-[#25D366]" />
             </span>
-            <div className="flex-1">
+            <div>
               <div className="text-sm text-ink-soft">{t("whatsappLabel")}</div>
-              <div dir="ltr" className="font-bold text-ink">+970 56 784 1689</div>
+              <div dir="ltr" className="font-bold text-ink">{PHONE_DISPLAY}</div>
             </div>
-            <span className="text-sm font-bold text-gold-dark">{t("whatsappCta")}</span>
           </a>
           <div className="card flex items-center gap-4 p-6">
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold-light" aria-hidden="true">

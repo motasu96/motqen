@@ -58,7 +58,7 @@ export default function Footer() {
           </div>
           <div className="flex items-center gap-2 text-sm text-ink-soft">
             <IconPhone className="h-4 w-4 shrink-0 text-gold" aria-hidden="true" />
-            <span dir="ltr">+966 50 123 4567</span>
+            <span dir="ltr">+970 56 784 1689</span>
           </div>
           <div className="flex items-center gap-2 text-sm text-ink-soft">
             <IconMapPin className="h-4 w-4 shrink-0 text-gold" aria-hidden="true" />
