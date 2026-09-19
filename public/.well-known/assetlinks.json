@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "site.motqen.twa",
+      "sha256_cert_fingerprints": [
+        "B5:C4:46:D2:5D:33:8C:3D:A3:C2:7B:A3:A7:0A:63:91:50:D3:8C:5E:EA:04:8C:32:08:9A:76:08:24:A7:8F:57"
+      ]
+    }
+  }
+]

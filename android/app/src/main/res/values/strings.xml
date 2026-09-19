@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appName">متقن</string>
+    <string name="launcherName">متقن</string>
+    <string name="hostName">www.motqen.site</string>
+    <string name="defaultUrl">https://www.motqen.site/</string>
+    <string name="assetStatements">[{\"relation\": [\"delegate_permission/common.handle_all_urls\"], \"target\": {\"namespace\": \"web\", \"site\": \"https://www.motqen.site\"}}]</string>
+</resources>

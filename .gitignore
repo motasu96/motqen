@@ -22,3 +22,11 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# android (TWA wrapper)
+/android/.gradle
+/android/local.properties
+/android/app/build
+/android/build
+*.jks
+*.keystore

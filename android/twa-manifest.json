@@ -1,0 +1,28 @@
+{
+  "packageId": "site.motqen.twa",
+  "host": "www.motqen.site",
+  "name": "متقن | Motqen",
+  "launcherName": "متقن",
+  "display": "standalone",
+  "themeColor": "#C89B4A",
+  "navigationColor": "#C89B4A",
+  "backgroundColor": "#FBF7EE",
+  "startUrl": "/",
+  "iconUrl": "https://www.motqen.site/icons/icon-512-any.png",
+  "maskableIconUrl": "https://www.motqen.site/icons/icon-512-maskable.png",
+  "shortcuts": [],
+  "generatorApp": "manual",
+  "webManifestUrl": "https://www.motqen.site/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableNotifications": false,
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "motqen"
+  }
+}
