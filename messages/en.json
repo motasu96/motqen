@@ -87,6 +87,8 @@
     "phoneLabel": "Phone Number",
     "addressLabel": "Address",
     "addressValue": "Riyadh, Saudi Arabia",
+    "whatsappLabel": "WhatsApp",
+    "whatsappCta": "Chat now",
     "successTitle": "Your message has been sent successfully",
     "successDesc": "Our team will get back to you as soon as possible, thank you for reaching out.",
     "sendAnother": "Send another message",
@@ -163,6 +165,10 @@
     "cta": "Support Motqen Now",
     "dismiss": "Maybe later",
     "closeAria": "Close"
+  },
+  "WhatsApp": {
+    "ariaLabel": "Chat with us on WhatsApp",
+    "greeting": "Hello, I have a question about the Motqen platform."
   },
   "Login": {
     "metaTitle": "Log In | Motqen",

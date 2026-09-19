@@ -3,8 +3,10 @@
 import { FormEvent, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Breadcrumb } from "@/components/ui";
-import { IconMail, IconMapPin, IconPhone } from "@/components/icons";
+import { IconMail, IconMapPin, IconPhone, IconWhatsApp } from "@/components/icons";
 import { useToast } from "@/components/Toast";
+
+const WHATSAPP_NUMBER = "970567841689";
 
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
@@ -12,6 +14,8 @@ export default function ContactPage() {
   const { showToast } = useToast();
   const t = useTranslations("Contact");
   const tNav = useTranslations("Nav");
+  const tWhatsApp = useTranslations("WhatsApp");
+  const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(tWhatsApp("greeting"))}`;
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -64,6 +68,21 @@ export default function ContactPage() {
               <div dir="ltr" className="font-bold text-ink">+966 50 123 4567</div>
             </div>
           </div>
+          <a
+            href={whatsappHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="card flex items-center gap-4 p-6 transition-colors hover:border-gold"
+          >
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold-light" aria-hidden="true">
+              <IconWhatsApp className="h-5 w-5 text-[#25D366]" />
+            </span>
+            <div className="flex-1">
+              <div className="text-sm text-ink-soft">{t("whatsappLabel")}</div>
+              <div dir="ltr" className="font-bold text-ink">+970 56 784 1689</div>
+            </div>
+            <span className="text-sm font-bold text-gold-dark">{t("whatsappCta")}</span>
+          </a>
           <div className="card flex items-center gap-4 p-6">
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold-light" aria-hidden="true">
               <IconMapPin className="h-5 w-5 text-gold-dark" />

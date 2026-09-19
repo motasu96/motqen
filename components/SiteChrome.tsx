@@ -7,6 +7,7 @@ import Header from "./Header";
 import Footer from "./Footer";
 import PageTransition from "./PageTransition";
 import DonatePopup from "./DonatePopup";
+import WhatsAppButton from "./WhatsAppButton";
 
 export default function SiteChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -43,6 +44,7 @@ export default function SiteChrome({ children }: { children: ReactNode }) {
       </main>
       <Footer />
       <DonatePopup />
+      <WhatsAppButton />
     </>
   );
 }
