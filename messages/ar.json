@@ -28,7 +28,7 @@
     "importantPages": "صفحات مهمة",
     "contactUs": "تواصل معنا",
     "signupLink": "إنشاء حساب",
-    "address": "الرياض، المملكة العربية السعودية",
+    "address": "فلسطين - غزة",
     "rights": "جميع الحقوق محفوظة"
   },
   "Home": {
@@ -86,7 +86,7 @@
     "emailLabel": "البريد الإلكتروني",
     "phoneLabel": "رقم الجوال",
     "addressLabel": "العنوان",
-    "addressValue": "الرياض، المملكة العربية السعودية",
+    "addressValue": "فلسطين - غزة",
     "whatsappLabel": "واتساب",
     "successTitle": "تم إرسال رسالتك بنجاح",
     "successDesc": "سيتواصل معك فريقنا في أقرب وقت ممكن، شكرًا لتواصلك معنا.",
