@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const { error } = await resend.emails.send({
-      from: "متقن | Motqen <no-reply@motqen.site>",
+      from: "متقن | Motqen <info@motqen.site>",
       replyTo: email,
       to: OWNER_EMAIL,
       subject,
