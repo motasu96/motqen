@@ -1,15 +1,12 @@
 // Memorization plan calculator.
 //
-// We schedule in units of "quarter-hizb" (ربع الحزب): every standard Mushaf
-// prints 30 juz', each split into 2 hizb, each split into 4 quarters — 240
-// quarters total. This structural division is invariant across Mushaf
-// editions, unlike page numbers (which vary by print/font), so it's the
-// safest unit for a generated schedule without needing a verified per-ayah
-// dataset.
+// Schedules are built in units of ayahs, grouped by surah. Ayah counts per
+// surah are fixed in the standard Hafs 'an Asim numbering used in virtually
+// every printed Mushaf, unlike page/line boundaries which vary by print
+// edition — so this doesn't require a verified page-mapping dataset to
+// produce a correct, safe schedule.
 
-export const TOTAL_JUZ = 30;
-export const QUARTERS_PER_JUZ = 8;
-export const TOTAL_QUARTERS = TOTAL_JUZ * QUARTERS_PER_JUZ; // 240
+import { QURAN_SURAHS, TOTAL_AYAHS } from "@/data/quranSurahs";
 
 const WEEKS_PER_MONTH = 4.345; // 365.25 / 12 / 7
 
@@ -26,78 +23,95 @@ export const PLAN_DURATIONS: { key: PlanDurationKey; months: number }[] = [
 
 export type PlanInput = {
   durationMonths: number;
-  alreadyMemorizedJuz: number; // 0..29
+  alreadyMemorizedSurahs: number; // count of surahs already done, from the front of the direction-ordered sequence
   reviewDaysPerWeek: 1 | 2;
   direction: PlanDirection;
 };
 
-export type JuzPosition = {
-  juz: number; // 1..30, absolute juz number (juz' order, not memorization order)
-  // 1..8: the Nth rub'-al-hizb within this juz', counting across both of its
-  // hizb (2 hizb x 4 rub' each). Split into hizb/rub' for display via
-  // Math.ceil(quarterInJuz / 4) and ((quarterInJuz - 1) % 4) + 1.
-  quarterInJuz: number;
+export type SurahPosition = {
+  surahNumber: number; // 1..114, actual Quran numbering
+  ayahInSurah: number; // 1..surah's ayah count
 };
 
 export type WeekPlanItem = {
   weekIndex: number; // 1-based
-  fromQuarter: number; // 0-based index into the memorization-order sequence
-  toQuarter: number; // exclusive
-  fromPosition: JuzPosition;
-  toPosition: JuzPosition; // inclusive end position
+  fromAyahIndex: number; // 0-based index into the memorization-order sequence (within the remaining ayahs)
+  toAyahIndex: number; // exclusive
+  fromPosition: SurahPosition;
+  toPosition: SurahPosition; // inclusive end position
 };
 
 export type PlanResult = {
   totalWeeks: number;
-  remainingQuarters: number;
-  quartersPerWeek: number;
+  remainingAyahs: number;
+  ayahsPerWeek: number;
   memorizationDaysPerWeek: number;
-  quartersPerDay: number;
+  ayahsPerDay: number;
   weeks: WeekPlanItem[];
   direction: PlanDirection;
 };
 
 /**
- * Absolute juz'/quarter position at a given point in the memorization-order
- * sequence. The juz' order reverses for "fromEnd" (juz 30 down to 1), but
- * quarters within each juz' always stay in their natural forward order.
+ * Surah order for memorization: "fromStart" follows the Mushaf order
+ * (Al-Fatihah -> An-Nas); "fromEnd" reverses it (An-Nas -> Al-Fatihah),
+ * which starts with the short surahs at the back of the Mushaf — the
+ * common order for beginners. Ayahs within each surah always stay in
+ * their natural forward order regardless of direction.
  */
-function sequenceIndexToJuzPosition(sequenceIndex: number, direction: PlanDirection): JuzPosition {
-  const juzOrderPosition = Math.floor(sequenceIndex / QUARTERS_PER_JUZ);
-  const quarterInJuz = (sequenceIndex % QUARTERS_PER_JUZ) + 1;
-  const juz = direction === "fromStart" ? juzOrderPosition + 1 : TOTAL_JUZ - juzOrderPosition;
-  return { juz, quarterInJuz };
+function orderedSurahs(direction: PlanDirection) {
+  return direction === "fromStart" ? QURAN_SURAHS : [...QURAN_SURAHS].reverse();
+}
+
+function surahsToAyahOffset(count: number, direction: PlanDirection): number {
+  const ordered = orderedSurahs(direction);
+  const clamped = Math.max(0, Math.min(ordered.length - 1, count));
+  let sum = 0;
+  for (let i = 0; i < clamped; i++) sum += ordered[i].ayahCount;
+  return sum;
+}
+
+function sequenceIndexToPosition(sequenceIndex: number, direction: PlanDirection): SurahPosition {
+  const ordered = orderedSurahs(direction);
+  let remaining = sequenceIndex;
+  for (const surah of ordered) {
+    if (remaining < surah.ayahCount) {
+      return { surahNumber: surah.number, ayahInSurah: remaining + 1 };
+    }
+    remaining -= surah.ayahCount;
+  }
+  const last = ordered[ordered.length - 1];
+  return { surahNumber: last.number, ayahInSurah: last.ayahCount };
 }
 
 export function buildPlan(input: PlanInput): PlanResult {
-  const alreadyMemorizedQuarters = Math.max(0, Math.min(TOTAL_JUZ - 1, input.alreadyMemorizedJuz)) * QUARTERS_PER_JUZ;
-  const remainingQuarters = TOTAL_QUARTERS - alreadyMemorizedQuarters;
+  const alreadyMemorizedAyahs = surahsToAyahOffset(input.alreadyMemorizedSurahs, input.direction);
+  const remainingAyahs = TOTAL_AYAHS - alreadyMemorizedAyahs;
 
   const totalWeeks = Math.max(1, Math.round(input.durationMonths * WEEKS_PER_MONTH));
   const memorizationDaysPerWeek = 7 - input.reviewDaysPerWeek;
-  const quartersPerWeek = remainingQuarters / totalWeeks;
-  const quartersPerDay = quartersPerWeek / memorizationDaysPerWeek;
+  const ayahsPerWeek = remainingAyahs / totalWeeks;
+  const ayahsPerDay = ayahsPerWeek / memorizationDaysPerWeek;
 
   const weeks: WeekPlanItem[] = [];
   for (let w = 0; w < totalWeeks; w++) {
-    const fromQuarter = Math.round(w * quartersPerWeek);
-    const toQuarter = Math.min(remainingQuarters, Math.round((w + 1) * quartersPerWeek));
-    if (fromQuarter >= toQuarter) continue;
+    const fromAyahIndex = Math.round(w * ayahsPerWeek);
+    const toAyahIndex = Math.min(remainingAyahs, Math.round((w + 1) * ayahsPerWeek));
+    if (fromAyahIndex >= toAyahIndex) continue;
     weeks.push({
       weekIndex: w + 1,
-      fromQuarter,
-      toQuarter,
-      fromPosition: sequenceIndexToJuzPosition(alreadyMemorizedQuarters + fromQuarter, input.direction),
-      toPosition: sequenceIndexToJuzPosition(alreadyMemorizedQuarters + toQuarter - 1, input.direction),
+      fromAyahIndex,
+      toAyahIndex,
+      fromPosition: sequenceIndexToPosition(alreadyMemorizedAyahs + fromAyahIndex, input.direction),
+      toPosition: sequenceIndexToPosition(alreadyMemorizedAyahs + toAyahIndex - 1, input.direction),
     });
   }
 
   return {
     totalWeeks,
-    remainingQuarters,
-    quartersPerWeek,
+    remainingAyahs,
+    ayahsPerWeek,
     memorizationDaysPerWeek,
-    quartersPerDay,
+    ayahsPerDay,
     weeks,
     direction: input.direction,
   };
@@ -118,6 +132,6 @@ export function getWeekPlan(plan: PlanResult, weekIndex: number): WeekPlanItem |
 
 export function overallProgressPercent(plan: PlanResult, currentWeekIndex: number | null): number {
   if (currentWeekIndex === null) return 100;
-  const completedQuarters = getWeekPlan(plan, currentWeekIndex)?.fromQuarter ?? plan.remainingQuarters;
-  return Math.round((completedQuarters / plan.remainingQuarters) * 100);
+  const completedAyahs = getWeekPlan(plan, currentWeekIndex)?.fromAyahIndex ?? plan.remainingAyahs;
+  return Math.round((completedAyahs / plan.remainingAyahs) * 100);
 }

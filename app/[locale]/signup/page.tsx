@@ -9,7 +9,8 @@ import { programs } from "@/data/programs";
 import { IconCheck } from "@/components/icons";
 import { useToast } from "@/components/Toast";
 import { localize } from "@/lib/localize";
-import { buildPlan, PLAN_DURATIONS, JuzPosition, PlanDirection } from "@/lib/quranPlan";
+import { buildPlan, PLAN_DURATIONS, SurahPosition, PlanDirection } from "@/lib/quranPlan";
+import { getSurahByNumber } from "@/data/quranSurahs";
 
 type StudentType = "kid" | "student" | "women";
 type StepKind = "type" | "info" | "plan" | "time" | "confirm";
@@ -41,7 +42,7 @@ function SignupFlow() {
   const [submitting, setSubmitting] = useState(false);
 
   const [planDurationMonths, setPlanDurationMonths] = useState<number | null>(null);
-  const [alreadyMemorizedJuz, setAlreadyMemorizedJuz] = useState(0);
+  const [alreadyMemorizedSurahs, setAlreadyMemorizedSurahs] = useState(0);
   const [reviewDaysPerWeek, setReviewDaysPerWeek] = useState<1 | 2>(1);
   const [direction, setDirection] = useState<PlanDirection>("fromEnd");
 
@@ -78,17 +79,17 @@ function SignupFlow() {
   const planPreviews = useMemo(
     () =>
       PLAN_DURATIONS.map((d) => {
-        const result = buildPlan({ durationMonths: d.months, alreadyMemorizedJuz, reviewDaysPerWeek, direction });
-        return { months: d.months, juzPerWeek: result.quartersPerWeek / 8, result };
+        const result = buildPlan({ durationMonths: d.months, alreadyMemorizedSurahs, reviewDaysPerWeek, direction });
+        return { months: d.months, ayahsPerWeek: result.ayahsPerWeek, result };
       }),
-    [alreadyMemorizedJuz, reviewDaysPerWeek, direction]
+    [alreadyMemorizedSurahs, reviewDaysPerWeek, direction]
   );
   const selectedPlanPreview = planPreviews.find((p) => p.months === planDurationMonths);
 
-  function formatPosition(pos: JuzPosition) {
-    const hizb = Math.ceil(pos.quarterInJuz / 4);
-    const rub = ((pos.quarterInJuz - 1) % 4) + 1;
-    return `${t("planJuzLabel", { n: pos.juz })} — ${t("planHizbLabel", { n: hizb })} — ${t("planQuarterLabel", { n: rub })}`;
+  function formatPosition(pos: SurahPosition) {
+    const surah = getSurahByNumber(pos.surahNumber);
+    const surahName = surah ? (locale === "en" ? surah.nameEn : surah.nameAr) : "";
+    return `${surahName} — ${t("planAyahLabel", { n: pos.ayahInSurah })}`;
   }
 
   function toggleDay(day: string) {
@@ -132,7 +133,7 @@ function SignupFlow() {
           "motqen_memorization_plan",
           JSON.stringify({
             durationMonths: planDurationMonths,
-            alreadyMemorizedJuz,
+            alreadyMemorizedSurahs,
             reviewDaysPerWeek,
             direction,
             startedAt: new Date().toISOString(),
@@ -292,7 +293,7 @@ function SignupFlow() {
                     }`}
                   >
                     <span className="text-base font-extrabold text-ink">{DURATION_LABELS[p.months]}</span>
-                    <span className="text-sm text-ink-soft">{t("planPaceFormat", { juz: p.juzPerWeek.toFixed(1) })}</span>
+                    <span className="text-sm text-ink-soft">{t("planPaceFormat", { ayahs: Math.round(p.ayahsPerWeek) })}</span>
                   </button>
                 ))}
               </div>
@@ -306,11 +307,11 @@ function SignupFlow() {
                     id="plan-already"
                     type="number"
                     min={0}
-                    max={29}
+                    max={113}
                     dir="ltr"
                     className="input"
-                    value={alreadyMemorizedJuz}
-                    onChange={(e) => setAlreadyMemorizedJuz(Math.max(0, Math.min(29, Number(e.target.value) || 0)))}
+                    value={alreadyMemorizedSurahs}
+                    onChange={(e) => setAlreadyMemorizedSurahs(Math.max(0, Math.min(113, Number(e.target.value) || 0)))}
                   />
                   <span className="text-xs text-ink-soft">{t("planAlreadyMemorizedHint")}</span>
                 </div>
@@ -370,7 +371,7 @@ function SignupFlow() {
                     <div className="flex items-center justify-between">
                       <span className="text-ink-soft">{t("planSummaryPace")}</span>
                       <span className="font-bold text-ink">
-                        {t("planPaceFormat", { juz: selectedPlanPreview.juzPerWeek.toFixed(1) })}
+                        {t("planPaceFormat", { ayahs: Math.round(selectedPlanPreview.ayahsPerWeek) })}
                       </span>
                     </div>
                     {selectedPlanPreview.result.weeks[0] && (

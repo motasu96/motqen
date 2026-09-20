@@ -16,13 +16,14 @@ import {
   weekIndexForDate,
   getWeekPlan,
   overallProgressPercent,
-  JuzPosition,
+  SurahPosition,
   PlanDirection,
 } from "@/lib/quranPlan";
+import { getSurahByNumber } from "@/data/quranSurahs";
 
 type StoredPlan = {
   durationMonths: number;
-  alreadyMemorizedJuz: number;
+  alreadyMemorizedSurahs: number;
   reviewDaysPerWeek: 1 | 2;
   direction: PlanDirection;
   startedAt: string;
@@ -92,7 +93,7 @@ export default function StudentDashboardPage() {
     if (!storedPlan) return null;
     const plan = buildPlan({
       durationMonths: storedPlan.durationMonths,
-      alreadyMemorizedJuz: storedPlan.alreadyMemorizedJuz,
+      alreadyMemorizedSurahs: storedPlan.alreadyMemorizedSurahs,
       reviewDaysPerWeek: storedPlan.reviewDaysPerWeek,
       direction: storedPlan.direction,
     });
@@ -102,10 +103,10 @@ export default function StudentDashboardPage() {
     return { plan, weekIndex, currentWeek, percent };
   }, [storedPlan]);
 
-  function formatJuzPosition(pos: JuzPosition) {
-    const hizb = Math.ceil(pos.quarterInJuz / 4);
-    const rub = ((pos.quarterInJuz - 1) % 4) + 1;
-    return `${tPlan("planJuzLabel", { n: pos.juz })} — ${tPlan("planHizbLabel", { n: hizb })} — ${tPlan("planQuarterLabel", { n: rub })}`;
+  function formatSurahPosition(pos: SurahPosition) {
+    const surah = getSurahByNumber(pos.surahNumber);
+    const surahName = surah ? (locale === "en" ? surah.nameEn : surah.nameAr) : "";
+    return `${surahName} — ${tPlan("planAyahLabel", { n: pos.ayahInSurah })}`;
   }
 
   return (
@@ -171,8 +172,8 @@ export default function StudentDashboardPage() {
                   <h4 className="text-lg font-extrabold text-ink">{t("planWeekTargetLabel")}</h4>
                   {planData.currentWeek && (
                     <p className="text-sm text-ink-soft">
-                      {formatJuzPosition(planData.currentWeek.fromPosition)} {tPlan("planRangeSeparator")}{" "}
-                      {formatJuzPosition(planData.currentWeek.toPosition)}
+                      {formatSurahPosition(planData.currentWeek.fromPosition)} {tPlan("planRangeSeparator")}{" "}
+                      {formatSurahPosition(planData.currentWeek.toPosition)}
                     </p>
                   )}
                 </>
