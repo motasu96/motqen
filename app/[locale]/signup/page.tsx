@@ -9,8 +9,11 @@ import { programs } from "@/data/programs";
 import { IconCheck } from "@/components/icons";
 import { useToast } from "@/components/Toast";
 import { localize } from "@/lib/localize";
+import { buildPlan, PLAN_DURATIONS, JuzPosition, PlanDirection } from "@/lib/quranPlan";
 
 type StudentType = "kid" | "student" | "women";
+type StepKind = "type" | "info" | "plan" | "time" | "confirm";
+const HIFZ_PROGRAM_SLUG = "hifz-mutqan";
 
 function SignupFlow() {
   const router = useRouter();
@@ -28,7 +31,6 @@ function SignupFlow() {
 
   const TIME_SLOTS = t.raw("timeSlots") as string[];
   const WEEK_DAYS = t.raw("weekDays") as string[];
-  const STEPS = [t("step1"), t("step2"), t("step3"), t("step4")];
 
   const [step, setStep] = useState(0);
   const [studentType, setStudentType] = useState<StudentType | null>(null);
@@ -38,22 +40,69 @@ function SignupFlow() {
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
 
+  const [planDurationMonths, setPlanDurationMonths] = useState<number | null>(null);
+  const [alreadyMemorizedJuz, setAlreadyMemorizedJuz] = useState(0);
+  const [reviewDaysPerWeek, setReviewDaysPerWeek] = useState<1 | 2>(1);
+  const [direction, setDirection] = useState<PlanDirection>("fromEnd");
+
+  const isHifzProgram = programSlug === HIFZ_PROGRAM_SLUG;
+
+  const steps = useMemo<StepKind[]>(() => {
+    const arr: StepKind[] = ["type", "info"];
+    if (isHifzProgram) arr.push("plan");
+    arr.push("time", "confirm");
+    return arr;
+  }, [isHifzProgram]);
+
+  const STEP_LABELS: Record<StepKind, string> = {
+    type: t("step1"),
+    info: t("step2"),
+    plan: t("step2b"),
+    time: t("step3"),
+    confirm: t("step4"),
+  };
+  const stepKind = steps[Math.min(step, steps.length - 1)];
+
   const selectedProgram = useMemo(() => {
     const p = programs.find((p) => p.slug === programSlug);
     return p ? localize(p, locale) : undefined;
   }, [programSlug, locale]);
+
+  const DURATION_LABELS: Record<number, string> = {
+    6: t("planMonths6"),
+    12: t("planYear1"),
+    24: t("planYears2"),
+    36: t("planYears3"),
+  };
+
+  const planPreviews = useMemo(
+    () =>
+      PLAN_DURATIONS.map((d) => {
+        const result = buildPlan({ durationMonths: d.months, alreadyMemorizedJuz, reviewDaysPerWeek, direction });
+        return { months: d.months, juzPerWeek: result.quartersPerWeek / 8, result };
+      }),
+    [alreadyMemorizedJuz, reviewDaysPerWeek, direction]
+  );
+  const selectedPlanPreview = planPreviews.find((p) => p.months === planDurationMonths);
+
+  function formatPosition(pos: JuzPosition) {
+    const hizb = Math.ceil(pos.quarterInJuz / 4);
+    const rub = ((pos.quarterInJuz - 1) % 4) + 1;
+    return `${t("planJuzLabel", { n: pos.juz })} — ${t("planHizbLabel", { n: hizb })} — ${t("planQuarterLabel", { n: rub })}`;
+  }
 
   function toggleDay(day: string) {
     setSelectedDays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]));
   }
 
   function validateStep(): string | null {
-    if (step === 0 && !studentType) return t("errorStudentType");
-    if (step === 1) {
+    if (stepKind === "type" && !studentType) return t("errorStudentType");
+    if (stepKind === "info") {
       if (!form.name.trim() || !form.phone.trim()) return t("errorNamePhone");
       if (!programSlug) return t("errorProgram");
     }
-    if (step === 2 && (selectedDays.length === 0 || !selectedTime)) {
+    if (stepKind === "plan" && !planDurationMonths) return t("errorPlan");
+    if (stepKind === "time" && (selectedDays.length === 0 || !selectedTime)) {
       return t("errorTime");
     }
     return null;
@@ -65,7 +114,7 @@ function SignupFlow() {
       showToast(error, "error");
       return;
     }
-    if (step < STEPS.length - 1) setStep((s) => s + 1);
+    if (step < steps.length - 1) setStep((s) => s + 1);
   }
   function back() {
     if (step > 0) setStep((s) => s - 1);
@@ -78,6 +127,18 @@ function SignupFlow() {
         "motqen_booking",
         JSON.stringify({ studentType, programSlug, form, selectedDays, selectedTime, confirmedAt: new Date().toISOString() })
       );
+      if (isHifzProgram && planDurationMonths) {
+        localStorage.setItem(
+          "motqen_memorization_plan",
+          JSON.stringify({
+            durationMonths: planDurationMonths,
+            alreadyMemorizedJuz,
+            reviewDaysPerWeek,
+            direction,
+            startedAt: new Date().toISOString(),
+          })
+        );
+      }
     } catch {}
     if (form.email) {
       fetch("/api/welcome-email", {
@@ -101,8 +162,8 @@ function SignupFlow() {
 
         {/* Step indicator */}
         <ol className="mb-10 flex items-center justify-center gap-2 sm:gap-4" aria-label={t("stepsLabel")}>
-          {STEPS.map((label, i) => (
-            <li key={label} className="flex items-center gap-2 sm:gap-4">
+          {steps.map((kind, i) => (
+            <li key={kind} className="flex items-center gap-2 sm:gap-4">
               <div className="flex flex-col items-center gap-2">
                 <div
                   aria-current={i === step ? "step" : undefined}
@@ -117,16 +178,16 @@ function SignupFlow() {
                   {i < step ? <IconCheck className="h-4 w-4" aria-hidden="true" /> : i + 1}
                 </div>
                 <span className={`hidden text-xs font-bold sm:block ${i <= step ? "text-ink" : "text-ink-soft"}`}>
-                  {label}
+                  {STEP_LABELS[kind]}
                 </span>
               </div>
-              {i < STEPS.length - 1 && <div className={`h-0.5 w-6 sm:w-12 ${i < step ? "bg-gold" : "bg-line"}`} />}
+              {i < steps.length - 1 && <div className={`h-0.5 w-6 sm:w-12 ${i < step ? "bg-gold" : "bg-line"}`} />}
             </li>
           ))}
         </ol>
 
         <div key={step} className="card animate-fade-up p-7 sm:p-9">
-          {step === 0 && (
+          {stepKind === "type" && (
             <div className="flex flex-col gap-5">
               <h2 className="text-lg font-extrabold text-ink">{t("chooseType")}</h2>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -152,7 +213,7 @@ function SignupFlow() {
             </div>
           )}
 
-          {step === 1 && (
+          {stepKind === "info" && (
             <div className="flex flex-col gap-5">
               <h2 className="text-lg font-extrabold text-ink">{t("studentInfo")}</h2>
               <div className="flex flex-col gap-2">
@@ -212,7 +273,122 @@ function SignupFlow() {
             </div>
           )}
 
-          {step === 2 && (
+          {stepKind === "plan" && (
+            <div className="flex flex-col gap-6">
+              <div>
+                <h2 className="text-lg font-extrabold text-ink">{t("planTitle")}</h2>
+                <p className="mt-1 text-sm text-ink-soft">{t("planSubtitle")}</p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {planPreviews.map((p) => (
+                  <button
+                    key={p.months}
+                    type="button"
+                    onClick={() => setPlanDurationMonths(p.months)}
+                    aria-pressed={planDurationMonths === p.months}
+                    className={`flex flex-col items-start gap-2 rounded-2xl border p-5 text-start transition-colors ${
+                      planDurationMonths === p.months ? "border-gold bg-gold-light" : "border-line bg-bg hover:border-gold/60"
+                    }`}
+                  >
+                    <span className="text-base font-extrabold text-ink">{DURATION_LABELS[p.months]}</span>
+                    <span className="text-sm text-ink-soft">{t("planPaceFormat", { juz: p.juzPerWeek.toFixed(1) })}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="plan-already" className="text-sm font-bold text-ink">
+                    {t("planAlreadyMemorizedLabel")}
+                  </label>
+                  <input
+                    id="plan-already"
+                    type="number"
+                    min={0}
+                    max={29}
+                    dir="ltr"
+                    className="input"
+                    value={alreadyMemorizedJuz}
+                    onChange={(e) => setAlreadyMemorizedJuz(Math.max(0, Math.min(29, Number(e.target.value) || 0)))}
+                  />
+                  <span className="text-xs text-ink-soft">{t("planAlreadyMemorizedHint")}</span>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <span className="text-sm font-bold text-ink">{t("planReviewDaysLabel")}</span>
+                  <div className="grid grid-cols-2 gap-2 rounded-pill border border-line bg-bg p-1">
+                    {([1, 2] as const).map((d) => (
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() => setReviewDaysPerWeek(d)}
+                        aria-pressed={reviewDaysPerWeek === d}
+                        className={`rounded-pill py-2 text-sm font-bold transition-colors ${
+                          reviewDaysPerWeek === d ? "bg-gold-gradient text-white shadow-soft" : "text-ink-soft"
+                        }`}
+                      >
+                        {d === 1 ? t("planReviewDays1") : t("planReviewDays2")}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <span className="text-sm font-bold text-ink">{t("planDirectionLabel")}</span>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {(
+                    [
+                      { key: "fromEnd" as const, label: t("planDirectionFromEnd") },
+                      { key: "fromStart" as const, label: t("planDirectionFromStart") },
+                    ]
+                  ).map((d) => (
+                    <button
+                      key={d.key}
+                      type="button"
+                      onClick={() => setDirection(d.key)}
+                      aria-pressed={direction === d.key}
+                      className={`rounded-2xl border px-4 py-3 text-sm font-bold transition-colors ${
+                        direction === d.key ? "border-gold bg-gold-light text-ink" : "border-line text-ink-soft hover:border-gold/60"
+                      }`}
+                    >
+                      {d.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {selectedPlanPreview && (
+                <div className="rounded-2xl border border-line bg-bg p-5">
+                  <h3 className="mb-3 text-sm font-extrabold text-ink">{t("planSummaryTitle")}</h3>
+                  <div className="flex flex-col gap-2 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-ink-soft">{t("planSummaryWeeks")}</span>
+                      <span className="font-bold text-ink">{selectedPlanPreview.result.totalWeeks}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-ink-soft">{t("planSummaryPace")}</span>
+                      <span className="font-bold text-ink">
+                        {t("planPaceFormat", { juz: selectedPlanPreview.juzPerWeek.toFixed(1) })}
+                      </span>
+                    </div>
+                    {selectedPlanPreview.result.weeks[0] && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-ink-soft">{t("planSummaryFirstWeek")}</span>
+                        <span className="font-bold text-ink">
+                          {formatPosition(selectedPlanPreview.result.weeks[0].fromPosition)} {t("planRangeSeparator")}{" "}
+                          {formatPosition(selectedPlanPreview.result.weeks[0].toPosition)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {stepKind === "time" && (
             <div className="flex flex-col gap-6">
               <h2 className="text-lg font-extrabold text-ink">{t("chooseTime")}</h2>
               <fieldset>
@@ -256,12 +432,15 @@ function SignupFlow() {
             </div>
           )}
 
-          {step === 3 && (
+          {stepKind === "confirm" && (
             <div className="flex flex-col gap-5">
               <h2 className="text-lg font-extrabold text-ink">{t("confirmSubscription")}</h2>
               <div className="flex flex-col divide-y divide-line rounded-2xl border border-line">
                 <SummaryRow label={t("summaryType")} value={STUDENT_TYPES.find((tp) => tp.key === studentType)?.title ?? t("dash")} />
                 <SummaryRow label={t("summaryProgram")} value={selectedProgram?.title ?? t("dash")} />
+                {isHifzProgram && planDurationMonths && (
+                  <SummaryRow label={t("summaryPlan")} value={DURATION_LABELS[planDurationMonths]} />
+                )}
                 <SummaryRow label={t("summaryName")} value={form.name || t("dash")} />
                 <SummaryRow label={t("summaryPhone")} value={form.phone || t("dash")} />
                 <SummaryRow label={t("summaryDays")} value={selectedDays.join("، ") || t("dash")} />
@@ -282,7 +461,7 @@ function SignupFlow() {
               </Link>
             )}
 
-            {step < STEPS.length - 1 ? (
+            {step < steps.length - 1 ? (
               <button onClick={next} className="btn-primary">
                 {t("next")} ‹
               </button>

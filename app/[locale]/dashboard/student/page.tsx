@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import DashboardShell from "@/components/dashboard/DashboardShell";
@@ -10,6 +11,22 @@ import { useBookings } from "@/lib/useBookings";
 import { homework, HomeworkItem, todayPortion } from "@/data/dashboard";
 import { localize } from "@/lib/localize";
 import { IconTask, IconTrophy, IconShield, IconFamily, IconBook, IconInbox } from "@/components/icons";
+import {
+  buildPlan,
+  weekIndexForDate,
+  getWeekPlan,
+  overallProgressPercent,
+  JuzPosition,
+  PlanDirection,
+} from "@/lib/quranPlan";
+
+type StoredPlan = {
+  durationMonths: number;
+  alreadyMemorizedJuz: number;
+  reviewDaysPerWeek: 1 | 2;
+  direction: PlanDirection;
+  startedAt: string;
+};
 
 const TYPE_KEYS: Record<HomeworkItem["type"], "typeRecitation" | "typeReview" | "typeTajweed"> = {
   تسميع: "typeRecitation",
@@ -57,10 +74,39 @@ export default function StudentDashboardPage() {
   const t = useTranslations("Dashboard.student");
   const tc = useTranslations("Dashboard.common");
   const tStatus = useTranslations("Dashboard.status");
+  const tPlan = useTranslations("Signup");
   const studentName = tc("studentName");
   const studentTitle = tc("studentTitle");
   const recentHomework = homework.slice(0, 2).map((h) => localize(h, locale));
   const portion = localize(todayPortion, locale);
+
+  const [storedPlan, setStoredPlan] = useState<StoredPlan | null>(null);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("motqen_memorization_plan");
+      if (raw) setStoredPlan(JSON.parse(raw));
+    } catch {}
+  }, []);
+
+  const planData = useMemo(() => {
+    if (!storedPlan) return null;
+    const plan = buildPlan({
+      durationMonths: storedPlan.durationMonths,
+      alreadyMemorizedJuz: storedPlan.alreadyMemorizedJuz,
+      reviewDaysPerWeek: storedPlan.reviewDaysPerWeek,
+      direction: storedPlan.direction,
+    });
+    const weekIndex = weekIndexForDate(plan, new Date(storedPlan.startedAt), new Date());
+    const currentWeek = weekIndex ? getWeekPlan(plan, weekIndex) : undefined;
+    const percent = overallProgressPercent(plan, weekIndex);
+    return { plan, weekIndex, currentWeek, percent };
+  }, [storedPlan]);
+
+  function formatJuzPosition(pos: JuzPosition) {
+    const hizb = Math.ceil(pos.quarterInJuz / 4);
+    const rub = ((pos.quarterInJuz - 1) % 4) + 1;
+    return `${tPlan("planJuzLabel", { n: pos.juz })} — ${tPlan("planHizbLabel", { n: hizb })} — ${tPlan("planQuarterLabel", { n: rub })}`;
+  }
 
   return (
     <DashboardShell navItems={studentNav} userName={studentName} userSubtitle={studentTitle}>
@@ -73,7 +119,7 @@ export default function StudentDashboardPage() {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           <div className="card flex flex-col items-center gap-3 p-6 text-center">
             <span className="text-sm font-bold text-ink-soft">{t("memorizationProgress")}</span>
-            <ProgressRing percent={68} />
+            <ProgressRing percent={planData ? planData.percent : 68} />
             <span className="text-xs text-ink-soft">{t("progressEncouragement")}</span>
           </div>
 
@@ -115,7 +161,26 @@ export default function StudentDashboardPage() {
               {t("todayPortionTitle")}
             </h3>
           </div>
-          {portion.hasPortion ? (
+          {planData ? (
+            <div className="flex flex-col gap-2 rounded-2xl border border-line bg-bg p-4">
+              {planData.weekIndex ? (
+                <>
+                  <span className="w-fit rounded-pill bg-gold-light px-3 py-1 text-xs font-bold text-gold-dark">
+                    {t("planWeekOf", { current: planData.weekIndex, total: planData.plan.totalWeeks })}
+                  </span>
+                  <h4 className="text-lg font-extrabold text-ink">{t("planWeekTargetLabel")}</h4>
+                  {planData.currentWeek && (
+                    <p className="text-sm text-ink-soft">
+                      {formatJuzPosition(planData.currentWeek.fromPosition)} {tPlan("planRangeSeparator")}{" "}
+                      {formatJuzPosition(planData.currentWeek.toPosition)}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="text-sm font-bold text-ink">{t("planCompleted")}</p>
+              )}
+            </div>
+          ) : portion.hasPortion ? (
             <div className="flex flex-col gap-2 rounded-2xl border border-line bg-bg p-4">
               <h4 className="text-lg font-extrabold text-ink">{portion.surah}</h4>
               <p className="text-sm text-ink-soft">{portion.range}</p>
