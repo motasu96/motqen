@@ -56,24 +56,22 @@ export type PlanResult = {
 /**
  * Juz' (para) boundaries: the surah:ayah each of the 30 ajza' begins at.
  * These are fixed by consensus, independent of Mushaf print/pagination —
- * unlike page numbers. The boundaries landing exactly on a surah's first
- * ayah (juz' 1, 14, 15, 17, 18, 26, 28, 29, 30 — e.g. 29 = "تبارك"/Al-Mulk,
- * 30 = "عمّ"/An-Naba) are the most widely known and verified; the rest fall
- * mid-surah and should ideally be spot-checked against a Mushaf before
- * this is treated as authoritative for real students.
+ * unlike page numbers. Verified against api.alquran.cloud (Uthmani text) via
+ * scripts/fetch-juz-boundaries.mjs / the "Verify Juz Boundaries" GitHub
+ * Action — every entry below matches that live source exactly.
  */
 const JUZ_START: { surah: number; ayah: number }[] = [
   { surah: 1, ayah: 1 }, // 1
   { surah: 2, ayah: 142 }, // 2
   { surah: 2, ayah: 253 }, // 3
-  { surah: 3, ayah: 92 }, // 4
+  { surah: 3, ayah: 93 }, // 4
   { surah: 4, ayah: 24 }, // 5
   { surah: 4, ayah: 148 }, // 6
-  { surah: 5, ayah: 83 }, // 7
+  { surah: 5, ayah: 82 }, // 7
   { surah: 6, ayah: 111 }, // 8
   { surah: 7, ayah: 88 }, // 9
   { surah: 8, ayah: 41 }, // 10
-  { surah: 9, ayah: 94 }, // 11
+  { surah: 9, ayah: 93 }, // 11
   { surah: 11, ayah: 6 }, // 12
   { surah: 12, ayah: 53 }, // 13
   { surah: 15, ayah: 1 }, // 14
@@ -83,7 +81,7 @@ const JUZ_START: { surah: number; ayah: number }[] = [
   { surah: 23, ayah: 1 }, // 18
   { surah: 25, ayah: 21 }, // 19
   { surah: 27, ayah: 56 }, // 20
-  { surah: 29, ayah: 45 }, // 21
+  { surah: 29, ayah: 46 }, // 21
   { surah: 33, ayah: 31 }, // 22
   { surah: 36, ayah: 28 }, // 23
   { surah: 39, ayah: 32 }, // 24

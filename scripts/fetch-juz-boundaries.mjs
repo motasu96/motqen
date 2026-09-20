@@ -102,3 +102,4 @@ writeFileSync(
 );
 
 console.log(ok ? "\nRESULT: verified, no changes needed." : "\nRESULT: mismatches found — see juz-boundaries-verified.ts");
+if (!ok) process.exit(1);
