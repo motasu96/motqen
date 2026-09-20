@@ -262,7 +262,7 @@
     "planYears3": "3 years",
     "planPaceFormat": "~{ayahs} ayahs per week",
     "planAlreadyMemorizedLabel": "How many juz' have you already memorized?",
-    "planAlreadyMemorizedHint": "Your plan will be built around the rest (rounded to the nearest full surah).",
+    "planAlreadyMemorizedHint": "Your plan will be built around the rest, starting exactly at that juz's boundary.",
     "planReviewDaysLabel": "Review days per week",
     "planReviewDays1": "1 day",
     "planReviewDays2": "2 days",

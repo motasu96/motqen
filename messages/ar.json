@@ -262,7 +262,7 @@
     "planYears3": "3 سنوات",
     "planPaceFormat": "‏~{ayahs} آية أسبوعيًا",
     "planAlreadyMemorizedLabel": "كم جزءًا تحفظه حاليًا؟",
-    "planAlreadyMemorizedHint": "ستُبنى خطتك على الأجزاء المتبقية فقط (تُقرَّب لأقرب سورة كاملة).",
+    "planAlreadyMemorizedHint": "ستُبنى خطتك على الأجزاء المتبقية فقط، بدءًا من حدود الجزء الفعلية.",
     "planReviewDaysLabel": "أيام المراجعة أسبوعيًا",
     "planReviewDays1": "يوم واحد",
     "planReviewDays2": "يومان",

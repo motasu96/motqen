@@ -1,10 +1,12 @@
 // Memorization plan calculator.
 //
-// Schedules are built in units of ayahs, grouped by surah. Ayah counts per
-// surah are fixed in the standard Hafs 'an Asim numbering used in virtually
-// every printed Mushaf, unlike page/line boundaries which vary by print
-// edition — so this doesn't require a verified page-mapping dataset to
-// produce a correct, safe schedule.
+// Schedules are built in units of ayahs, grouped by surah, for display
+// (safe: ayah counts per surah are fixed regardless of Mushaf print
+// edition). The "already memorized" input is still asked in juz' (the unit
+// students actually think in), and converted using real juz' boundary data
+// below rather than a proportional estimate — juz' are NOT equal-sized in
+// ayah count (Juz' 30 alone has 564 ayahs vs. an average of ~208), so an
+// even split across 30 would silently misplace the starting point.
 
 import { QURAN_SURAHS, TOTAL_AYAHS } from "@/data/quranSurahs";
 
@@ -23,7 +25,7 @@ export const PLAN_DURATIONS: { key: PlanDurationKey; months: number }[] = [
 
 export type PlanInput = {
   durationMonths: number;
-  alreadyMemorizedJuz: number; // 0..29, juz' already done, from the front of the direction-ordered sequence
+  alreadyMemorizedJuz: number; // 0..29
   reviewDaysPerWeek: 1 | 2;
   direction: PlanDirection;
 };
@@ -52,62 +54,112 @@ export type PlanResult = {
 };
 
 /**
- * Surah order for memorization: "fromStart" follows the Mushaf order
- * (Al-Fatihah -> An-Nas); "fromEnd" reverses it (An-Nas -> Al-Fatihah),
- * which starts with the short surahs at the back of the Mushaf — the
- * common order for beginners. Ayahs within each surah always stay in
- * their natural forward order regardless of direction.
+ * Juz' (para) boundaries: the surah:ayah each of the 30 ajza' begins at.
+ * These are fixed by consensus, independent of Mushaf print/pagination —
+ * unlike page numbers. The boundaries landing exactly on a surah's first
+ * ayah (juz' 1, 14, 15, 17, 18, 26, 28, 29, 30 — e.g. 29 = "تبارك"/Al-Mulk,
+ * 30 = "عمّ"/An-Naba) are the most widely known and verified; the rest fall
+ * mid-surah and should ideally be spot-checked against a Mushaf before
+ * this is treated as authoritative for real students.
  */
-function orderedSurahs(direction: PlanDirection) {
-  return direction === "fromStart" ? QURAN_SURAHS : [...QURAN_SURAHS].reverse();
-}
+const JUZ_START: { surah: number; ayah: number }[] = [
+  { surah: 1, ayah: 1 }, // 1
+  { surah: 2, ayah: 142 }, // 2
+  { surah: 2, ayah: 253 }, // 3
+  { surah: 3, ayah: 92 }, // 4
+  { surah: 4, ayah: 24 }, // 5
+  { surah: 4, ayah: 148 }, // 6
+  { surah: 5, ayah: 83 }, // 7
+  { surah: 6, ayah: 111 }, // 8
+  { surah: 7, ayah: 88 }, // 9
+  { surah: 8, ayah: 41 }, // 10
+  { surah: 9, ayah: 94 }, // 11
+  { surah: 11, ayah: 6 }, // 12
+  { surah: 12, ayah: 53 }, // 13
+  { surah: 15, ayah: 1 }, // 14
+  { surah: 17, ayah: 1 }, // 15
+  { surah: 18, ayah: 75 }, // 16
+  { surah: 21, ayah: 1 }, // 17
+  { surah: 23, ayah: 1 }, // 18
+  { surah: 25, ayah: 21 }, // 19
+  { surah: 27, ayah: 56 }, // 20
+  { surah: 29, ayah: 45 }, // 21
+  { surah: 33, ayah: 31 }, // 22
+  { surah: 36, ayah: 28 }, // 23
+  { surah: 39, ayah: 32 }, // 24
+  { surah: 41, ayah: 47 }, // 25
+  { surah: 46, ayah: 1 }, // 26
+  { surah: 51, ayah: 31 }, // 27
+  { surah: 58, ayah: 1 }, // 28
+  { surah: 67, ayah: 1 }, // 29
+  { surah: 78, ayah: 1 }, // 30
+];
 
-function surahsToAyahOffset(count: number, direction: PlanDirection): number {
-  const ordered = orderedSurahs(direction);
-  const clamped = Math.max(0, Math.min(ordered.length - 1, count));
+function cumulativeAyahsBefore(surahNumber: number): number {
   let sum = 0;
-  for (let i = 0; i < clamped; i++) sum += ordered[i].ayahCount;
+  for (const s of QURAN_SURAHS) {
+    if (s.number >= surahNumber) break;
+    sum += s.ayahCount;
+  }
   return sum;
 }
 
-/**
- * Converts "N juz' already memorized" into a whole number of already-done
- * surahs, by proportionally estimating how many ayahs N/30 of the Quran
- * represents and rounding DOWN to the nearest complete surah boundary.
- * This avoids needing a separate juz'-boundary dataset (which falls
- * mid-surah) while still letting students answer in the unit they think in.
- */
-function juzToSurahCount(juz: number, direction: PlanDirection): number {
-  const clampedJuz = Math.max(0, Math.min(29, juz));
-  const targetAyahs = Math.round((clampedJuz / 30) * TOTAL_AYAHS);
-  const ordered = orderedSurahs(direction);
-  let sum = 0;
-  let count = 0;
-  for (const surah of ordered) {
-    if (sum + surah.ayahCount > targetAyahs) break;
-    sum += surah.ayahCount;
-    count++;
-  }
-  return count;
+function globalOffset(surahNumber: number, ayahInSurah: number): number {
+  return cumulativeAyahsBefore(surahNumber) + (ayahInSurah - 1);
 }
 
-function sequenceIndexToPosition(sequenceIndex: number, direction: PlanDirection): SurahPosition {
-  const ordered = orderedSurahs(direction);
-  let remaining = sequenceIndex;
-  for (const surah of ordered) {
-    if (remaining < surah.ayahCount) {
-      return { surahNumber: surah.number, ayahInSurah: remaining + 1 };
-    }
-    remaining -= surah.ayahCount;
+function globalOffsetToPosition(offset: number): SurahPosition {
+  let remaining = offset;
+  for (const s of QURAN_SURAHS) {
+    if (remaining < s.ayahCount) return { surahNumber: s.number, ayahInSurah: remaining + 1 };
+    remaining -= s.ayahCount;
   }
-  const last = ordered[ordered.length - 1];
+  const last = QURAN_SURAHS[QURAN_SURAHS.length - 1];
   return { surahNumber: last.number, ayahInSurah: last.ayahCount };
 }
 
+function juzGlobalStart(juz: number): number {
+  const b = JUZ_START[juz - 1];
+  return globalOffset(b.surah, b.ayah);
+}
+
+function juzLength(juz: number): number {
+  const start = juzGlobalStart(juz);
+  const end = juz < 30 ? juzGlobalStart(juz + 1) : TOTAL_AYAHS;
+  return end - start;
+}
+
+/**
+ * Juz' order for memorization: "fromStart" follows the Mushaf order
+ * (juz' 1 -> 30); "fromEnd" reverses it (juz' 30 -> 1) — juz' 30 first,
+ * the common order for beginners. Within each juz', ayahs always stay in
+ * their natural forward order regardless of direction (e.g. after
+ * finishing juz' 30, the next ayah is the start of juz' 29 — not the end
+ * of it).
+ */
+function remainingJuzList(alreadyMemorizedJuz: number, direction: PlanDirection): number[] {
+  const all = Array.from({ length: 30 }, (_, i) => i + 1);
+  const ordered = direction === "fromStart" ? all : [...all].reverse();
+  const clamped = Math.max(0, Math.min(29, alreadyMemorizedJuz));
+  return ordered.slice(clamped);
+}
+
+function sequenceIndexToPosition(sequenceIndex: number, remainingJuz: number[]): SurahPosition {
+  let remaining = sequenceIndex;
+  for (const juz of remainingJuz) {
+    const len = juzLength(juz);
+    if (remaining < len) {
+      return globalOffsetToPosition(juzGlobalStart(juz) + remaining);
+    }
+    remaining -= len;
+  }
+  const lastJuz = remainingJuz[remainingJuz.length - 1];
+  return globalOffsetToPosition(juzGlobalStart(lastJuz) + juzLength(lastJuz) - 1);
+}
+
 export function buildPlan(input: PlanInput): PlanResult {
-  const alreadyMemorizedSurahs = juzToSurahCount(input.alreadyMemorizedJuz, input.direction);
-  const alreadyMemorizedAyahs = surahsToAyahOffset(alreadyMemorizedSurahs, input.direction);
-  const remainingAyahs = TOTAL_AYAHS - alreadyMemorizedAyahs;
+  const remainingJuz = remainingJuzList(input.alreadyMemorizedJuz, input.direction);
+  const remainingAyahs = remainingJuz.reduce((sum, j) => sum + juzLength(j), 0);
 
   const totalWeeks = Math.max(1, Math.round(input.durationMonths * WEEKS_PER_MONTH));
   const memorizationDaysPerWeek = 7 - input.reviewDaysPerWeek;
@@ -123,8 +175,8 @@ export function buildPlan(input: PlanInput): PlanResult {
       weekIndex: w + 1,
       fromAyahIndex,
       toAyahIndex,
-      fromPosition: sequenceIndexToPosition(alreadyMemorizedAyahs + fromAyahIndex, input.direction),
-      toPosition: sequenceIndexToPosition(alreadyMemorizedAyahs + toAyahIndex - 1, input.direction),
+      fromPosition: sequenceIndexToPosition(fromAyahIndex, remainingJuz),
+      toPosition: sequenceIndexToPosition(toAyahIndex - 1, remainingJuz),
     });
   }
 
