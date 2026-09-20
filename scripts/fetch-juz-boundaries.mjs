@@ -27,8 +27,16 @@ function extractLocalJuzStart() {
   return rows.map((m) => ({ surah: Number(m[1]), ayah: Number(m[2]), juz: Number(m[3]) }));
 }
 
-async function fetchJson(url) {
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function fetchJson(url, attempt = 1) {
   const res = await fetch(url);
+  if (res.status === 429 && attempt <= 5) {
+    const backoffMs = attempt * 1500;
+    console.log(`  rate limited, retrying in ${backoffMs}ms (attempt ${attempt})...`);
+    await sleep(backoffMs);
+    return fetchJson(url, attempt + 1);
+  }
   if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
   return res.json();
 }
@@ -42,6 +50,7 @@ const remoteSurahAyahCounts = new Map(
 console.log("Fetching juz' boundaries (1..30) from Al Quran Cloud...");
 const remoteJuzStart = [];
 for (let juz = 1; juz <= 30; juz++) {
+  if (juz > 1) await sleep(500);
   const data = await fetchJson(`https://api.alquran.cloud/v1/juz/${juz}/quran-uthmani`);
   const firstAyah = data.data.ayahs[0];
   const start = { surah: firstAyah.surah.number, ayah: firstAyah.numberInSurah };
