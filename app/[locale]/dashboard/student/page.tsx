@@ -23,7 +23,7 @@ import { getSurahByNumber } from "@/data/quranSurahs";
 
 type StoredPlan = {
   durationMonths: number;
-  alreadyMemorizedSurahs: number;
+  alreadyMemorizedJuz: number;
   reviewDaysPerWeek: 1 | 2;
   direction: PlanDirection;
   startedAt: string;
@@ -93,7 +93,7 @@ export default function StudentDashboardPage() {
     if (!storedPlan) return null;
     const plan = buildPlan({
       durationMonths: storedPlan.durationMonths,
-      alreadyMemorizedSurahs: storedPlan.alreadyMemorizedSurahs,
+      alreadyMemorizedJuz: storedPlan.alreadyMemorizedJuz,
       reviewDaysPerWeek: storedPlan.reviewDaysPerWeek,
       direction: storedPlan.direction,
     });

@@ -42,7 +42,7 @@ function SignupFlow() {
   const [submitting, setSubmitting] = useState(false);
 
   const [planDurationMonths, setPlanDurationMonths] = useState<number | null>(null);
-  const [alreadyMemorizedSurahs, setAlreadyMemorizedSurahs] = useState(0);
+  const [alreadyMemorizedJuz, setAlreadyMemorizedJuz] = useState(0);
   const [reviewDaysPerWeek, setReviewDaysPerWeek] = useState<1 | 2>(1);
   const [direction, setDirection] = useState<PlanDirection>("fromEnd");
 
@@ -79,10 +79,10 @@ function SignupFlow() {
   const planPreviews = useMemo(
     () =>
       PLAN_DURATIONS.map((d) => {
-        const result = buildPlan({ durationMonths: d.months, alreadyMemorizedSurahs, reviewDaysPerWeek, direction });
+        const result = buildPlan({ durationMonths: d.months, alreadyMemorizedJuz, reviewDaysPerWeek, direction });
         return { months: d.months, ayahsPerWeek: result.ayahsPerWeek, result };
       }),
-    [alreadyMemorizedSurahs, reviewDaysPerWeek, direction]
+    [alreadyMemorizedJuz, reviewDaysPerWeek, direction]
   );
   const selectedPlanPreview = planPreviews.find((p) => p.months === planDurationMonths);
 
@@ -133,7 +133,7 @@ function SignupFlow() {
           "motqen_memorization_plan",
           JSON.stringify({
             durationMonths: planDurationMonths,
-            alreadyMemorizedSurahs,
+            alreadyMemorizedJuz,
             reviewDaysPerWeek,
             direction,
             startedAt: new Date().toISOString(),
@@ -307,11 +307,11 @@ function SignupFlow() {
                     id="plan-already"
                     type="number"
                     min={0}
-                    max={113}
+                    max={29}
                     dir="ltr"
                     className="input"
-                    value={alreadyMemorizedSurahs}
-                    onChange={(e) => setAlreadyMemorizedSurahs(Math.max(0, Math.min(113, Number(e.target.value) || 0)))}
+                    value={alreadyMemorizedJuz}
+                    onChange={(e) => setAlreadyMemorizedJuz(Math.max(0, Math.min(29, Number(e.target.value) || 0)))}
                   />
                   <span className="text-xs text-ink-soft">{t("planAlreadyMemorizedHint")}</span>
                 </div>

@@ -23,7 +23,7 @@ export const PLAN_DURATIONS: { key: PlanDurationKey; months: number }[] = [
 
 export type PlanInput = {
   durationMonths: number;
-  alreadyMemorizedSurahs: number; // count of surahs already done, from the front of the direction-ordered sequence
+  alreadyMemorizedJuz: number; // 0..29, juz' already done, from the front of the direction-ordered sequence
   reviewDaysPerWeek: 1 | 2;
   direction: PlanDirection;
 };
@@ -70,6 +70,27 @@ function surahsToAyahOffset(count: number, direction: PlanDirection): number {
   return sum;
 }
 
+/**
+ * Converts "N juz' already memorized" into a whole number of already-done
+ * surahs, by proportionally estimating how many ayahs N/30 of the Quran
+ * represents and rounding DOWN to the nearest complete surah boundary.
+ * This avoids needing a separate juz'-boundary dataset (which falls
+ * mid-surah) while still letting students answer in the unit they think in.
+ */
+function juzToSurahCount(juz: number, direction: PlanDirection): number {
+  const clampedJuz = Math.max(0, Math.min(29, juz));
+  const targetAyahs = Math.round((clampedJuz / 30) * TOTAL_AYAHS);
+  const ordered = orderedSurahs(direction);
+  let sum = 0;
+  let count = 0;
+  for (const surah of ordered) {
+    if (sum + surah.ayahCount > targetAyahs) break;
+    sum += surah.ayahCount;
+    count++;
+  }
+  return count;
+}
+
 function sequenceIndexToPosition(sequenceIndex: number, direction: PlanDirection): SurahPosition {
   const ordered = orderedSurahs(direction);
   let remaining = sequenceIndex;
@@ -84,7 +105,8 @@ function sequenceIndexToPosition(sequenceIndex: number, direction: PlanDirection
 }
 
 export function buildPlan(input: PlanInput): PlanResult {
-  const alreadyMemorizedAyahs = surahsToAyahOffset(input.alreadyMemorizedSurahs, input.direction);
+  const alreadyMemorizedSurahs = juzToSurahCount(input.alreadyMemorizedJuz, input.direction);
+  const alreadyMemorizedAyahs = surahsToAyahOffset(alreadyMemorizedSurahs, input.direction);
   const remainingAyahs = TOTAL_AYAHS - alreadyMemorizedAyahs;
 
   const totalWeeks = Math.max(1, Math.round(input.durationMonths * WEEKS_PER_MONTH));
