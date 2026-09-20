@@ -1,0 +1,25 @@
+name: Verify Juz Boundaries
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Fetch and cross-check against Al Quran Cloud API
+        run: node scripts/fetch-juz-boundaries.mjs
+
+      - name: Upload verified boundary table
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: juz-boundaries-verified
+          path: scripts/juz-boundaries-verified.ts
+          if-no-files-found: ignore
