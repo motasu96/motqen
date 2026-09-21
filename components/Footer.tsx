@@ -22,6 +22,7 @@ export default function Footer() {
     { href: "/donate", label: tNav("donate") },
     { href: "/login", label: tNav("login") },
     { href: "/signup", label: t("signupLink") },
+    { href: "/join-as-teacher", label: t("joinTeacherLink") },
   ];
 
   return (

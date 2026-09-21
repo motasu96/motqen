@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { teachers } from "@/data/teachers";
 import { Breadcrumb, Rating } from "@/components/ui";
+import { IconTeacherBadge } from "@/components/icons";
 import { localize } from "@/lib/localize";
 
 export async function generateMetadata({
@@ -50,6 +51,21 @@ export default function TeachersPage() {
             </Link>
           );
         })}
+      </div>
+
+      <div className="card mt-12 flex flex-col items-center gap-4 p-8 text-center sm:flex-row sm:justify-between sm:text-start">
+        <div className="flex items-center gap-4">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold-light">
+            <IconTeacherBadge className="h-6 w-6 text-gold-dark" />
+          </span>
+          <div>
+            <h3 className="text-base font-extrabold text-ink">{t("ctaTitle")}</h3>
+            <p className="text-sm text-ink-soft">{t("ctaDesc")}</p>
+          </div>
+        </div>
+        <Link href="/join-as-teacher" className="btn-primary shrink-0">
+          {t("ctaButton")}
+        </Link>
       </div>
     </div>
   );
