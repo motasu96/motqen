@@ -416,7 +416,9 @@
   "AdminLogin": {
     "metaTitle": "دخول المدير | متقن",
     "title": "دخول مدير المشروع",
-    "subtitle": "هذه البوابة مخصصة لفريق إدارة منصة متقن فقط"
+    "subtitle": "هذه البوابة مخصصة لفريق إدارة منصة متقن فقط",
+    "errorInvalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+    "errorNotAdmin": "هذا الحساب لا يملك صلاحية الوصول للوحة الإدارة"
   },
   "Dashboard": {
     "logout": "تسجيل خروج",
@@ -656,7 +658,19 @@
       "monthlyRevenueChart": "الإيرادات الشهرية",
       "months": ["أبريل", "مايو", "يونيو", "يوليو", "أغسطس"],
       "noticesTitle": "الإعلانات",
-      "noticesSubtitle": "الإعلانات الموجهة لجميع مستخدمي المنصة"
+      "noticesSubtitle": "الإعلانات الموجهة لجميع مستخدمي المنصة",
+      "pendingApplicationsTitle": "طلبات انضمام قيد المراجعة",
+      "noApplicationsReal": "لا توجد طلبات انضمام جديدة حاليًا.",
+      "applicationApprove": "قبول",
+      "applicationReject": "رفض",
+      "applicationApproved": "تم قبول المعلم وإضافته للمنصة",
+      "applicationRejected": "تم رفض الطلب",
+      "applicationEmail": "البريد",
+      "applicationPhone": "الجوال",
+      "applicationExperience": "سنوات الخبرة",
+      "applicationBio": "نبذة",
+      "applicationIjazah": "الإجازات",
+      "currentTeachersTitle": "المعلمون الحاليون"
     }
   },
   "Privacy": {

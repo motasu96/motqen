@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { useAdminNav } from "@/components/dashboard/adminNav";
+import { useAdminLogout } from "@/lib/supabase/useAdminLogout";
 import { adminPrograms, adminStudents, adminTeachers, platformStats, AdminStudent } from "@/data/dashboard";
 import { localize } from "@/lib/localize";
 import { IconChart, IconUsers } from "@/components/icons";
@@ -28,13 +29,14 @@ const maxEnrolled = Math.max(...adminPrograms.map((p) => p.enrolled));
 
 export default function AdminDashboardPage() {
   const adminNav = useAdminNav();
+  const handleLogout = useAdminLogout();
   const locale = useLocale();
   const t = useTranslations("Dashboard.admin");
   const tc = useTranslations("Dashboard.common");
   const tStatus = useTranslations("Dashboard.status");
 
   return (
-    <DashboardShell navItems={adminNav} userName={tc("adminName")} userSubtitle={tc("adminTitle")}>
+    <DashboardShell navItems={adminNav} userName={tc("adminName")} userSubtitle={tc("adminTitle")} onLogout={handleLogout}>
       <div className="flex flex-col gap-6">
         <div>
           <h1 className="text-xl font-extrabold text-ink sm:text-2xl">{t("dashboardTitle")}</h1>

@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { useAdminNav } from "@/components/dashboard/adminNav";
+import { useAdminLogout } from "@/lib/supabase/useAdminLogout";
 import { adminStudents, adminTeachers } from "@/data/dashboard";
 import { IconChart } from "@/components/icons";
 
@@ -20,6 +21,7 @@ const maxRevenue = Math.max(...MONTHLY_REVENUE);
 
 export default function AdminReportsPage() {
   const adminNav = useAdminNav();
+  const handleLogout = useAdminLogout();
   const t = useTranslations("Dashboard.admin");
   const tc = useTranslations("Dashboard.common");
   const months = t.raw("months") as string[];
@@ -32,7 +34,7 @@ export default function AdminReportsPage() {
   ];
 
   return (
-    <DashboardShell navItems={adminNav} userName={tc("adminName")} userSubtitle={tc("adminTitle")}>
+    <DashboardShell navItems={adminNav} userName={tc("adminName")} userSubtitle={tc("adminTitle")} onLogout={handleLogout}>
       <DashboardPageHeader title={t("reportsTitle")} subtitle={t("reportsSubtitle")} />
 
       <div className="mb-6 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">

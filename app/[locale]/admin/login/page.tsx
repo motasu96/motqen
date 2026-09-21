@@ -6,6 +6,7 @@ import { useRouter } from "@/i18n/navigation";
 import Logo from "@/components/Logo";
 import { useToast } from "@/components/Toast";
 import { IconShield } from "@/components/icons";
+import { createClient } from "@/lib/supabase/client";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -14,13 +15,33 @@ export default function AdminLoginPage() {
   const t = useTranslations("AdminLogin");
   const tLogin = useTranslations("Login");
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const form = e.currentTarget;
+    const email = (new FormData(form).get("email") as string) ?? "";
+    const password = (new FormData(form).get("password") as string) ?? "";
     setLoading(true);
-    setTimeout(() => {
-      showToast(tLogin("toastSuccess"), "success");
-      router.push("/dashboard/admin");
-    }, 500);
+
+    const supabase = createClient();
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error || !data.user) {
+      setLoading(false);
+      showToast(t("errorInvalidCredentials"), "error");
+      return;
+    }
+
+    const { data: profile } = await supabase.from("profiles").select("role").eq("id", data.user.id).single();
+
+    if (profile?.role !== "admin") {
+      await supabase.auth.signOut();
+      setLoading(false);
+      showToast(t("errorNotAdmin"), "error");
+      return;
+    }
+
+    showToast(tLogin("toastSuccess"), "success");
+    router.push("/dashboard/admin");
   }
 
   return (
@@ -38,11 +59,11 @@ export default function AdminLoginPage() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <label htmlFor="admin-login-email" className="text-sm font-bold text-ink">{tLogin("emailLabel")}</label>
-            <input id="admin-login-email" required type="email" dir="ltr" className="input" placeholder="admin@motqen.site" />
+            <input id="admin-login-email" name="email" required type="email" dir="ltr" className="input" placeholder="admin@motqen.site" />
           </div>
           <div className="flex flex-col gap-2">
             <label htmlFor="admin-login-password" className="text-sm font-bold text-ink">{tLogin("passwordLabel")}</label>
-            <input id="admin-login-password" required type="password" className="input" placeholder="••••••••" />
+            <input id="admin-login-password" name="password" required type="password" className="input" placeholder="••••••••" />
           </div>
           <button type="submit" disabled={loading} className="btn-primary mt-2 w-full disabled:opacity-70">
             {loading ? tLogin("submitting") : tLogin("submit")}

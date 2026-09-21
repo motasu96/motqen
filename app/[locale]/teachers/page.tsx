@@ -3,10 +3,27 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { teachers } from "@/data/teachers";
+import { teachers as staticTeachers } from "@/data/teachers";
 import { Breadcrumb, Rating } from "@/components/ui";
 import { IconTeacherBadge } from "@/components/icons";
 import { localize } from "@/lib/localize";
+import { createClient } from "@/lib/supabase/server";
+import { getActiveTeachers } from "@/lib/supabase/teachers";
+
+// Teacher data is DB-backed and can change (new approvals), so this route
+// renders per-request instead of being baked into the static build.
+export const dynamic = "force-dynamic";
+
+async function loadTeachers() {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return staticTeachers;
+  try {
+    const supabase = await createClient();
+    const dbTeachers = await getActiveTeachers(supabase);
+    return dbTeachers.length > 0 ? dbTeachers : staticTeachers;
+  } catch {
+    return staticTeachers;
+  }
+}
 
 export async function generateMetadata({
   params,
@@ -18,7 +35,12 @@ export async function generateMetadata({
   return { title: t("metaTitle") };
 }
 
-export default function TeachersPage() {
+export default async function TeachersPage() {
+  const teachers = await loadTeachers();
+  return <TeachersPageContent teachers={teachers} />;
+}
+
+function TeachersPageContent({ teachers }: { teachers: Awaited<ReturnType<typeof loadTeachers>> }) {
   const locale = useLocale();
   const t = useTranslations("Teachers");
   const tNav = useTranslations("Nav");

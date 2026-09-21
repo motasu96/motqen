@@ -1,15 +1,30 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getTeacherBySlug, teachers } from "@/data/teachers";
+import { getTeacherBySlug, Teacher } from "@/data/teachers";
 import { Breadcrumb, Rating } from "@/components/ui";
 import TeacherProfileTabs from "@/components/TeacherProfileTabs";
 import { localize } from "@/lib/localize";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import Image from "next/image";
+import { createClient } from "@/lib/supabase/server";
+import { getTeacherBySlugFromDb } from "@/lib/supabase/teachers";
 
-export function generateStaticParams() {
-  return teachers.map((t) => ({ slug: t.slug }));
+// Teacher data is DB-backed and can change (new approvals), so this route
+// renders per-request instead of being baked into the static build.
+export const dynamic = "force-dynamic";
+
+async function loadTeacher(slug: string): Promise<Teacher | null> {
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    try {
+      const supabase = await createClient();
+      const dbTeacher = await getTeacherBySlugFromDb(supabase, slug);
+      if (dbTeacher) return dbTeacher;
+    } catch {
+      // fall through to the static fallback below
+    }
+  }
+  return getTeacherBySlug(slug) ?? null;
 }
 
 export async function generateMetadata({
@@ -18,7 +33,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string; locale: string }>;
 }): Promise<Metadata> {
   const { slug, locale } = await params;
-  const teacher = getTeacherBySlug(slug);
+  const teacher = await loadTeacher(slug);
   if (!teacher) return {};
   const te = localize(teacher, locale);
   return {
@@ -33,13 +48,13 @@ export default async function TeacherProfilePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const teacher = getTeacherBySlug(slug);
+  const teacher = await loadTeacher(slug);
   if (!teacher) notFound();
 
   return <TeacherProfileContent teacher={teacher} />;
 }
 
-function TeacherProfileContent({ teacher }: { teacher: NonNullable<ReturnType<typeof getTeacherBySlug>> }) {
+function TeacherProfileContent({ teacher }: { teacher: Teacher }) {
   const locale = useLocale();
   const t = useTranslations("Teachers");
   const tNav = useTranslations("Nav");

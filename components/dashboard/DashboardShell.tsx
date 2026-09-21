@@ -18,11 +18,13 @@ export default function DashboardShell({
   navItems,
   userName,
   userSubtitle,
+  onLogout,
   children,
 }: {
   navItems: DashboardNavItem[];
   userName: string;
   userSubtitle: string;
+  onLogout?: () => void;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -73,10 +75,20 @@ export default function DashboardShell({
         })}
       </nav>
 
-      <Link href="/login" className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold text-ink-soft transition-colors hover:bg-bg hover:text-red-500">
-        <IconLogout className="h-5 w-5" aria-hidden="true" />
-        {t("logout")}
-      </Link>
+      {onLogout ? (
+        <button
+          onClick={onLogout}
+          className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold text-ink-soft transition-colors hover:bg-bg hover:text-red-500"
+        >
+          <IconLogout className="h-5 w-5" aria-hidden="true" />
+          {t("logout")}
+        </button>
+      ) : (
+        <Link href="/login" className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold text-ink-soft transition-colors hover:bg-bg hover:text-red-500">
+          <IconLogout className="h-5 w-5" aria-hidden="true" />
+          {t("logout")}
+        </Link>
+      )}
     </div>
   );
 

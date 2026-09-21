@@ -4,18 +4,20 @@ import { useLocale, useTranslations } from "next-intl";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { useAdminNav } from "@/components/dashboard/adminNav";
+import { useAdminLogout } from "@/lib/supabase/useAdminLogout";
 import { adminNotices } from "@/data/dashboard";
 import { localize } from "@/lib/localize";
 import { IconMegaphone } from "@/components/icons";
 
 export default function AdminNoticesPage() {
   const adminNav = useAdminNav();
+  const handleLogout = useAdminLogout();
   const locale = useLocale();
   const t = useTranslations("Dashboard.admin");
   const tc = useTranslations("Dashboard.common");
 
   return (
-    <DashboardShell navItems={adminNav} userName={tc("adminName")} userSubtitle={tc("adminTitle")}>
+    <DashboardShell navItems={adminNav} userName={tc("adminName")} userSubtitle={tc("adminTitle")} onLogout={handleLogout}>
       <DashboardPageHeader title={t("noticesTitle")} subtitle={t("noticesSubtitle")} />
 
       <div className="flex flex-col gap-4">

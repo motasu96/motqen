@@ -416,7 +416,9 @@
   "AdminLogin": {
     "metaTitle": "Admin Login | Motqen",
     "title": "Project Manager Login",
-    "subtitle": "This portal is for Motqen's platform management team only"
+    "subtitle": "This portal is for Motqen's platform management team only",
+    "errorInvalidCredentials": "Invalid email or password",
+    "errorNotAdmin": "This account does not have access to the admin dashboard"
   },
   "Dashboard": {
     "logout": "Log Out",
@@ -656,7 +658,19 @@
       "monthlyRevenueChart": "Monthly Revenue",
       "months": ["April", "May", "June", "July", "August"],
       "noticesTitle": "Notices",
-      "noticesSubtitle": "Notices addressed to all platform users"
+      "noticesSubtitle": "Notices addressed to all platform users",
+      "pendingApplicationsTitle": "Pending Teacher Applications",
+      "noApplicationsReal": "There are no new applications right now.",
+      "applicationApprove": "Approve",
+      "applicationReject": "Reject",
+      "applicationApproved": "Teacher approved and added to the platform",
+      "applicationRejected": "Application rejected",
+      "applicationEmail": "Email",
+      "applicationPhone": "Phone",
+      "applicationExperience": "Years of Experience",
+      "applicationBio": "Bio",
+      "applicationIjazah": "Ijazahs",
+      "currentTeachersTitle": "Current Teachers"
     }
   },
   "Privacy": {
