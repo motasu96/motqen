@@ -7,9 +7,9 @@ import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { useAdminNav } from "@/components/dashboard/adminNav";
 import { useAdminLogout } from "@/lib/supabase/useAdminLogout";
 import { createClient } from "@/lib/supabase/client";
-import { generateUniqueSlug } from "@/lib/supabase/teachers";
+import { generateUniqueSlug, TeacherRow } from "@/lib/supabase/teachers";
 import { useToast } from "@/components/Toast";
-import { IconStar } from "@/components/icons";
+import { IconStar, IconX } from "@/components/icons";
 
 type TeacherApplication = {
   id: string;
@@ -25,15 +25,39 @@ type TeacherApplication = {
   created_at: string;
 };
 
-type TeacherRow = {
-  id: string;
+type EditForm = {
   name: string;
-  specialties: string[];
-  students_count: number;
-  rating: number;
-  created_at: string;
+  name_en: string;
+  title: string;
+  title_en: string;
+  bio: string;
+  bio_en: string;
+  specialties: string;
+  specialties_en: string;
+  years_experience: string;
+  students_count: string;
+  completed_sessions: string;
+  rating: string;
   status: "active" | "suspended";
 };
+
+function toEditForm(row: TeacherRow): EditForm {
+  return {
+    name: row.name,
+    name_en: row.name_en ?? "",
+    title: row.title ?? "",
+    title_en: row.title_en ?? "",
+    bio: row.bio ?? "",
+    bio_en: row.bio_en ?? "",
+    specialties: row.specialties.join("، "),
+    specialties_en: row.specialties_en.join(", "),
+    years_experience: String(row.years_experience),
+    students_count: String(row.students_count),
+    completed_sessions: String(row.completed_sessions),
+    rating: String(row.rating),
+    status: row.status,
+  };
+}
 
 export default function AdminTeachersPage() {
   const adminNav = useAdminNav();
@@ -48,11 +72,15 @@ export default function AdminTeachersPage() {
   const [loading, setLoading] = useState(true);
   const [actingOn, setActingOn] = useState<string | null>(null);
 
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<EditForm | null>(null);
+  const [saving, setSaving] = useState(false);
+
   async function loadData() {
     const supabase = createClient();
     const [{ data: apps }, { data: teacherRows }] = await Promise.all([
       supabase.from("teacher_applications").select("*").eq("status", "pending").order("created_at", { ascending: false }),
-      supabase.from("teachers").select("id, name, specialties, students_count, rating, created_at, status").order("created_at", { ascending: false }),
+      supabase.from("teachers").select("*").order("created_at", { ascending: false }),
     ]);
     setApplications((apps as TeacherApplication[]) ?? []);
     setTeachers((teacherRows as TeacherRow[]) ?? []);
@@ -99,6 +127,59 @@ export default function AdminTeachersPage() {
       .eq("id", app.id);
     showToast(t("applicationRejected"), "success");
     await loadData();
+    setActingOn(null);
+  }
+
+  function openEdit(row: TeacherRow) {
+    setEditingId(row.id);
+    setEditForm(toEditForm(row));
+  }
+
+  function closeEdit() {
+    setEditingId(null);
+    setEditForm(null);
+  }
+
+  async function saveEdit() {
+    if (!editingId || !editForm) return;
+    setSaving(true);
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("teachers")
+      .update({
+        name: editForm.name,
+        name_en: editForm.name_en || null,
+        title: editForm.title || null,
+        title_en: editForm.title_en || null,
+        bio: editForm.bio || null,
+        bio_en: editForm.bio_en || null,
+        specialties: editForm.specialties.split(/[,،]/).map((s) => s.trim()).filter(Boolean),
+        specialties_en: editForm.specialties_en.split(/[,،]/).map((s) => s.trim()).filter(Boolean),
+        years_experience: Number(editForm.years_experience) || 0,
+        students_count: Number(editForm.students_count) || 0,
+        completed_sessions: Number(editForm.completed_sessions) || 0,
+        rating: Number(editForm.rating) || 0,
+        status: editForm.status,
+      })
+      .eq("id", editingId);
+
+    setSaving(false);
+    if (!error) {
+      showToast(t("editSaved"), "success");
+      closeEdit();
+      await loadData();
+    }
+  }
+
+  async function deleteTeacher(row: TeacherRow) {
+    if (!window.confirm(t("deleteConfirm", { name: row.name }))) return;
+    setActingOn(row.id);
+    const supabase = createClient();
+    const { error } = await supabase.from("teachers").delete().eq("id", row.id);
+    if (!error) {
+      showToast(t("teacherDeleted"), "success");
+      await loadData();
+    }
     setActingOn(null);
   }
 
@@ -157,7 +238,7 @@ export default function AdminTeachersPage() {
           <h3 className="text-base font-extrabold text-ink">{t("currentTeachersTitle")}</h3>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[600px] text-sm">
+          <table className="w-full min-w-[720px] text-sm">
             <thead>
               <tr className="border-b border-line bg-bg text-ink-soft">
                 <th className="px-6 py-3 text-start font-bold">{tc("name")}</th>
@@ -165,6 +246,7 @@ export default function AdminTeachersPage() {
                 <th className="px-6 py-3 text-start font-bold">{tc("studentsCount")}</th>
                 <th className="px-6 py-3 text-start font-bold">{tc("rating")}</th>
                 <th className="px-6 py-3 text-start font-bold">{tc("statusLabel")}</th>
+                <th className="px-6 py-3 text-start font-bold">{t("actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -190,12 +272,131 @@ export default function AdminTeachersPage() {
                       {teacher.status === "active" ? tStatus("teacherActive") : tStatus("teacherSuspended")}
                     </span>
                   </td>
+                  <td className="px-6 py-4">
+                    <div className="flex gap-3">
+                      <button onClick={() => openEdit(teacher)} className="text-xs font-bold text-gold-dark hover:underline">
+                        {t("editTeacher")}
+                      </button>
+                      <button
+                        onClick={() => deleteTeacher(teacher)}
+                        disabled={actingOn === teacher.id}
+                        className="text-xs font-bold text-red-500 hover:underline disabled:opacity-50"
+                      >
+                        {t("deleteTeacher")}
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       </div>
+
+      {editingId && editForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+          <div className="animate-overlay-in absolute inset-0 bg-black/40" onClick={closeEdit} />
+          <div className="card animate-fade-up relative max-h-[90vh] w-full max-w-2xl overflow-y-auto p-7">
+            <div className="mb-5 flex items-center justify-between">
+              <h3 className="text-lg font-extrabold text-ink">{t("editTeacher")}</h3>
+              <button onClick={closeEdit} className="flex h-9 w-9 items-center justify-center rounded-full border border-line">
+                <IconX className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-bold text-ink">{t("fieldName")}</label>
+                  <input className="input" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-bold text-ink">{t("fieldNameEn")}</label>
+                  <input dir="ltr" className="input" value={editForm.name_en} onChange={(e) => setEditForm({ ...editForm, name_en: e.target.value })} />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-bold text-ink">{t("fieldTitle")}</label>
+                  <input className="input" value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-bold text-ink">{t("fieldTitleEn")}</label>
+                  <input dir="ltr" className="input" value={editForm.title_en} onChange={(e) => setEditForm({ ...editForm, title_en: e.target.value })} />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-bold text-ink">{t("fieldBio")}</label>
+                <textarea rows={3} className="input resize-none" value={editForm.bio} onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })} />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-bold text-ink">{t("fieldBioEn")}</label>
+                <textarea dir="ltr" rows={3} className="input resize-none" value={editForm.bio_en} onChange={(e) => setEditForm({ ...editForm, bio_en: e.target.value })} />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-bold text-ink">{t("fieldSpecialties")}</label>
+                  <input className="input" value={editForm.specialties} onChange={(e) => setEditForm({ ...editForm, specialties: e.target.value })} />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-bold text-ink">{t("fieldSpecialtiesEn")}</label>
+                  <input dir="ltr" className="input" value={editForm.specialties_en} onChange={(e) => setEditForm({ ...editForm, specialties_en: e.target.value })} />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-4">
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-bold text-ink">{t("fieldYears")}</label>
+                  <input type="number" dir="ltr" className="input" value={editForm.years_experience} onChange={(e) => setEditForm({ ...editForm, years_experience: e.target.value })} />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-bold text-ink">{t("fieldStudents")}</label>
+                  <input type="number" dir="ltr" className="input" value={editForm.students_count} onChange={(e) => setEditForm({ ...editForm, students_count: e.target.value })} />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-bold text-ink">{t("fieldSessions")}</label>
+                  <input type="number" dir="ltr" className="input" value={editForm.completed_sessions} onChange={(e) => setEditForm({ ...editForm, completed_sessions: e.target.value })} />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-bold text-ink">{t("fieldRating")}</label>
+                  <input type="number" step="0.1" dir="ltr" className="input" value={editForm.rating} onChange={(e) => setEditForm({ ...editForm, rating: e.target.value })} />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <span className="text-sm font-bold text-ink">{t("fieldStatus")}</span>
+                <div className="grid grid-cols-2 gap-2 rounded-pill border border-line bg-bg p-1">
+                  {(["active", "suspended"] as const).map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setEditForm({ ...editForm, status: s })}
+                      aria-pressed={editForm.status === s}
+                      className={`rounded-pill py-2 text-sm font-bold transition-colors ${
+                        editForm.status === s ? "bg-gold-gradient text-white shadow-soft" : "text-ink-soft"
+                      }`}
+                    >
+                      {s === "active" ? tStatus("teacherActive") : tStatus("teacherSuspended")}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-2 flex justify-end gap-3">
+                <button onClick={closeEdit} className="btn-outline">
+                  {t("editCancel")}
+                </button>
+                <button onClick={saveEdit} disabled={saving} className="btn-primary disabled:opacity-70">
+                  {saving ? t("editSaving") : t("editSave")}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardShell>
   );
 }
