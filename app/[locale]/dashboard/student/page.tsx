@@ -33,6 +33,30 @@ const TYPE_KEYS: Record<HomeworkType, "typeRecitation" | "typeReview" | "typeTaj
   tajweed: "typeTajweed",
 };
 
+type DashboardCache = {
+  fullName: string | null;
+  studentRow: StudentRow | null;
+  latestLesson: LessonWithTeacher | null;
+  recentHomework: HomeworkRow[];
+};
+
+const CACHE_KEY = "motqen_student_dashboard_cache";
+
+function readDashboardCache(): DashboardCache | null {
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeDashboardCache(data: DashboardCache) {
+  try {
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
+  } catch {}
+}
+
 function ProgressRing({ percent }: { percent: number }) {
   const r = 42;
   const c = 2 * Math.PI * r;
@@ -77,10 +101,11 @@ export default function StudentDashboardPage() {
   const tPlan = useTranslations("Signup");
   const portion = localize(todayPortion, locale);
 
-  const [fullName, setFullName] = useState<string | null>(null);
-  const [studentRow, setStudentRow] = useState<StudentRow | null>(null);
-  const [latestLesson, setLatestLesson] = useState<LessonWithTeacher | null>(null);
-  const [recentHomework, setRecentHomework] = useState<HomeworkRow[]>([]);
+  const cached = typeof window !== "undefined" ? readDashboardCache() : null;
+  const [fullName, setFullName] = useState<string | null>(cached?.fullName ?? null);
+  const [studentRow, setStudentRow] = useState<StudentRow | null>(cached?.studentRow ?? null);
+  const [latestLesson, setLatestLesson] = useState<LessonWithTeacher | null>(cached?.latestLesson ?? null);
+  const [recentHomework, setRecentHomework] = useState<HomeworkRow[]>(cached?.recentHomework ?? []);
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return;
     let cancelled = false;
@@ -96,10 +121,12 @@ export default function StudentDashboardPage() {
         listStudentHomework(supabase, user.id),
       ]);
       if (cancelled) return;
+      const recent = hw.filter((h) => h.status !== "graded").slice(0, 2);
       setFullName(name);
       setStudentRow(student);
       setLatestLesson(lesson);
-      setRecentHomework(hw.filter((h) => h.status !== "graded").slice(0, 2));
+      setRecentHomework(recent);
+      writeDashboardCache({ fullName: name, studentRow: student, latestLesson: lesson, recentHomework: recent });
     })();
     return () => {
       cancelled = true;
