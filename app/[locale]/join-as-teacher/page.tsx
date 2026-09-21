@@ -9,14 +9,16 @@ import { createClient } from "@/lib/supabase/client";
 
 type Gender = "male" | "female";
 
-async function uploadFile(bucket: string, file: File): Promise<string | null> {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return null;
+type UploadResult = { path: string | null; error: string | null };
+
+async function uploadFile(bucket: string, file: File): Promise<UploadResult> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return { path: null, error: null };
   const supabase = createClient();
   const ext = file.name.split(".").pop();
   const path = `${crypto.randomUUID()}${ext ? `.${ext}` : ""}`;
   const { error } = await supabase.storage.from(bucket).upload(path, file);
-  if (error) return null;
-  return path;
+  if (error) return { path: null, error: error.message };
+  return { path, error: null };
 }
 
 export default function JoinAsTeacherPage() {
@@ -52,16 +54,32 @@ export default function JoinAsTeacherPage() {
     const form = e.currentTarget;
     const data = new FormData(form);
     setSubmitting(true);
-    try {
-      let photoUrl: string | null = null;
-      if (photoFile) {
-        const path = await uploadFile("teacher-photos", photoFile);
-        if (path && process.env.NEXT_PUBLIC_SUPABASE_URL) {
-          photoUrl = createClient().storage.from("teacher-photos").getPublicUrl(path).data.publicUrl;
-        }
-      }
-      const certificatePath = certificateFile ? await uploadFile("teacher-certificates", certificateFile) : null;
 
+    let photoUrl: string | null = null;
+    if (photoFile) {
+      const { path, error } = await uploadFile("teacher-photos", photoFile);
+      if (error) {
+        setSubmitting(false);
+        showToast(t("photoUploadError", { error }), "error");
+        return;
+      }
+      if (path) {
+        photoUrl = createClient().storage.from("teacher-photos").getPublicUrl(path).data.publicUrl;
+      }
+    }
+
+    let certificatePath: string | null = null;
+    if (certificateFile) {
+      const { path, error } = await uploadFile("teacher-certificates", certificateFile);
+      if (error) {
+        setSubmitting(false);
+        showToast(t("certificateUploadError", { error }), "error");
+        return;
+      }
+      certificatePath = path;
+    }
+
+    try {
       await fetch("/api/teacher-application", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -199,7 +217,7 @@ export default function JoinAsTeacherPage() {
                 <input
                   id="ta-certificate"
                   type="file"
-                  accept="application/pdf,image/png,image/jpeg"
+                  accept="application/pdf,image/png,image/jpeg,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                   className="input file:me-3 file:rounded-pill file:border-0 file:bg-gold-light file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-gold-dark"
                   onChange={(e) => setCertificateFile(e.target.files?.[0] ?? null)}
                 />
