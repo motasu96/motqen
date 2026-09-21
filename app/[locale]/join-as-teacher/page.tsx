@@ -5,8 +5,19 @@ import { useTranslations } from "next-intl";
 import { Breadcrumb } from "@/components/ui";
 import { IconCheck, IconTeacherBadge } from "@/components/icons";
 import { useToast } from "@/components/Toast";
+import { createClient } from "@/lib/supabase/client";
 
 type Gender = "male" | "female";
+
+async function uploadFile(bucket: string, file: File): Promise<string | null> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return null;
+  const supabase = createClient();
+  const ext = file.name.split(".").pop();
+  const path = `${crypto.randomUUID()}${ext ? `.${ext}` : ""}`;
+  const { error } = await supabase.storage.from(bucket).upload(path, file);
+  if (error) return null;
+  return path;
+}
 
 export default function JoinAsTeacherPage() {
   const t = useTranslations("JoinTeacher");
@@ -15,6 +26,8 @@ export default function JoinAsTeacherPage() {
 
   const [gender, setGender] = useState<Gender | null>(null);
   const [specialties, setSpecialties] = useState<string[]>([]);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [certificateFile, setCertificateFile] = useState<File | null>(null);
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -40,6 +53,15 @@ export default function JoinAsTeacherPage() {
     const data = new FormData(form);
     setSubmitting(true);
     try {
+      let photoUrl: string | null = null;
+      if (photoFile) {
+        const path = await uploadFile("teacher-photos", photoFile);
+        if (path && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+          photoUrl = createClient().storage.from("teacher-photos").getPublicUrl(path).data.publicUrl;
+        }
+      }
+      const certificatePath = certificateFile ? await uploadFile("teacher-certificates", certificateFile) : null;
+
       await fetch("/api/teacher-application", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -52,6 +74,8 @@ export default function JoinAsTeacherPage() {
           yearsExperience: data.get("yearsExperience"),
           ijazah: data.get("ijazah"),
           bio: data.get("bio"),
+          photoUrl,
+          certificatePath,
         }),
       });
     } catch {}
@@ -98,6 +122,18 @@ export default function JoinAsTeacherPage() {
               <div className="flex flex-col gap-2">
                 <label htmlFor="ta-email" className="text-sm font-bold text-ink">{t("emailLabel")}</label>
                 <input id="ta-email" name="email" required type="email" dir="ltr" className="input" placeholder={t("emailPlaceholder")} />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label htmlFor="ta-photo" className="text-sm font-bold text-ink">{t("photoLabel")}</label>
+                <input
+                  id="ta-photo"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="input file:me-3 file:rounded-pill file:border-0 file:bg-gold-light file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-gold-dark"
+                  onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
+                />
+                <span className="text-xs text-ink-soft">{t("photoHint")}</span>
               </div>
 
               <div className="flex flex-col gap-2">
@@ -156,6 +192,18 @@ export default function JoinAsTeacherPage() {
               <div className="flex flex-col gap-2">
                 <label htmlFor="ta-ijazah" className="text-sm font-bold text-ink">{t("ijazahLabel")}</label>
                 <textarea id="ta-ijazah" name="ijazah" rows={3} className="input resize-none" placeholder={t("ijazahPlaceholder")} />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label htmlFor="ta-certificate" className="text-sm font-bold text-ink">{t("certificateLabel")}</label>
+                <input
+                  id="ta-certificate"
+                  type="file"
+                  accept="application/pdf,image/png,image/jpeg"
+                  className="input file:me-3 file:rounded-pill file:border-0 file:bg-gold-light file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-gold-dark"
+                  onChange={(e) => setCertificateFile(e.target.files?.[0] ?? null)}
+                />
+                <span className="text-xs text-ink-soft">{t("certificateHint")}</span>
               </div>
 
               <div className="flex flex-col gap-2">

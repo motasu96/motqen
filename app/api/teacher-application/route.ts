@@ -22,6 +22,8 @@ export async function POST(req: NextRequest) {
     yearsExperience?: unknown;
     ijazah?: unknown;
     bio?: unknown;
+    photoUrl?: unknown;
+    certificatePath?: unknown;
   };
   try {
     payload = await req.json();
@@ -39,6 +41,8 @@ export async function POST(req: NextRequest) {
   const yearsExperience = typeof payload.yearsExperience === "string" ? payload.yearsExperience.trim().slice(0, 20) : "";
   const ijazah = typeof payload.ijazah === "string" ? payload.ijazah.trim().slice(0, 2000) : "";
   const bio = typeof payload.bio === "string" ? payload.bio.trim().slice(0, 4000) : "";
+  const photoUrl = typeof payload.photoUrl === "string" ? payload.photoUrl.slice(0, 500) : null;
+  const certificatePath = typeof payload.certificatePath === "string" ? payload.certificatePath.slice(0, 500) : null;
 
   if (!name || !phone || !email || !EMAIL_RE.test(email) || !gender || !bio) {
     return NextResponse.json({ error: "Required fields are missing" }, { status: 400 });
@@ -57,10 +61,23 @@ export async function POST(req: NextRequest) {
         years_experience: yearsExperience ? Number(yearsExperience) : null,
         ijazah: ijazah || null,
         bio,
+        photo_url: photoUrl,
+        certificate_path: certificatePath,
       });
       savedToDb = !error;
     } catch {
       savedToDb = false;
+    }
+  }
+
+  let certificateSignedUrl: string | null = null;
+  if (hasSupabase && certificatePath) {
+    try {
+      const supabase = createAdminClient();
+      const { data } = await supabase.storage.from("teacher-certificates").createSignedUrl(certificatePath, 60 * 60 * 24 * 7);
+      certificateSignedUrl = data?.signedUrl ?? null;
+    } catch {
+      certificateSignedUrl = null;
     }
   }
 
@@ -76,6 +93,8 @@ export async function POST(req: NextRequest) {
       yearsExperience,
       ijazah,
       bio,
+      photoUrl,
+      certificateUrl: certificateSignedUrl,
     });
     try {
       const { error } = await resend.emails.send({

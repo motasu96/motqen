@@ -23,6 +23,8 @@ type TeacherApplication = {
   bio: string;
   status: "pending" | "approved" | "rejected";
   created_at: string;
+  photo_url: string | null;
+  certificate_path: string | null;
 };
 
 type EditForm = {
@@ -103,6 +105,7 @@ export default function AdminTeachersPage() {
       specialties: app.specialties,
       years_experience: app.years_experience ?? 0,
       bio: app.bio,
+      avatar_url: app.photo_url,
       application_id: app.id,
       status: "active",
     });
@@ -116,6 +119,17 @@ export default function AdminTeachersPage() {
       await loadData();
     }
     setActingOn(null);
+  }
+
+  async function viewCertificate(app: TeacherApplication) {
+    if (!app.certificate_path) return;
+    const supabase = createClient();
+    const { data, error } = await supabase.storage
+      .from("teacher-certificates")
+      .createSignedUrl(app.certificate_path, 60 * 5);
+    if (!error && data?.signedUrl) {
+      window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    }
   }
 
   async function reject(app: TeacherApplication) {
@@ -198,9 +212,15 @@ export default function AdminTeachersPage() {
             {applications.map((app) => (
               <div key={app.id} className="rounded-2xl border border-line p-5">
                 <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <h4 className="font-extrabold text-ink">{app.full_name}</h4>
-                    <p className="text-xs text-ink-soft" dir="ltr">{app.phone} · {app.email}</p>
+                  <div className="flex items-center gap-3">
+                    {app.photo_url && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={app.photo_url} alt={app.full_name} className="h-12 w-12 rounded-full object-cover" />
+                    )}
+                    <div>
+                      <h4 className="font-extrabold text-ink">{app.full_name}</h4>
+                      <p className="text-xs text-ink-soft" dir="ltr">{app.phone} · {app.email}</p>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <button
@@ -226,6 +246,13 @@ export default function AdminTeachersPage() {
                     <p className="sm:col-span-2"><span className="font-bold text-ink">{t("applicationIjazah")}:</span> {app.ijazah}</p>
                   )}
                   <p className="sm:col-span-2"><span className="font-bold text-ink">{t("applicationBio")}:</span> {app.bio}</p>
+                  {app.certificate_path && (
+                    <p className="sm:col-span-2">
+                      <button onClick={() => viewCertificate(app)} className="text-xs font-bold text-gold-dark hover:underline">
+                        {t("viewCertificate")}
+                      </button>
+                    </p>
+                  )}
                 </div>
               </div>
             ))}

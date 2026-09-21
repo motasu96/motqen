@@ -25,6 +25,8 @@ export type TeacherApplicationPayload = {
   yearsExperience: string;
   ijazah: string;
   bio: string;
+  photoUrl?: string | null;
+  certificateUrl?: string | null;
 };
 
 export function buildTeacherApplicationEmail({
@@ -36,6 +38,8 @@ export function buildTeacherApplicationEmail({
   yearsExperience,
   ijazah,
   bio,
+  photoUrl,
+  certificateUrl,
 }: TeacherApplicationPayload) {
   const subject = `طلب انضمام معلم جديد — ${name}`;
 
@@ -69,6 +73,15 @@ export function buildTeacherApplicationEmail({
                 <h1 style="margin:0;font-size:20px;line-height:1.4;color:${COLORS.ink};">طلب انضمام معلم جديد</h1>
               </td>
             </tr>
+            ${
+              photoUrl
+                ? `<tr>
+              <td align="center" style="padding:0 32px 20px;">
+                <img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(name)}" width="88" height="88" style="width:88px;height:88px;border-radius:9999px;object-fit:cover;border:1px solid ${COLORS.line};" />
+              </td>
+            </tr>`
+                : ""
+            }
             <tr>
               <td style="padding:0 32px 28px;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
@@ -81,6 +94,13 @@ export function buildTeacherApplicationEmail({
                   ${row("الإجازات/الأسانيد", ijazah || "—")}
                   ${row("نبذة عن المتقدم", bio)}
                 </table>
+                ${
+                  certificateUrl
+                    ? `<div style="margin-top:16px;text-align:center;">
+                  <a href="${escapeHtml(certificateUrl)}" style="display:inline-block;background:${COLORS.goldDark};color:#fff;font-size:13px;font-weight:700;text-decoration:none;padding:10px 20px;border-radius:9999px;">عرض ملف الشهادة/الإجازة</a>
+                </div>`
+                    : ""
+                }
               </td>
             </tr>
             <tr>
