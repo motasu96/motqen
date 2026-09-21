@@ -115,6 +115,11 @@ export default function AdminTeachersPage() {
         .from("teacher_applications")
         .update({ status: "approved", reviewed_at: new Date().toISOString() })
         .eq("id", app.id);
+      fetch("/api/teacher-approved-notification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: app.full_name, email: app.email, slug }),
+      }).catch(() => {});
       showToast(t("applicationApproved"), "success");
       await loadData();
     }
