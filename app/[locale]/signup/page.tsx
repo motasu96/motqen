@@ -233,13 +233,13 @@ function SignupFlow() {
                   <input
                     id="signup-age"
                     type="number"
-                    min={4}
-                    max={90}
+                    inputMode="numeric"
                     dir="ltr"
                     className="input max-w-[160px]"
                     placeholder={t("agePlaceholder")}
                     value={age ?? ""}
-                    onChange={(e) => setAge(e.target.value ? Math.max(4, Math.min(90, Number(e.target.value))) : null)}
+                    onChange={(e) => setAge(e.target.value ? Number(e.target.value) : null)}
+                    onBlur={() => setAge((a) => (a === null ? null : Math.max(4, Math.min(90, a))))}
                   />
                   {ageGroup && (
                     <span className="text-xs text-ink-soft">
