@@ -219,7 +219,7 @@ export default function AdminTeachersPage() {
       } else {
         const body = await res.json().catch(() => null);
         showToast(
-          body?.reason === "no_account" ? t("resendSetupEmailNoAccount") : t("resendSetupEmailError"),
+          body?.reason === "no_email" ? t("resendSetupEmailNoAccount") : t("resendSetupEmailError"),
           "error"
         );
       }
