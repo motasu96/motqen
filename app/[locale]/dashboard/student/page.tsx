@@ -8,6 +8,7 @@ import { useStudentNav } from "@/components/dashboard/studentNav";
 import BookingCalendar from "@/components/dashboard/BookingCalendar";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
 import { useBookings } from "@/lib/useBookings";
+import { useStudentLogout } from "@/lib/supabase/useStudentLogout";
 import { homework, HomeworkItem, todayPortion } from "@/data/dashboard";
 import { localize } from "@/lib/localize";
 import { IconTask, IconTrophy, IconShield, IconFamily, IconBook, IconInbox } from "@/components/icons";
@@ -71,6 +72,7 @@ export default function StudentDashboardPage() {
   const { upcoming } = useBookings();
   const nextLesson = upcoming[0];
   const studentNav = useStudentNav();
+  const handleLogout = useStudentLogout();
   const locale = useLocale();
   const t = useTranslations("Dashboard.student");
   const tc = useTranslations("Dashboard.common");
@@ -110,7 +112,7 @@ export default function StudentDashboardPage() {
   }
 
   return (
-    <DashboardShell navItems={studentNav} userName={studentName} userSubtitle={studentTitle}>
+    <DashboardShell navItems={studentNav} userName={studentName} userSubtitle={studentTitle} onLogout={handleLogout}>
       <div className="flex flex-col gap-6">
         <div>
           <h1 className="text-xl font-extrabold text-ink sm:text-2xl">{t("greeting", { name: studentName })}</h1>

@@ -11,6 +11,7 @@ import { useToast } from "@/components/Toast";
 import { localize } from "@/lib/localize";
 import { buildPlan, PLAN_DURATIONS, SurahPosition, PlanDirection } from "@/lib/quranPlan";
 import { getSurahByNumber } from "@/data/quranSurahs";
+import { createClient } from "@/lib/supabase/client";
 
 type StudentType = "male" | "female";
 type StepKind = "type" | "info" | "plan" | "time" | "confirm";
@@ -37,7 +38,7 @@ function SignupFlow() {
   const [studentType, setStudentType] = useState<StudentType | null>(null);
   const [age, setAge] = useState<number | null>(null);
   const [programSlug, setProgramSlug] = useState(preselectedProgram);
-  const [form, setForm] = useState({ name: "", phone: "", email: "" });
+  const [form, setForm] = useState({ name: "", phone: "", email: "", password: "", confirmPassword: "" });
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
@@ -104,6 +105,9 @@ function SignupFlow() {
     if (stepKind === "type" && studentType && !age) return t("errorAge");
     if (stepKind === "info") {
       if (!form.name.trim() || !form.phone.trim()) return t("errorNamePhone");
+      if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) return t("errorEmail");
+      if (form.password.length < 6) return t("errorPassword");
+      if (form.password !== form.confirmPassword) return t("errorPasswordMatch");
       if (!programSlug) return t("errorProgram");
     }
     if (stepKind === "plan" && !planDurationMonths) return t("errorPlan");
@@ -125,7 +129,7 @@ function SignupFlow() {
     if (step > 0) setStep((s) => s - 1);
   }
 
-  function confirm() {
+  async function confirm() {
     setSubmitting(true);
     try {
       localStorage.setItem(
@@ -154,6 +158,55 @@ function SignupFlow() {
         );
       }
     } catch {}
+
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.signUp({
+        email: form.email.trim(),
+        password: form.password,
+        options: { data: { role: "student", full_name: form.name.trim(), phone: form.phone.trim() } },
+      });
+      if (error) {
+        setSubmitting(false);
+        showToast(t("accountError", { error: error.message }), "error");
+        return;
+      }
+      if (data.user) {
+        fetch("/api/student-registration", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: data.user.id,
+            gender: studentType,
+            age,
+            programSlug,
+            preferredDays: selectedDays,
+            preferredTime: selectedTime,
+            planDurationMonths: isHifzProgram ? planDurationMonths : null,
+            alreadyMemorizedJuz: isHifzProgram ? alreadyMemorizedJuz : 0,
+            reviewDaysPerWeek: isHifzProgram ? reviewDaysPerWeek : null,
+            planDirection: isHifzProgram ? direction : null,
+          }),
+        }).catch(() => {});
+      }
+      if (form.email) {
+        fetch("/api/welcome-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: form.name, email: form.email, locale }),
+        }).catch(() => {});
+      }
+      setSubmitting(false);
+      if (!data.session) {
+        showToast(t("confirmEmailNotice"), "success");
+        router.push("/login");
+        return;
+      }
+      showToast(t("toastSuccess"), "success");
+      router.push("/onboarding");
+      return;
+    }
+
     if (form.email) {
       fetch("/api/welcome-email", {
         method: "POST",
@@ -282,10 +335,39 @@ function SignupFlow() {
                     id="signup-email"
                     dir="ltr"
                     type="email"
+                    required
                     className="input"
                     value={form.email}
                     onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
                     placeholder={t("emailPlaceholder")}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="signup-password" className="text-sm font-bold text-ink">{t("passwordLabel")}</label>
+                  <input
+                    id="signup-password"
+                    dir="ltr"
+                    type="password"
+                    className="input"
+                    value={form.password}
+                    onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+                    placeholder={t("passwordPlaceholder")}
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="signup-confirm-password" className="text-sm font-bold text-ink">
+                    {t("confirmPasswordLabel")}
+                  </label>
+                  <input
+                    id="signup-confirm-password"
+                    dir="ltr"
+                    type="password"
+                    className="input"
+                    value={form.confirmPassword}
+                    onChange={(e) => setForm((f) => ({ ...f, confirmPassword: e.target.value }))}
+                    placeholder={t("passwordPlaceholder")}
                   />
                 </div>
               </div>

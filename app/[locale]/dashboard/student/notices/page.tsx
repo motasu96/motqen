@@ -4,18 +4,20 @@ import { useLocale, useTranslations } from "next-intl";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { useStudentNav } from "@/components/dashboard/studentNav";
+import { useStudentLogout } from "@/lib/supabase/useStudentLogout";
 import { studentNotices } from "@/data/dashboard";
 import { localize } from "@/lib/localize";
 import { IconMegaphone } from "@/components/icons";
 
 export default function StudentNoticesPage() {
   const studentNav = useStudentNav();
+  const handleLogout = useStudentLogout();
   const locale = useLocale();
   const t = useTranslations("Dashboard.student");
   const tc = useTranslations("Dashboard.common");
 
   return (
-    <DashboardShell navItems={studentNav} userName={tc("studentName")} userSubtitle={tc("studentTitle")}>
+    <DashboardShell navItems={studentNav} userName={tc("studentName")} userSubtitle={tc("studentTitle")} onLogout={handleLogout}>
       <DashboardPageHeader title={t("noticesTitle")} subtitle={t("noticesSubtitle")} />
 
       <div className="flex flex-col gap-4">

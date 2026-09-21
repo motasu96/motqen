@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { useStudentNav } from "@/components/dashboard/studentNav";
+import { useStudentLogout } from "@/lib/supabase/useStudentLogout";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
 import { groupSessions } from "@/data/dashboard";
 import { localize } from "@/lib/localize";
@@ -15,6 +16,7 @@ const DAYS_ORDER = ["السبت", "الأحد", "الاثنين", "الثلاث�
 
 export default function StudentGroupsPage() {
   const studentNav = useStudentNav();
+  const handleLogout = useStudentLogout();
   const locale = useLocale();
   const t = useTranslations("Dashboard.student");
   const tc = useTranslations("Dashboard.common");
@@ -33,7 +35,7 @@ export default function StudentGroupsPage() {
   }
 
   return (
-    <DashboardShell navItems={studentNav} userName={tc("studentName")} userSubtitle={tc("studentTitle")}>
+    <DashboardShell navItems={studentNav} userName={tc("studentName")} userSubtitle={tc("studentTitle")} onLogout={handleLogout}>
       <DashboardPageHeader title={t("groupsTitle")} subtitle={t("groupsSubtitle")} />
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

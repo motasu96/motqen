@@ -6,14 +6,34 @@ import { Link } from "@/i18n/navigation";
 import Logo from "@/components/Logo";
 import { IconCheck } from "@/components/icons";
 import { useToast } from "@/components/Toast";
+import { createClient } from "@/lib/supabase/client";
 
 export default function ForgotPasswordPage() {
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const { showToast } = useToast();
   const t = useTranslations("ForgotPassword");
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const email = (new FormData(e.currentTarget).get("email") as string) ?? "";
+
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      setSent(true);
+      showToast(t("toastSuccess"), "success");
+      return;
+    }
+
+    setSubmitting(true);
+    const supabase = createClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setSubmitting(false);
+    if (error) {
+      showToast(t("errorGeneric"), "error");
+      return;
+    }
     setSent(true);
     showToast(t("toastSuccess"), "success");
   }
@@ -46,10 +66,10 @@ export default function ForgotPasswordPage() {
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
                 <label htmlFor="fp-email" className="text-sm font-bold text-ink">{t("emailLabel")}</label>
-                <input id="fp-email" required type="email" dir="ltr" className="input" placeholder="example@email.com" />
+                <input id="fp-email" name="email" required type="email" dir="ltr" className="input" placeholder="example@email.com" />
               </div>
-              <button type="submit" className="btn-primary mt-2 w-full">
-                {t("submit")}
+              <button type="submit" disabled={submitting} className="btn-primary mt-2 w-full disabled:opacity-70">
+                {submitting ? t("submitting") : t("submit")}
               </button>
               <Link href="/login" className="mt-2 text-center text-sm font-bold text-ink-soft hover:text-gold-dark">
                 {t("backToLogin")}
