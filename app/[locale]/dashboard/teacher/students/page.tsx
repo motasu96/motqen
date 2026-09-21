@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { useTeacherNav } from "@/components/dashboard/teacherNav";
+import { useTeacherLogout } from "@/lib/supabase/useTeacherLogout";
 import { teacherStudents, TeacherStudent } from "@/data/dashboard";
 import { localize } from "@/lib/localize";
 
@@ -21,13 +22,14 @@ const STATUS_STYLES: Record<TeacherStudent["status"], string> = {
 
 export default function TeacherStudentsPage() {
   const teacherNav = useTeacherNav();
+  const handleLogout = useTeacherLogout();
   const locale = useLocale();
   const t = useTranslations("Dashboard.teacher");
   const tc = useTranslations("Dashboard.common");
   const tStatus = useTranslations("Dashboard.status");
 
   return (
-    <DashboardShell navItems={teacherNav} userName={tc("teacherName")} userSubtitle={tc("teacherTitle")}>
+    <DashboardShell navItems={teacherNav} userName={tc("teacherName")} userSubtitle={tc("teacherTitle")} onLogout={handleLogout}>
       <DashboardPageHeader title={t("studentsTitle")} subtitle={t("studentsSubtitle")} />
 
       <div className="flex flex-col gap-4">

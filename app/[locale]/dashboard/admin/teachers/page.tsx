@@ -98,27 +98,31 @@ export default function AdminTeachersPage() {
     const supabase = createClient();
     const slug = await generateUniqueSlug(supabase, app.full_name);
 
-    const { error: insertError } = await supabase.from("teachers").insert({
-      slug,
-      name: app.full_name,
-      gender: app.gender,
-      specialties: app.specialties,
-      years_experience: app.years_experience ?? 0,
-      bio: app.bio,
-      avatar_url: app.photo_url,
-      application_id: app.id,
-      status: "active",
-    });
+    const { data: inserted, error: insertError } = await supabase
+      .from("teachers")
+      .insert({
+        slug,
+        name: app.full_name,
+        gender: app.gender,
+        specialties: app.specialties,
+        years_experience: app.years_experience ?? 0,
+        bio: app.bio,
+        avatar_url: app.photo_url,
+        application_id: app.id,
+        status: "active",
+      })
+      .select("id")
+      .single();
 
-    if (!insertError) {
+    if (!insertError && inserted) {
       await supabase
         .from("teacher_applications")
         .update({ status: "approved", reviewed_at: new Date().toISOString() })
         .eq("id", app.id);
-      fetch("/api/teacher-approved-notification", {
+      fetch("/api/teacher-account", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: app.full_name, email: app.email, slug }),
+        body: JSON.stringify({ teacherRowId: inserted.id, name: app.full_name, email: app.email, phone: app.phone, slug }),
       }).catch(() => {});
       showToast(t("applicationApproved"), "success");
       await loadData();

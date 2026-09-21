@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { useTeacherNav } from "@/components/dashboard/teacherNav";
+import { useTeacherLogout } from "@/lib/supabase/useTeacherLogout";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
 import { teacherSchedule } from "@/data/dashboard";
 import { localize } from "@/lib/localize";
@@ -13,6 +14,7 @@ const DAYS_ORDER = ["السبت", "الأحد", "الاثنين", "الثلاث�
 
 export default function TeacherSchedulePage() {
   const teacherNav = useTeacherNav();
+  const handleLogout = useTeacherLogout();
   const locale = useLocale();
   const t = useTranslations("Dashboard.teacher");
   const tc = useTranslations("Dashboard.common");
@@ -25,7 +27,7 @@ export default function TeacherSchedulePage() {
   }));
 
   return (
-    <DashboardShell navItems={teacherNav} userName={tc("teacherName")} userSubtitle={tc("teacherTitle")}>
+    <DashboardShell navItems={teacherNav} userName={tc("teacherName")} userSubtitle={tc("teacherTitle")} onLogout={handleLogout}>
       <DashboardPageHeader title={t("scheduleTitle")} subtitle={t("scheduleSubtitle")} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

@@ -10,9 +10,10 @@ const COLORS = {
 export type TeacherApprovedPayload = {
   name: string;
   profileUrl: string;
+  setupLink: string;
 };
 
-export function buildTeacherApprovedEmail({ name, profileUrl }: TeacherApprovedPayload) {
+export function buildTeacherApprovedEmail({ name, profileUrl, setupLink }: TeacherApprovedPayload) {
   const subject = "تهانينا! تم قبول طلب انضمامك كمعلم في متقن";
 
   const html = `<!doctype html>
@@ -42,14 +43,22 @@ export function buildTeacherApprovedEmail({ name, profileUrl }: TeacherApprovedP
                 <p style="margin:0 0 12px;font-size:14px;line-height:1.8;color:${COLORS.inkSoft};">
                   يسعدنا إخبارك بأنه تم قبول طلب انضمامك كمعلم في منصة متقن. ملفك الشخصي أصبح الآن منشورًا على الموقع.
                 </p>
+                <p style="margin:0 0 12px;font-size:14px;line-height:1.8;color:${COLORS.inkSoft};">
+                  أنشأنا لك حساب دخول للوحة تحكم المعلم — اضغط الزر أدناه لتعيين كلمة مرورك أولًا، ثم يمكنك الدخول بها.
+                </p>
                 <p style="margin:0;font-size:14px;line-height:1.8;color:${COLORS.inkSoft};">
                   سيتواصل معك فريقنا قريبًا عبر الهاتف أو البريد لإكمال باقي التفاصيل (الجدول والحصص). نرحب بك ضمن نخبة معلمي متقن، ونسأل الله أن يبارك في جهودك في تعليم كتابه الكريم.
                 </p>
               </td>
             </tr>
             <tr>
+              <td align="center" style="padding:0 32px 12px;">
+                <a href="${setupLink}" style="display:inline-block;background:${COLORS.goldDark};color:#fff;font-size:14px;font-weight:700;text-decoration:none;padding:12px 28px;border-radius:9999px;">تعيين كلمة المرور والدخول للوحة التحكم</a>
+              </td>
+            </tr>
+            <tr>
               <td align="center" style="padding:0 32px 28px;">
-                <a href="${profileUrl}" style="display:inline-block;background:${COLORS.goldDark};color:#fff;font-size:14px;font-weight:700;text-decoration:none;padding:12px 28px;border-radius:9999px;">عرض ملفك الشخصي على الموقع</a>
+                <a href="${profileUrl}" style="display:inline-block;color:${COLORS.goldDark};font-size:13px;font-weight:700;text-decoration:none;">عرض ملفك الشخصي على الموقع</a>
               </td>
             </tr>
             <tr>

@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { useTeacherNav } from "@/components/dashboard/teacherNav";
+import { useTeacherLogout } from "@/lib/supabase/useTeacherLogout";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
 import { teacherStudents, TeacherStudent } from "@/data/dashboard";
 import { localize } from "@/lib/localize";
@@ -23,6 +24,7 @@ const STATUS_STYLES: Record<TeacherStudent["status"], string> = {
 
 export default function TeacherDashboardPage() {
   const teacherNav = useTeacherNav();
+  const handleLogout = useTeacherLogout();
   const locale = useLocale();
   const t = useTranslations("Dashboard.teacher");
   const tc = useTranslations("Dashboard.common");
@@ -38,7 +40,7 @@ export default function TeacherDashboardPage() {
   const previewStudents = teacherStudents.slice(0, 4).map((s) => ({ raw: s, l: localize(s, locale) }));
 
   return (
-    <DashboardShell navItems={teacherNav} userName={tc("teacherName")} userSubtitle={tc("teacherTitle")}>
+    <DashboardShell navItems={teacherNav} userName={tc("teacherName")} userSubtitle={tc("teacherTitle")} onLogout={handleLogout}>
       <div className="flex flex-col gap-6">
         <div>
           <h1 className="text-xl font-extrabold text-ink sm:text-2xl">{t("dashboardTitle")}</h1>
