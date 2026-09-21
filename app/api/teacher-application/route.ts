@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { buildTeacherApplicationEmail } from "@/lib/emails/teacherApplicationEmail";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const OWNER_EMAIL = "info@motqen.site";
 
 export async function POST(req: NextRequest) {
   const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json({ error: "Email service is not configured" }, { status: 501 });
+  const hasSupabase = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+  if (!apiKey && !hasSupabase) {
+    return NextResponse.json({ error: "No submission channel is configured" }, { status: 501 });
   }
 
   let payload: {
@@ -42,31 +44,55 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Required fields are missing" }, { status: 400 });
   }
 
-  const resend = new Resend(apiKey);
-  const { subject, html } = buildTeacherApplicationEmail({
-    name,
-    phone,
-    email,
-    gender,
-    specialties,
-    yearsExperience,
-    ijazah,
-    bio,
-  });
-
-  try {
-    const { error } = await resend.emails.send({
-      from: "متقن | Motqen <info@motqen.site>",
-      replyTo: email,
-      to: OWNER_EMAIL,
-      subject,
-      html,
-    });
-    if (error) {
-      return NextResponse.json({ error: "Failed to send email" }, { status: 502 });
+  let savedToDb = false;
+  if (hasSupabase) {
+    try {
+      const supabase = createAdminClient();
+      const { error } = await supabase.from("teacher_applications").insert({
+        full_name: name,
+        phone,
+        email,
+        gender,
+        specialties,
+        years_experience: yearsExperience ? Number(yearsExperience) : null,
+        ijazah: ijazah || null,
+        bio,
+      });
+      savedToDb = !error;
+    } catch {
+      savedToDb = false;
     }
-  } catch {
-    return NextResponse.json({ error: "Failed to send email" }, { status: 502 });
+  }
+
+  let emailSent = false;
+  if (apiKey) {
+    const resend = new Resend(apiKey);
+    const { subject, html } = buildTeacherApplicationEmail({
+      name,
+      phone,
+      email,
+      gender,
+      specialties,
+      yearsExperience,
+      ijazah,
+      bio,
+    });
+    try {
+      const { error } = await resend.emails.send({
+        from: "متقن | Motqen <info@motqen.site>",
+        replyTo: email,
+        to: OWNER_EMAIL,
+        subject,
+        html,
+      });
+      emailSent = !error;
+    } catch {
+      emailSent = false;
+    }
+  }
+
+  if (!savedToDb && !emailSent) {
+    return NextResponse.json({ error: "Failed to submit application" }, { status: 502 });
   }
 
   return NextResponse.json({ ok: true });
