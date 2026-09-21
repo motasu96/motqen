@@ -376,7 +376,7 @@
     "ijazahLabel": "Ijazahs or Sanads (if any)",
     "ijazahPlaceholder": "List the certified Ijazahs you hold and their issuing source",
     "certificateLabel": "Attach Certificate / Ijazah File",
-    "certificateHint": "An image, PDF, or Word file of your Ijazah or sanad certificate (up to 15MB). This file is private and only visible to the review team.",
+    "certificateHint": "An image, PDF, or Word file of your Ijazah or sanad certificate (up to 50MB). This file is private and only visible to the review team.",
     "photoUploadError": "Couldn't upload the photo: {error}",
     "certificateUploadError": "Couldn't upload the certificate file: {error}",
     "bioLabel": "Tell us about yourself and why you want to join",
