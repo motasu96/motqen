@@ -206,6 +206,25 @@ export default function AdminTeachersPage() {
     setActingOn(null);
   }
 
+  async function resendSetupEmail(row: TeacherRow) {
+    setActingOn(row.id);
+    try {
+      const res = await fetch("/api/teacher-resend-setup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teacherRowId: row.id }),
+      });
+      if (res.ok) {
+        showToast(t("resendSetupEmailSuccess"), "success");
+      } else {
+        showToast(t("resendSetupEmailError"), "error");
+      }
+    } catch {
+      showToast(t("resendSetupEmailError"), "error");
+    }
+    setActingOn(null);
+  }
+
   return (
     <DashboardShell navItems={adminNav} userName={tc("adminName")} userSubtitle={tc("adminTitle")} onLogout={handleLogout}>
       <DashboardPageHeader title={t("teachersTitle")} subtitle={t("teachersSubtitle")} />
@@ -309,9 +328,16 @@ export default function AdminTeachersPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex gap-3">
+                    <div className="flex flex-wrap gap-3">
                       <button onClick={() => openEdit(teacher)} className="text-xs font-bold text-gold-dark hover:underline">
                         {t("editTeacher")}
+                      </button>
+                      <button
+                        onClick={() => resendSetupEmail(teacher)}
+                        disabled={actingOn === teacher.id}
+                        className="text-xs font-bold text-ink-soft hover:underline disabled:opacity-50"
+                      >
+                        {t("resendSetupEmail")}
                       </button>
                       <button
                         onClick={() => deleteTeacher(teacher)}
