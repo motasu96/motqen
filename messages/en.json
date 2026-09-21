@@ -791,6 +791,7 @@
       "resendSetupEmail": "Resend Setup Email",
       "resendSetupEmailSuccess": "Setup email resent",
       "resendSetupEmailError": "Failed to send the email, try again",
+      "resendSetupEmailNoAccount": "This teacher has no linked login account, contact support to create one",
       "deleteConfirm": "Are you sure you want to delete {name}? This cannot be undone.",
       "teacherDeleted": "Teacher deleted",
       "editSaved": "Changes saved",

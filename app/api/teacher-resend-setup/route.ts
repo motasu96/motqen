@@ -37,12 +37,14 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (teacherError || !teacher || !teacher.profile_id) {
-    return NextResponse.json({ error: "Teacher account not found" }, { status: 404 });
+    console.error("[teacher-resend-setup] teacher lookup failed", { teacherRowId, teacherError });
+    return NextResponse.json({ error: "Teacher account not found", reason: "no_account" }, { status: 404 });
   }
 
   const { data: userData, error: userError } = await supabase.auth.admin.getUserById(teacher.profile_id);
   if (userError || !userData.user?.email) {
-    return NextResponse.json({ error: userError?.message ?? "Failed to look up account email" }, { status: 502 });
+    console.error("[teacher-resend-setup] getUserById failed", { profileId: teacher.profile_id, userError });
+    return NextResponse.json({ error: userError?.message ?? "Failed to look up account email", reason: "lookup" }, { status: 502 });
   }
   const email = userData.user.email;
 
@@ -52,12 +54,14 @@ export async function POST(req: NextRequest) {
     options: { redirectTo: `${SITE_URL}/reset-password` },
   });
   if (genLinkError || !linkData.properties?.action_link) {
-    return NextResponse.json({ error: genLinkError?.message ?? "Failed to generate setup link" }, { status: 502 });
+    console.error("[teacher-resend-setup] generateLink failed", { email, genLinkError });
+    return NextResponse.json({ error: genLinkError?.message ?? "Failed to generate setup link", reason: "link" }, { status: 502 });
   }
 
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ error: "Email sending is not configured" }, { status: 501 });
+    console.error("[teacher-resend-setup] RESEND_API_KEY missing");
+    return NextResponse.json({ error: "Email sending is not configured", reason: "no_resend_key" }, { status: 501 });
   }
 
   const resend = new Resend(apiKey);
@@ -68,9 +72,14 @@ export async function POST(req: NextRequest) {
   });
 
   try {
-    await resend.emails.send({ from: "متقن | Motqen <info@motqen.site>", to: email, subject, html });
-  } catch {
-    return NextResponse.json({ error: "Failed to send email" }, { status: 502 });
+    const sendResult = await resend.emails.send({ from: "متقن | Motqen <info@motqen.site>", to: email, subject, html });
+    if (sendResult.error) {
+      console.error("[teacher-resend-setup] resend.emails.send returned error", sendResult.error);
+      return NextResponse.json({ error: sendResult.error.message, reason: "send" }, { status: 502 });
+    }
+  } catch (err) {
+    console.error("[teacher-resend-setup] resend.emails.send threw", err);
+    return NextResponse.json({ error: "Failed to send email", reason: "send" }, { status: 502 });
   }
 
   return NextResponse.json({ ok: true });

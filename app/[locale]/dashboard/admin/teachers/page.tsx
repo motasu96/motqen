@@ -217,7 +217,11 @@ export default function AdminTeachersPage() {
       if (res.ok) {
         showToast(t("resendSetupEmailSuccess"), "success");
       } else {
-        showToast(t("resendSetupEmailError"), "error");
+        const body = await res.json().catch(() => null);
+        showToast(
+          body?.reason === "no_account" ? t("resendSetupEmailNoAccount") : t("resendSetupEmailError"),
+          "error"
+        );
       }
     } catch {
       showToast(t("resendSetupEmailError"), "error");

@@ -791,6 +791,7 @@
       "resendSetupEmail": "إعادة إرسال بريد التفعيل",
       "resendSetupEmailSuccess": "تم إرسال بريد التفعيل من جديد",
       "resendSetupEmailError": "تعذّر إرسال البريد، حاول مجددًا",
+      "resendSetupEmailNoAccount": "هذا المعلم بلا حساب دخول مرتبط، تواصل مع الدعم لإنشائه",
       "deleteConfirm": "هل أنت متأكد من حذف {name}؟ لا يمكن التراجع عن هذا الإجراء.",
       "teacherDeleted": "تم حذف المعلم",
       "editSaved": "تم حفظ التعديلات",
