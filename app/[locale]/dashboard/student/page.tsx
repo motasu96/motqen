@@ -9,7 +9,10 @@ import MyUpcomingSessions from "@/components/dashboard/MyUpcomingSessions";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
 import { useUpcomingBookings } from "@/lib/supabase/useUpcomingBookings";
 import { useStudentLogout } from "@/lib/supabase/useStudentLogout";
+import { createClient } from "@/lib/supabase/client";
+import { getMyStudentProfile, StudentRow } from "@/lib/supabase/students";
 import { homework, HomeworkItem, todayPortion } from "@/data/dashboard";
+import { programs } from "@/data/programs";
 import { localize } from "@/lib/localize";
 import { IconTask, IconTrophy, IconShield, IconFamily, IconBook, IconInbox } from "@/components/icons";
 import {
@@ -21,14 +24,6 @@ import {
   PlanDirection,
 } from "@/lib/quranPlan";
 import { getSurahByNumber } from "@/data/quranSurahs";
-
-type StoredPlan = {
-  durationMonths: number;
-  alreadyMemorizedJuz: number;
-  reviewDaysPerWeek: 1 | 2;
-  direction: PlanDirection;
-  startedAt: string;
-};
 
 const TYPE_KEYS: Record<HomeworkItem["type"], "typeRecitation" | "typeReview" | "typeTajweed"> = {
   تسميع: "typeRecitation",
@@ -78,32 +73,47 @@ export default function StudentDashboardPage() {
   const tc = useTranslations("Dashboard.common");
   const tStatus = useTranslations("Dashboard.status");
   const tPlan = useTranslations("Signup");
-  const studentName = tc("studentName");
-  const studentTitle = tc("studentTitle");
   const recentHomework = homework.slice(0, 2).map((h) => localize(h, locale));
   const portion = localize(todayPortion, locale);
 
-  const [storedPlan, setStoredPlan] = useState<StoredPlan | null>(null);
+  const [fullName, setFullName] = useState<string | null>(null);
+  const [studentRow, setStudentRow] = useState<StudentRow | null>(null);
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("motqen_memorization_plan");
-      if (raw) setStoredPlan(JSON.parse(raw));
-    } catch {}
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return;
+    let cancelled = false;
+    (async () => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user || cancelled) return;
+      const { fullName: name, student } = await getMyStudentProfile(supabase, user.id);
+      if (cancelled) return;
+      setFullName(name);
+      setStudentRow(student);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
+  const studentName = fullName || tc("studentName");
+  const studentProgram = studentRow?.program_slug ? programs.find((p) => p.slug === studentRow.program_slug) : undefined;
+  const studentTitle = studentProgram ? localize(studentProgram, locale).title : tc("studentTitle");
+
   const planData = useMemo(() => {
-    if (!storedPlan) return null;
+    if (!studentRow?.plan_duration_months) return null;
     const plan = buildPlan({
-      durationMonths: storedPlan.durationMonths,
-      alreadyMemorizedJuz: storedPlan.alreadyMemorizedJuz,
-      reviewDaysPerWeek: storedPlan.reviewDaysPerWeek,
-      direction: storedPlan.direction,
+      durationMonths: studentRow.plan_duration_months,
+      alreadyMemorizedJuz: studentRow.already_memorized_juz,
+      reviewDaysPerWeek: (studentRow.review_days_per_week === 2 ? 2 : 1) as 1 | 2,
+      direction: studentRow.plan_direction === "fromStart" ? "fromStart" : ("fromEnd" as PlanDirection),
     });
-    const weekIndex = weekIndexForDate(plan, new Date(storedPlan.startedAt), new Date());
+    const weekIndex = weekIndexForDate(plan, new Date(studentRow.created_at), new Date());
     const currentWeek = weekIndex ? getWeekPlan(plan, weekIndex) : undefined;
     const percent = overallProgressPercent(plan, weekIndex);
     return { plan, weekIndex, currentWeek, percent };
-  }, [storedPlan]);
+  }, [studentRow]);
 
   function formatSurahPosition(pos: SurahPosition) {
     const surah = getSurahByNumber(pos.surahNumber);
