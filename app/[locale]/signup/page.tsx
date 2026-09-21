@@ -12,9 +12,10 @@ import { localize } from "@/lib/localize";
 import { buildPlan, PLAN_DURATIONS, SurahPosition, PlanDirection } from "@/lib/quranPlan";
 import { getSurahByNumber } from "@/data/quranSurahs";
 
-type StudentType = "kid" | "student" | "women";
+type StudentType = "male" | "female";
 type StepKind = "type" | "info" | "plan" | "time" | "confirm";
 const HIFZ_PROGRAM_SLUG = "hifz-mutqan";
+const CHILD_MAX_AGE = 12;
 
 function SignupFlow() {
   const router = useRouter();
@@ -25,9 +26,8 @@ function SignupFlow() {
   const locale = useLocale();
 
   const STUDENT_TYPES: { key: StudentType; title: string; desc: string }[] = [
-    { key: "kid", title: t("typeKidTitle"), desc: t("typeKidDesc") },
-    { key: "student", title: t("typeStudentTitle"), desc: t("typeStudentDesc") },
-    { key: "women", title: t("typeWomenTitle"), desc: t("typeWomenDesc") },
+    { key: "male", title: t("typeMaleTitle"), desc: t("typeMaleDesc") },
+    { key: "female", title: t("typeFemaleTitle"), desc: t("typeFemaleDesc") },
   ];
 
   const TIME_SLOTS = t.raw("timeSlots") as string[];
@@ -35,6 +35,7 @@ function SignupFlow() {
 
   const [step, setStep] = useState(0);
   const [studentType, setStudentType] = useState<StudentType | null>(null);
+  const [age, setAge] = useState<number | null>(null);
   const [programSlug, setProgramSlug] = useState(preselectedProgram);
   const [form, setForm] = useState({ name: "", phone: "", email: "" });
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
@@ -92,12 +93,15 @@ function SignupFlow() {
     return `${surahName} — ${t("planAyahLabel", { n: pos.ayahInSurah })}`;
   }
 
+  const ageGroup: "child" | "adult" | null = age === null ? null : age <= CHILD_MAX_AGE ? "child" : "adult";
+
   function toggleDay(day: string) {
     setSelectedDays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]));
   }
 
   function validateStep(): string | null {
     if (stepKind === "type" && !studentType) return t("errorStudentType");
+    if (stepKind === "type" && studentType && !age) return t("errorAge");
     if (stepKind === "info") {
       if (!form.name.trim() || !form.phone.trim()) return t("errorNamePhone");
       if (!programSlug) return t("errorProgram");
@@ -126,7 +130,16 @@ function SignupFlow() {
     try {
       localStorage.setItem(
         "motqen_booking",
-        JSON.stringify({ studentType, programSlug, form, selectedDays, selectedTime, confirmedAt: new Date().toISOString() })
+        JSON.stringify({
+          studentType,
+          age,
+          ageGroup,
+          programSlug,
+          form,
+          selectedDays,
+          selectedTime,
+          confirmedAt: new Date().toISOString(),
+        })
       );
       if (isHifzProgram && planDurationMonths) {
         localStorage.setItem(
@@ -191,7 +204,7 @@ function SignupFlow() {
           {stepKind === "type" && (
             <div className="flex flex-col gap-5">
               <h2 className="text-lg font-extrabold text-ink">{t("chooseType")}</h2>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {STUDENT_TYPES.map((type) => (
                   <button
                     key={type.key}
@@ -211,6 +224,30 @@ function SignupFlow() {
                   </button>
                 ))}
               </div>
+
+              {studentType && (
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="signup-age" className="text-sm font-bold text-ink">
+                    {t("ageLabel")}
+                  </label>
+                  <input
+                    id="signup-age"
+                    type="number"
+                    min={4}
+                    max={90}
+                    dir="ltr"
+                    className="input max-w-[160px]"
+                    placeholder={t("agePlaceholder")}
+                    value={age ?? ""}
+                    onChange={(e) => setAge(e.target.value ? Math.max(4, Math.min(90, Number(e.target.value))) : null)}
+                  />
+                  {ageGroup && (
+                    <span className="text-xs text-ink-soft">
+                      {ageGroup === "child" ? t("ageGroupChildHint") : t("ageGroupAdultHint")}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -438,6 +475,7 @@ function SignupFlow() {
               <h2 className="text-lg font-extrabold text-ink">{t("confirmSubscription")}</h2>
               <div className="flex flex-col divide-y divide-line rounded-2xl border border-line">
                 <SummaryRow label={t("summaryType")} value={STUDENT_TYPES.find((tp) => tp.key === studentType)?.title ?? t("dash")} />
+                <SummaryRow label={t("summaryAge")} value={age ? String(age) : t("dash")} />
                 <SummaryRow label={t("summaryProgram")} value={selectedProgram?.title ?? t("dash")} />
                 {isHifzProgram && planDurationMonths && (
                   <SummaryRow label={t("summaryPlan")} value={DURATION_LABELS[planDurationMonths]} />
