@@ -101,14 +101,22 @@ export default function StudentLessonsPage() {
                       <IconClock className="h-5 w-5 text-gold-dark" />
                     </span>
                     <div>
-                      <div className="text-sm font-extrabold text-ink">{l.surah} — {l.ayah_range}</div>
+                      <div className="text-sm font-extrabold text-ink">
+                        {l.attended ? `${l.surah} — ${l.ayah_range}` : t("lessonAbsentLabel")}
+                      </div>
                       <div className="text-xs text-ink-soft">{l.session_date} · {tc("with")} {l.teacherName}</div>
                       {l.notes && <div className="mt-1 text-xs text-ink-soft">{l.notes}</div>}
                     </div>
                   </div>
-                  <span className="w-fit rounded-pill bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400">
-                    {tStatus("lessonCompleted")}
-                  </span>
+                  {l.attended ? (
+                    <span className="w-fit rounded-pill bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400">
+                      {tStatus("lessonCompleted")}
+                    </span>
+                  ) : (
+                    <span className="w-fit rounded-pill bg-red-50 px-3 py-1 text-xs font-bold text-red-500 dark:bg-red-500/15 dark:text-red-400">
+                      {tStatus("lessonAbsent")}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>

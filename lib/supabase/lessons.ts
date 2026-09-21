@@ -6,9 +6,10 @@ export type LessonRow = {
   student_id: string;
   teacher_id: string;
   session_date: string;
-  surah: string;
-  ayah_range: string;
+  surah: string | null;
+  ayah_range: string | null;
   notes: string | null;
+  attended: boolean;
   created_at: string;
 };
 
@@ -25,6 +26,7 @@ export async function getLatestLesson(supabase: SupabaseClient, studentId: strin
     .from("lessons")
     .select("*, teachers(name)")
     .eq("student_id", studentId)
+    .eq("attended", true)
     .order("session_date", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -55,8 +57,9 @@ export async function createLesson(
     studentId: string;
     teacherId: string;
     sessionDate: string;
-    surah: string;
-    ayahRange: string;
+    attended: boolean;
+    surah?: string;
+    ayahRange?: string;
     notes?: string;
   }
 ): Promise<boolean> {
@@ -65,9 +68,19 @@ export async function createLesson(
     student_id: params.studentId,
     teacher_id: params.teacherId,
     session_date: params.sessionDate,
-    surah: params.surah,
-    ayah_range: params.ayahRange,
+    attended: params.attended,
+    surah: params.attended ? params.surah || null : null,
+    ayah_range: params.attended ? params.ayahRange || null : null,
     notes: params.notes || null,
   });
   return !error;
+}
+
+export type AttendanceStats = { attended: number; total: number; percent: number };
+
+export async function getAttendanceStats(supabase: SupabaseClient, studentId: string): Promise<AttendanceStats> {
+  const { data } = await supabase.from("lessons").select("attended").eq("student_id", studentId);
+  const total = data?.length ?? 0;
+  const attended = data?.filter((r) => r.attended).length ?? 0;
+  return { attended, total, percent: total > 0 ? Math.round((attended / total) * 100) : 0 };
 }

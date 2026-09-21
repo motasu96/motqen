@@ -22,13 +22,14 @@ function LogLessonForm({
   const t = useTranslations("Dashboard.teacher");
   const { showToast } = useToast();
   const [open, setOpen] = useState(false);
+  const [attended, setAttended] = useState(true);
   const [surah, setSurah] = useState("");
   const [range, setRange] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {
-    if (!surah.trim() || !range.trim()) {
+    if (attended && (!surah.trim() || !range.trim())) {
       showToast(t("errorLessonFields"), "error");
       return;
     }
@@ -38,6 +39,7 @@ function LogLessonForm({
       studentId: booking.studentId,
       teacherId,
       sessionDate: booking.date,
+      attended,
       surah: surah.trim(),
       ayahRange: range.trim(),
       notes: notes.trim(),
@@ -61,18 +63,40 @@ function LogLessonForm({
 
   return (
     <div className="flex w-full flex-col gap-2 sm:w-64">
-      <input
-        value={surah}
-        onChange={(e) => setSurah(e.target.value)}
-        placeholder={t("lessonSurahPlaceholder")}
-        className="input py-2 text-xs"
-      />
-      <input
-        value={range}
-        onChange={(e) => setRange(e.target.value)}
-        placeholder={t("lessonRangePlaceholder")}
-        className="input py-2 text-xs"
-      />
+      <div className="grid grid-cols-2 gap-2 rounded-pill border border-line bg-card p-1">
+        <button
+          type="button"
+          onClick={() => setAttended(true)}
+          aria-pressed={attended}
+          className={`rounded-pill py-1.5 text-xs font-bold transition-colors ${attended ? "bg-gold-gradient text-white" : "text-ink-soft"}`}
+        >
+          {t("attendedCta")}
+        </button>
+        <button
+          type="button"
+          onClick={() => setAttended(false)}
+          aria-pressed={!attended}
+          className={`rounded-pill py-1.5 text-xs font-bold transition-colors ${!attended ? "bg-red-500 text-white" : "text-ink-soft"}`}
+        >
+          {t("absentCta")}
+        </button>
+      </div>
+      {attended && (
+        <>
+          <input
+            value={surah}
+            onChange={(e) => setSurah(e.target.value)}
+            placeholder={t("lessonSurahPlaceholder")}
+            className="input py-2 text-xs"
+          />
+          <input
+            value={range}
+            onChange={(e) => setRange(e.target.value)}
+            placeholder={t("lessonRangePlaceholder")}
+            className="input py-2 text-xs"
+          />
+        </>
+      )}
       <textarea
         value={notes}
         onChange={(e) => setNotes(e.target.value)}

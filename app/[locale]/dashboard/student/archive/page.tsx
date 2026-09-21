@@ -1,23 +1,52 @@
 "use client";
 
-import { useLocale, useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { useStudentNav } from "@/components/dashboard/studentNav";
 import { useStudentLogout } from "@/lib/supabase/useStudentLogout";
 import { useStudentProfile } from "@/lib/supabase/useStudentProfile";
-import { archive } from "@/data/dashboard";
-import { localize } from "@/lib/localize";
+import { createClient } from "@/lib/supabase/client";
+import { listStudentMemorization, MemorizationRecordRow } from "@/lib/supabase/memorization";
 import { IconFolder } from "@/components/icons";
 
 export default function StudentArchivePage() {
-  const totalPages = archive.reduce((sum, a) => sum + a.pages, 0);
   const studentNav = useStudentNav();
   const handleLogout = useStudentLogout();
   const { name: studentName, title: studentTitle } = useStudentProfile();
-  const locale = useLocale();
   const t = useTranslations("Dashboard.student");
   const tc = useTranslations("Dashboard.common");
+
+  const [records, setRecords] = useState<MemorizationRecordRow[]>([]);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+        setReady(true);
+        return;
+      }
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user || cancelled) {
+        setReady(true);
+        return;
+      }
+      const rows = await listStudentMemorization(supabase, user.id);
+      if (cancelled) return;
+      setRecords(rows);
+      setReady(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const totalPages = records.reduce((sum, r) => sum + r.pages, 0);
 
   return (
     <DashboardShell navItems={studentNav} userName={studentName} userSubtitle={studentTitle} onLogout={handleLogout}>
@@ -33,20 +62,23 @@ export default function StudentArchivePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {archive.map((a0) => {
-          const a = localize(a0, locale);
-          return (
-            <div key={a.id} className="card flex items-center justify-between p-5">
+      {!ready ? null : records.length === 0 ? (
+        <div className="card p-6">
+          <p className="text-sm text-ink-soft">{t("noArchive")}</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {records.map((r) => (
+            <div key={r.id} className="card flex items-center justify-between p-5">
               <div>
-                <div className="text-sm font-extrabold text-ink">{a.surah}</div>
-                <div className="text-xs text-ink-soft">{a.juz} · {a.pages} {tc("pages")}</div>
+                <div className="text-sm font-extrabold text-ink">{r.title}</div>
+                <div className="text-xs text-ink-soft">{r.pages} {tc("pages")}</div>
               </div>
-              <span className="text-xs font-bold text-ink-soft">{a.completedDate}</span>
+              <span className="text-xs font-bold text-ink-soft">{r.completed_date}</span>
             </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
     </DashboardShell>
   );
 }
