@@ -5,6 +5,7 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { useTeacherNav } from "@/components/dashboard/teacherNav";
 import { useTeacherLogout } from "@/lib/supabase/useTeacherLogout";
+import { useTeacherProfile } from "@/lib/supabase/useTeacherProfile";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
 import { groupSessions } from "@/data/dashboard";
 import { localize } from "@/lib/localize";
@@ -15,13 +16,14 @@ const DAYS_ORDER = ["السبت", "الأحد", "الاثنين", "الثلاث�
 export default function TeacherGroupsPage() {
   const teacherNav = useTeacherNav();
   const handleLogout = useTeacherLogout();
+  const { name: teacherName, title: teacherTitle } = useTeacherProfile();
   const locale = useLocale();
   const t = useTranslations("Dashboard.teacher");
   const tc = useTranslations("Dashboard.common");
   const dayLabels = tc.raw("weekDaysSaturdayFirst") as string[];
 
   return (
-    <DashboardShell navItems={teacherNav} userName={tc("teacherName")} userSubtitle={tc("teacherTitle")} onLogout={handleLogout}>
+    <DashboardShell navItems={teacherNav} userName={teacherName} userSubtitle={teacherTitle} onLogout={handleLogout}>
       <DashboardPageHeader title={t("groupsTitle")} subtitle={t("groupsSubtitle")} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -74,7 +76,7 @@ export default function TeacherGroupsPage() {
 
               <JoinMeetingButton
                 room={g0.id}
-                displayName={tc("teacherName")}
+                displayName={teacherName}
                 subject={g.title}
                 label={t("startGroupSession")}
                 className="w-full justify-center"

@@ -6,6 +6,7 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { useStudentNav } from "@/components/dashboard/studentNav";
 import { useStudentLogout } from "@/lib/supabase/useStudentLogout";
+import { useStudentProfile } from "@/lib/supabase/useStudentProfile";
 import { useUpcomingBookings } from "@/lib/supabase/useUpcomingBookings";
 import { createClient } from "@/lib/supabase/client";
 import { listStudentLessons, LessonWithTeacher } from "@/lib/supabase/lessons";
@@ -15,6 +16,7 @@ import { IconClock } from "@/components/icons";
 export default function StudentLessonsPage() {
   const studentNav = useStudentNav();
   const handleLogout = useStudentLogout();
+  const { name: studentName, title: studentTitle } = useStudentProfile();
   const t = useTranslations("Dashboard.student");
   const tc = useTranslations("Dashboard.common");
   const tStatus = useTranslations("Dashboard.status");
@@ -49,7 +51,7 @@ export default function StudentLessonsPage() {
   }, []);
 
   return (
-    <DashboardShell navItems={studentNav} userName={tc("studentName")} userSubtitle={tc("studentTitle")} onLogout={handleLogout}>
+    <DashboardShell navItems={studentNav} userName={studentName} userSubtitle={studentTitle} onLogout={handleLogout}>
       <DashboardPageHeader title={t("lessonsTitle")} subtitle={t("lessonsSubtitle")} />
 
       <div className="flex flex-col gap-6">
@@ -76,7 +78,7 @@ export default function StudentLessonsPage() {
                     <span className="w-fit rounded-pill bg-gold-light px-3 py-1 text-xs font-bold text-gold-dark">
                       {tStatus("lessonUpcoming")}
                     </span>
-                    <JoinMeetingButton room={b.id} displayName={tc("studentName")} subject={t("sessionSubject")} />
+                    <JoinMeetingButton room={b.id} displayName={studentName} subject={t("sessionSubject")} />
                   </div>
                 </div>
               ))}

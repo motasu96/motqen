@@ -6,6 +6,7 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { useTeacherNav } from "@/components/dashboard/teacherNav";
 import { useTeacherLogout } from "@/lib/supabase/useTeacherLogout";
+import { useTeacherProfile } from "@/lib/supabase/useTeacherProfile";
 import { createClient } from "@/lib/supabase/client";
 import { getMyTeacherId, listTeacherStudents, TeacherStudentOption } from "@/lib/supabase/teacherStudents";
 import {
@@ -32,6 +33,7 @@ const STATUS_KEYS: Record<HomeworkWithStudent["status"], "homeworkPending" | "ho
 export default function TeacherHomeworkPage() {
   const teacherNav = useTeacherNav();
   const handleLogout = useTeacherLogout();
+  const { name: teacherName, title: teacherTitle } = useTeacherProfile();
   const t = useTranslations("Dashboard.teacher");
   const tc = useTranslations("Dashboard.common");
   const tStatus = useTranslations("Dashboard.status");
@@ -119,7 +121,7 @@ export default function TeacherHomeworkPage() {
   }
 
   return (
-    <DashboardShell navItems={teacherNav} userName={tc("teacherName")} userSubtitle={tc("teacherTitle")} onLogout={handleLogout}>
+    <DashboardShell navItems={teacherNav} userName={teacherName} userSubtitle={teacherTitle} onLogout={handleLogout}>
       <DashboardPageHeader title={t("homeworkTitle")} subtitle={t("homeworkSubtitle")} />
 
       {!ready ? null : (

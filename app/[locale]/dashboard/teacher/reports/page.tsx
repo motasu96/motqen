@@ -5,6 +5,7 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { useTeacherNav } from "@/components/dashboard/teacherNav";
 import { useTeacherLogout } from "@/lib/supabase/useTeacherLogout";
+import { useTeacherProfile } from "@/lib/supabase/useTeacherProfile";
 import { teacherStudents } from "@/data/dashboard";
 import { IconChart } from "@/components/icons";
 
@@ -24,6 +25,7 @@ const maxSessions = Math.max(...WEEKLY_SESSIONS.map((w) => w.sessions));
 export default function TeacherReportsPage() {
   const teacherNav = useTeacherNav();
   const handleLogout = useTeacherLogout();
+  const { name: teacherName, title: teacherTitle } = useTeacherProfile();
   const t = useTranslations("Dashboard.teacher");
   const ts = useTranslations("Dashboard.student");
   const tc = useTranslations("Dashboard.common");
@@ -36,7 +38,7 @@ export default function TeacherReportsPage() {
   ];
 
   return (
-    <DashboardShell navItems={teacherNav} userName={tc("teacherName")} userSubtitle={tc("teacherTitle")} onLogout={handleLogout}>
+    <DashboardShell navItems={teacherNav} userName={teacherName} userSubtitle={teacherTitle} onLogout={handleLogout}>
       <DashboardPageHeader title={t("reportsTitle")} subtitle={t("reportsSubtitle")} />
 
       <div className="mb-6 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">

@@ -262,7 +262,7 @@ export default function StudentDashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
-          <MyUpcomingSessions upcoming={upcoming} ready={bookingsReady} onCancel={cancelBooking} />
+          <MyUpcomingSessions upcoming={upcoming} ready={bookingsReady} onCancel={cancelBooking} displayName={studentName} />
 
           <div className="flex flex-col gap-6">
             <div className="card p-6">

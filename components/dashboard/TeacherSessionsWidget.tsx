@@ -92,7 +92,7 @@ function LogLessonForm({
   );
 }
 
-export default function TeacherSessionsWidget() {
+export default function TeacherSessionsWidget({ displayName }: { displayName: string }) {
   const t = useTranslations("Dashboard.teacher");
   const tc = useTranslations("Dashboard.common");
   const [teacherId, setTeacherId] = useState<string | null>(null);
@@ -164,7 +164,7 @@ export default function TeacherSessionsWidget() {
                     <div className="text-xs text-ink-soft">{tc("with")} {b.studentName}</div>
                   </div>
                 </div>
-                <JoinMeetingButton room={b.id} displayName={tc("teacherName")} subject={t("sessionSubject")} label={t("startSessionCta")} />
+                <JoinMeetingButton room={b.id} displayName={displayName} subject={t("sessionSubject")} label={t("startSessionCta")} />
               </li>
             ))}
           </ul>

@@ -11,10 +11,12 @@ export default function MyUpcomingSessions({
   upcoming,
   ready,
   onCancel,
+  displayName,
 }: {
   upcoming: UpcomingBooking[];
   ready: boolean;
   onCancel: (id: string) => void;
+  displayName: string;
 }) {
   const { showToast } = useToast();
   const t = useTranslations("Dashboard.student");
@@ -58,7 +60,7 @@ export default function MyUpcomingSessions({
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <JoinMeetingButton room={b.id} displayName={tc("studentName")} subject={t("sessionSubject")} label={tc("join")} />
+                <JoinMeetingButton room={b.id} displayName={displayName} subject={t("sessionSubject")} label={tc("join")} />
                 <button
                   onClick={() => handleCancel(b.id)}
                   aria-label={t("cancelSessionAria", { date: b.date, time: b.time })}

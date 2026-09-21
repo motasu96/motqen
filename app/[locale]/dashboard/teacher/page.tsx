@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { useTeacherNav } from "@/components/dashboard/teacherNav";
 import { useTeacherLogout } from "@/lib/supabase/useTeacherLogout";
+import { useTeacherProfile } from "@/lib/supabase/useTeacherProfile";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
 import TeacherSessionsWidget from "@/components/dashboard/TeacherSessionsWidget";
 import { teacherStudents, TeacherStudent } from "@/data/dashboard";
@@ -26,6 +27,7 @@ const STATUS_STYLES: Record<TeacherStudent["status"], string> = {
 export default function TeacherDashboardPage() {
   const teacherNav = useTeacherNav();
   const handleLogout = useTeacherLogout();
+  const { name: teacherName, title: teacherTitle } = useTeacherProfile();
   const locale = useLocale();
   const t = useTranslations("Dashboard.teacher");
   const tc = useTranslations("Dashboard.common");
@@ -41,7 +43,7 @@ export default function TeacherDashboardPage() {
   const previewStudents = teacherStudents.slice(0, 4).map((s) => ({ raw: s, l: localize(s, locale) }));
 
   return (
-    <DashboardShell navItems={teacherNav} userName={tc("teacherName")} userSubtitle={tc("teacherTitle")} onLogout={handleLogout}>
+    <DashboardShell navItems={teacherNav} userName={teacherName} userSubtitle={teacherTitle} onLogout={handleLogout}>
       <div className="flex flex-col gap-6">
         <div>
           <h1 className="text-xl font-extrabold text-ink sm:text-2xl">{t("dashboardTitle")}</h1>
@@ -72,7 +74,7 @@ export default function TeacherDashboardPage() {
           </div>
           <JoinMeetingButton
             room="teacher-abdullah-alsalmi"
-            displayName={tc("teacherName")}
+            displayName={teacherName}
             subject={t("directSubject")}
             label={t("directCta")}
             lobby
@@ -95,7 +97,7 @@ export default function TeacherDashboardPage() {
           </Link>
         </div>
 
-        <TeacherSessionsWidget />
+        <TeacherSessionsWidget displayName={teacherName} />
 
         <div className="card overflow-hidden p-0">
           <div className="flex items-center justify-between p-6">

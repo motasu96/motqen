@@ -5,6 +5,7 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { useStudentNav } from "@/components/dashboard/studentNav";
 import { useStudentLogout } from "@/lib/supabase/useStudentLogout";
+import { useStudentProfile } from "@/lib/supabase/useStudentProfile";
 import { IconChart } from "@/components/icons";
 
 const WEEKLY = [
@@ -19,6 +20,7 @@ const maxPages = Math.max(...WEEKLY.map((w) => w.pages));
 export default function StudentReportsPage() {
   const studentNav = useStudentNav();
   const handleLogout = useStudentLogout();
+  const { name: studentName, title: studentTitle } = useStudentProfile();
   const t = useTranslations("Dashboard.student");
   const tc = useTranslations("Dashboard.common");
 
@@ -30,7 +32,7 @@ export default function StudentReportsPage() {
   ];
 
   return (
-    <DashboardShell navItems={studentNav} userName={tc("studentName")} userSubtitle={tc("studentTitle")} onLogout={handleLogout}>
+    <DashboardShell navItems={studentNav} userName={studentName} userSubtitle={studentTitle} onLogout={handleLogout}>
       <DashboardPageHeader title={t("reportsTitle")} subtitle={t("reportsSubtitle")} />
 
       <div className="mb-6 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">

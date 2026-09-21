@@ -5,6 +5,7 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { useStudentNav } from "@/components/dashboard/studentNav";
 import { useStudentLogout } from "@/lib/supabase/useStudentLogout";
+import { useStudentProfile } from "@/lib/supabase/useStudentProfile";
 import { exams } from "@/data/dashboard";
 import { localize } from "@/lib/localize";
 import { IconExam } from "@/components/icons";
@@ -12,13 +13,14 @@ import { IconExam } from "@/components/icons";
 export default function StudentExamsPage() {
   const studentNav = useStudentNav();
   const handleLogout = useStudentLogout();
+  const { name: studentName, title: studentTitle } = useStudentProfile();
   const locale = useLocale();
   const t = useTranslations("Dashboard.student");
   const tc = useTranslations("Dashboard.common");
   const tStatus = useTranslations("Dashboard.status");
 
   return (
-    <DashboardShell navItems={studentNav} userName={tc("studentName")} userSubtitle={tc("studentTitle")} onLogout={handleLogout}>
+    <DashboardShell navItems={studentNav} userName={studentName} userSubtitle={studentTitle} onLogout={handleLogout}>
       <DashboardPageHeader title={t("examsTitle")} subtitle={t("examsSubtitle")} />
 
       <div className="flex flex-col gap-4">

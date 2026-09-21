@@ -48,6 +48,7 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
   const [now, setNow] = useState(() => Date.now());
   const [submitting, setSubmitting] = useState(false);
   const [studentId, setStudentId] = useState<string | null>(null);
+  const [studentName, setStudentName] = useState<string | null>(null);
   const [takenSlots, setTakenSlots] = useState<Set<string>>(new Set());
   const [slotsReady, setSlotsReady] = useState(false);
   const { upcoming, ready, cancel, reload } = useUpcomingBookings();
@@ -61,9 +62,13 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
       } = await supabase.auth.getUser();
       if (cancelled || !user) return;
       setStudentId(user.id);
-      const taken = await getTakenSlots(supabase, teacherId, days[0].iso, days[days.length - 1].iso);
+      const [taken, { data: profile }] = await Promise.all([
+        getTakenSlots(supabase, teacherId, days[0].iso, days[days.length - 1].iso),
+        supabase.from("profiles").select("full_name").eq("id", user.id).single(),
+      ]);
       if (cancelled) return;
       setTakenSlots(taken);
+      setStudentName((profile?.full_name as string | null) ?? null);
       setSlotsReady(true);
     }
     load();
@@ -298,7 +303,7 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <JoinMeetingButton room={b.id} displayName={tc("studentName")} subject={t("sessionSubject")} label={tc("join")} />
+                  <JoinMeetingButton room={b.id} displayName={studentName || tc("studentName")} subject={t("sessionSubject")} label={tc("join")} />
                   <button
                     onClick={() => handleCancel(b.id)}
                     aria-label={t("cancelSessionAria", { date: b.date, time: b.time })}

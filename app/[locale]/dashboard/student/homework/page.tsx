@@ -6,6 +6,7 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { useStudentNav } from "@/components/dashboard/studentNav";
 import { useStudentLogout } from "@/lib/supabase/useStudentLogout";
+import { useStudentProfile } from "@/lib/supabase/useStudentProfile";
 import { createClient } from "@/lib/supabase/client";
 import { HomeworkRow, HomeworkType, listStudentHomework, markHomeworkSubmitted } from "@/lib/supabase/homework";
 import { useToast } from "@/components/Toast";
@@ -31,6 +32,7 @@ const STATUS_STYLES: Record<HomeworkRow["status"], string> = {
 export default function StudentHomeworkPage() {
   const studentNav = useStudentNav();
   const handleLogout = useStudentLogout();
+  const { name: studentName, title: studentTitle } = useStudentProfile();
   const t = useTranslations("Dashboard.student");
   const tc = useTranslations("Dashboard.common");
   const tStatus = useTranslations("Dashboard.status");
@@ -75,7 +77,7 @@ export default function StudentHomeworkPage() {
   }
 
   return (
-    <DashboardShell navItems={studentNav} userName={tc("studentName")} userSubtitle={tc("studentTitle")} onLogout={handleLogout}>
+    <DashboardShell navItems={studentNav} userName={studentName} userSubtitle={studentTitle} onLogout={handleLogout}>
       <DashboardPageHeader title={t("homeworkTitle")} subtitle={t("homeworkSubtitle")} />
 
       {!ready ? null : items.length === 0 ? (

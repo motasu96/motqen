@@ -5,6 +5,7 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { useTeacherNav } from "@/components/dashboard/teacherNav";
 import { useTeacherLogout } from "@/lib/supabase/useTeacherLogout";
+import { useTeacherProfile } from "@/lib/supabase/useTeacherProfile";
 import { teacherNotices } from "@/data/dashboard";
 import { localize } from "@/lib/localize";
 import { IconMegaphone } from "@/components/icons";
@@ -12,12 +13,13 @@ import { IconMegaphone } from "@/components/icons";
 export default function TeacherNoticesPage() {
   const teacherNav = useTeacherNav();
   const handleLogout = useTeacherLogout();
+  const { name: teacherName, title: teacherTitle } = useTeacherProfile();
   const locale = useLocale();
   const t = useTranslations("Dashboard.teacher");
   const tc = useTranslations("Dashboard.common");
 
   return (
-    <DashboardShell navItems={teacherNav} userName={tc("teacherName")} userSubtitle={tc("teacherTitle")} onLogout={handleLogout}>
+    <DashboardShell navItems={teacherNav} userName={teacherName} userSubtitle={teacherTitle} onLogout={handleLogout}>
       <DashboardPageHeader title={t("noticesTitle")} subtitle={t("noticesSubtitle")} />
 
       <div className="flex flex-col gap-4">
