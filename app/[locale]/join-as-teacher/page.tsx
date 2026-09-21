@@ -55,29 +55,26 @@ export default function JoinAsTeacherPage() {
     const data = new FormData(form);
     setSubmitting(true);
 
-    let photoUrl: string | null = null;
-    if (photoFile) {
-      const { path, error } = await uploadFile("teacher-photos", photoFile);
-      if (error) {
-        setSubmitting(false);
-        showToast(t("photoUploadError", { error }), "error");
-        return;
-      }
-      if (path) {
-        photoUrl = createClient().storage.from("teacher-photos").getPublicUrl(path).data.publicUrl;
-      }
+    const [photoResult, certificateResult] = await Promise.all([
+      photoFile ? uploadFile("teacher-photos", photoFile) : Promise.resolve<UploadResult>({ path: null, error: null }),
+      certificateFile ? uploadFile("teacher-certificates", certificateFile) : Promise.resolve<UploadResult>({ path: null, error: null }),
+    ]);
+
+    if (photoFile && photoResult.error) {
+      setSubmitting(false);
+      showToast(t("photoUploadError", { error: photoResult.error }), "error");
+      return;
+    }
+    if (certificateFile && certificateResult.error) {
+      setSubmitting(false);
+      showToast(t("certificateUploadError", { error: certificateResult.error }), "error");
+      return;
     }
 
-    let certificatePath: string | null = null;
-    if (certificateFile) {
-      const { path, error } = await uploadFile("teacher-certificates", certificateFile);
-      if (error) {
-        setSubmitting(false);
-        showToast(t("certificateUploadError", { error }), "error");
-        return;
-      }
-      certificatePath = path;
-    }
+    const photoUrl = photoResult.path
+      ? createClient().storage.from("teacher-photos").getPublicUrl(photoResult.path).data.publicUrl
+      : null;
+    const certificatePath = certificateResult.path;
 
     try {
       await fetch("/api/teacher-application", {
