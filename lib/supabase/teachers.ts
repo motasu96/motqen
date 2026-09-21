@@ -59,6 +59,21 @@ export async function getTeacherBySlugFromDb(supabase: SupabaseClient, slug: str
   return data ? mapTeacherRow(data as TeacherRow) : null;
 }
 
+// Lightweight lookup used by the booking widget, which only needs the
+// teacher's real database id (not exposed on the mapped `Teacher` shape).
+export async function getTeacherBookingInfo(
+  supabase: SupabaseClient,
+  slug: string
+): Promise<{ id: string; name: string } | null> {
+  const { data } = await supabase
+    .from("teachers")
+    .select("id, name")
+    .eq("slug", slug)
+    .eq("status", "active")
+    .single();
+  return data ? { id: data.id as string, name: data.name as string } : null;
+}
+
 const ARABIC_TO_LATIN: Record<string, string> = {
   ا: "a", أ: "a", إ: "i", آ: "a", ب: "b", ت: "t", ث: "th", ج: "j", ح: "h", خ: "kh",
   د: "d", ذ: "dh", ر: "r", ز: "z", س: "s", ش: "sh", ص: "s", ض: "d", ط: "t", ظ: "z",

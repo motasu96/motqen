@@ -5,9 +5,9 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { useStudentNav } from "@/components/dashboard/studentNav";
-import BookingCalendar from "@/components/dashboard/BookingCalendar";
+import MyUpcomingSessions from "@/components/dashboard/MyUpcomingSessions";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
-import { useBookings } from "@/lib/useBookings";
+import { useUpcomingBookings } from "@/lib/supabase/useUpcomingBookings";
 import { useStudentLogout } from "@/lib/supabase/useStudentLogout";
 import { homework, HomeworkItem, todayPortion } from "@/data/dashboard";
 import { localize } from "@/lib/localize";
@@ -69,7 +69,7 @@ function ProgressRing({ percent }: { percent: number }) {
 }
 
 export default function StudentDashboardPage() {
-  const { upcoming } = useBookings();
+  const { upcoming, ready: bookingsReady, cancel: cancelBooking } = useUpcomingBookings();
   const nextLesson = upcoming[0];
   const studentNav = useStudentNav();
   const handleLogout = useStudentLogout();
@@ -142,7 +142,7 @@ export default function StudentDashboardPage() {
                 <h3 className="text-lg font-extrabold text-ink">{nextLesson.date}</h3>
                 <p className="text-xs text-ink-soft">{tc("at")} {nextLesson.time}</p>
                 <span className="w-fit rounded-pill bg-gold-light px-3 py-1 text-xs font-bold text-gold-dark">
-                  {tc("with")} {nextLesson.teacher}
+                  {tc("with")} {nextLesson.teacherName}
                 </span>
                 <JoinMeetingButton
                   room={nextLesson.id}
@@ -237,7 +237,7 @@ export default function StudentDashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
-          <BookingCalendar />
+          <MyUpcomingSessions upcoming={upcoming} ready={bookingsReady} onCancel={cancelBooking} />
 
           <div className="flex flex-col gap-6">
             <div className="card p-6">

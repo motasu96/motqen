@@ -368,6 +368,10 @@
     "studentsSuffix": "students",
     "yearsSuffix": "years experience",
     "bookSession": "Book a Session",
+    "bookingLoginRequiredTitle": "Log in to book a session",
+    "bookingLoginRequiredDesc": "You need to log in to your student account to book a session directly with this teacher.",
+    "bookingLoginCta": "Log In",
+    "bookingSignupCta": "Create a new account",
     "statStudents": "Students",
     "statYears": "Years Experience",
     "statSessions": "Completed Sessions",
@@ -632,7 +636,8 @@
       "pendingHoldExpiresIn": "Time left to confirm booking",
       "pendingHoldConfirm": "Confirm Booking",
       "pendingHoldCancel": "Step back from this time",
-      "toastHoldExpired": "Your held slot has expired, please choose a time again."
+      "toastHoldExpired": "Your held slot has expired, please choose a time again.",
+      "bookNewSessionCta": "Browse teachers and book a session"
     },
     "teacher": {
       "dashboardTitle": "Teacher Dashboard",

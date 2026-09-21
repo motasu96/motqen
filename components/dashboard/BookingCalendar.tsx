@@ -3,9 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { useBookings } from "@/lib/useBookings";
 import { useToast } from "@/components/Toast";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
+import { createClient } from "@/lib/supabase/client";
+import { createBooking, getTakenSlots } from "@/lib/supabase/bookings";
+import { useUpcomingBookings } from "@/lib/supabase/useUpcomingBookings";
 import { IconCalendar, IconCheck, IconClock, IconFamily } from "@/components/icons";
 
 const HOLD_DURATION_MS = 10 * 60 * 1000;
@@ -30,15 +32,13 @@ function formatCountdown(ms: number) {
 
 type BookingType = "trial" | "group";
 
-export default function BookingCalendar() {
-  const { addBooking, cancelBooking, isSlotTaken, upcoming, ready } = useBookings();
+export default function BookingCalendar({ teacherId, teacherName }: { teacherId: string; teacherName: string }) {
   const { showToast } = useToast();
   const t = useTranslations("Dashboard.student");
   const tc = useTranslations("Dashboard.common");
 
   const TIME_SLOTS = tc.raw("timeSlots") as string[];
   const DAY_LABELS = tc.raw("weekDaysShort") as string[];
-  const TEACHER = tc("teacherName");
 
   const days = useMemo(() => buildNextDays(7, DAY_LABELS), [DAY_LABELS]);
   const [bookingType, setBookingType] = useState<BookingType>("trial");
@@ -46,6 +46,32 @@ export default function BookingCalendar() {
   const [confirmedFlash, setConfirmedFlash] = useState<string | null>(null);
   const [pendingSlot, setPendingSlot] = useState<{ day: string; time: string; expiresAt: number } | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  const [submitting, setSubmitting] = useState(false);
+  const [studentId, setStudentId] = useState<string | null>(null);
+  const [takenSlots, setTakenSlots] = useState<Set<string>>(new Set());
+  const [slotsReady, setSlotsReady] = useState(false);
+  const { upcoming, ready, cancel, reload } = useUpcomingBookings();
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (cancelled || !user) return;
+      setStudentId(user.id);
+      const taken = await getTakenSlots(supabase, teacherId, days[0].iso, days[days.length - 1].iso);
+      if (cancelled) return;
+      setTakenSlots(taken);
+      setSlotsReady(true);
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [teacherId]);
 
   useEffect(() => {
     if (!pendingSlot) return;
@@ -66,6 +92,10 @@ export default function BookingCalendar() {
     { key: "group", label: t("bookingTypeGroup") },
   ];
 
+  function isSlotTaken(day: string, time: string) {
+    return takenSlots.has(`${day}__${time}`);
+  }
+
   function handleSelectSlot(time: string) {
     if (isSlotTaken(selectedDay, time)) {
       showToast(t("toastSlotTaken"), "error");
@@ -74,9 +104,28 @@ export default function BookingCalendar() {
     setPendingSlot({ day: selectedDay, time, expiresAt: Date.now() + HOLD_DURATION_MS });
   }
 
-  function handleConfirmHold() {
-    if (!pendingSlot) return;
-    addBooking(pendingSlot.day, pendingSlot.time, TEACHER);
+  async function handleConfirmHold() {
+    if (!pendingSlot || !studentId) return;
+    setSubmitting(true);
+    const { booking, error } = await createBooking(createClient(), {
+      studentId,
+      teacherId,
+      date: pendingSlot.day,
+      time: pendingSlot.time,
+    });
+    setSubmitting(false);
+    if (error === "slot_taken") {
+      setTakenSlots((prev) => new Set(prev).add(`${pendingSlot.day}__${pendingSlot.time}`));
+      showToast(t("toastSlotTaken"), "error");
+      setPendingSlot(null);
+      return;
+    }
+    if (error || !booking) {
+      showToast(t("toastSlotTaken"), "error");
+      return;
+    }
+    setTakenSlots((prev) => new Set(prev).add(`${pendingSlot.day}__${pendingSlot.time}`));
+    await reload();
     setConfirmedFlash(pendingSlot.time);
     showToast(t("toastBooked", { date: pendingSlot.day, time: pendingSlot.time }), "success");
     setPendingSlot(null);
@@ -87,18 +136,30 @@ export default function BookingCalendar() {
     setPendingSlot(null);
   }
 
-  function handleCancel(id: string) {
-    cancelBooking(id);
+  async function handleCancel(id: string) {
+    const removed = upcoming.find((b) => b.id === id);
+    const ok = await cancel(id);
+    if (!ok) return;
+    if (removed) {
+      setTakenSlots((prev) => {
+        const next = new Set(prev);
+        next.delete(`${removed.date}__${removed.time}`);
+        return next;
+      });
+    }
     showToast(t("toastCancelled"), "info");
   }
 
   return (
     <div className="card flex flex-col gap-6 p-6 sm:p-7">
       <div className="flex items-center justify-between">
-        <h3 className="flex items-center gap-2 text-base font-extrabold text-ink">
-          <IconCalendar className="h-5 w-5 text-gold-dark" />
-          {t("bookingTitle")}
-        </h3>
+        <div>
+          <h3 className="flex items-center gap-2 text-base font-extrabold text-ink">
+            <IconCalendar className="h-5 w-5 text-gold-dark" />
+            {t("bookingTitle")}
+          </h3>
+          <p className="mt-1 text-xs text-ink-soft">{tc("with")} {teacherName}</p>
+        </div>
       </div>
 
       <div
@@ -159,7 +220,7 @@ export default function BookingCalendar() {
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {TIME_SLOTS.map((time) => {
-              const taken = ready && isSlotTaken(selectedDay, time);
+              const taken = slotsReady && isSlotTaken(selectedDay, time);
               const justConfirmed = confirmedFlash === time;
               const isPending = pendingSlot?.day === selectedDay && pendingSlot?.time === time;
               return (
@@ -202,7 +263,7 @@ export default function BookingCalendar() {
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-3">
-                <button onClick={handleConfirmHold} className="btn-primary">
+                <button onClick={handleConfirmHold} disabled={submitting} className="btn-primary disabled:opacity-70">
                   {t("pendingHoldConfirm")}
                 </button>
                 <button onClick={handleCancelHold} className="text-sm font-bold text-ink-soft hover:text-gold-dark">
@@ -216,7 +277,7 @@ export default function BookingCalendar() {
 
       <div className="border-t border-line pt-5">
         <h4 className="mb-3 text-sm font-extrabold text-ink">{t("upcomingSessionsTitle")}</h4>
-        {upcoming.length === 0 ? (
+        {!ready ? null : upcoming.length === 0 ? (
           <div className="flex items-center gap-3 rounded-2xl border border-dashed border-line px-4 py-4">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold-light">
               <IconCalendar className="h-4 w-4 text-gold-dark" />
@@ -233,7 +294,7 @@ export default function BookingCalendar() {
                   </span>
                   <div>
                     <div className="text-sm font-bold text-ink">{b.date} — {b.time}</div>
-                    <div className="text-xs text-ink-soft">{tc("with")} {b.teacher}</div>
+                    <div className="text-xs text-ink-soft">{tc("with")} {b.teacherName}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">

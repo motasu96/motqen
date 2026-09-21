@@ -368,6 +368,10 @@
     "studentsSuffix": "طالب",
     "yearsSuffix": "سنوات خبرة",
     "bookSession": "احجز حصة معه",
+    "bookingLoginRequiredTitle": "سجّل دخولك لحجز حصة",
+    "bookingLoginRequiredDesc": "يجب تسجيل الدخول إلى حسابك كطالب لتتمكن من حجز حصة مباشرة مع هذا المعلم.",
+    "bookingLoginCta": "تسجيل الدخول",
+    "bookingSignupCta": "إنشاء حساب جديد",
     "statStudents": "طالب",
     "statYears": "سنوات خبرة",
     "statSessions": "حصة مكتملة",
@@ -632,7 +636,8 @@
       "pendingHoldExpiresIn": "متبقي لتأكيد الحجز",
       "pendingHoldConfirm": "تأكيد الحجز",
       "pendingHoldCancel": "تراجع عن هذا الموعد",
-      "toastHoldExpired": "انتهت مهلة تثبيت الموعد، يرجى اختيار موعد مرة أخرى."
+      "toastHoldExpired": "انتهت مهلة تثبيت الموعد، يرجى اختيار موعد مرة أخرى.",
+      "bookNewSessionCta": "تصفّح المعلمين واحجز حصة"
     },
     "teacher": {
       "dashboardTitle": "لوحة المعلم",

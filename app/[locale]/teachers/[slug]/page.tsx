@@ -5,10 +5,11 @@ import { Breadcrumb, Rating } from "@/components/ui";
 import TeacherProfileTabs from "@/components/TeacherProfileTabs";
 import { localize } from "@/lib/localize";
 import { useLocale, useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { getTeacherBySlugFromDb } from "@/lib/supabase/teachers";
+import BookSessionButton from "@/components/BookSessionButton";
+import TeacherBookingSection from "@/components/TeacherBookingSection";
 
 // Teacher data is DB-backed and can change (new approvals), so this route
 // renders per-request instead of being baked into the static build.
@@ -80,9 +81,7 @@ function TeacherProfileContent({ teacher }: { teacher: Teacher }) {
             <p className="mt-1 text-sm text-ink-soft">{te.title}</p>
           </div>
           <Rating value={teacher.stats.rating} />
-          <Link href={`/signup?teacher=${teacher.slug}`} className="btn-primary w-full">
-            {t("bookSession")}
-          </Link>
+          <BookSessionButton teacherSlug={teacher.slug} label={t("bookSession")} />
 
           <div className="grid w-full grid-cols-2 gap-4 border-t border-line pt-5 text-center">
             <div>
@@ -106,6 +105,8 @@ function TeacherProfileContent({ teacher }: { teacher: Teacher }) {
 
         <TeacherProfileTabs teacher={teacher} />
       </div>
+
+      <TeacherBookingSection teacherSlug={teacher.slug} />
     </div>
   );
 }
