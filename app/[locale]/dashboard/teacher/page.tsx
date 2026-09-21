@@ -6,6 +6,7 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import { useTeacherNav } from "@/components/dashboard/teacherNav";
 import { useTeacherLogout } from "@/lib/supabase/useTeacherLogout";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
+import TeacherSessionsWidget from "@/components/dashboard/TeacherSessionsWidget";
 import { teacherStudents, TeacherStudent } from "@/data/dashboard";
 import { localize } from "@/lib/localize";
 import { IconCalendar, IconChart, IconFamily, IconTask, IconUsers, IconShield } from "@/components/icons";
@@ -93,6 +94,8 @@ export default function TeacherDashboardPage() {
             {t("viewGroups")}
           </Link>
         </div>
+
+        <TeacherSessionsWidget />
 
         <div className="card overflow-hidden p-0">
           <div className="flex items-center justify-between p-6">

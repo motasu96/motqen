@@ -11,7 +11,9 @@ import { useUpcomingBookings } from "@/lib/supabase/useUpcomingBookings";
 import { useStudentLogout } from "@/lib/supabase/useStudentLogout";
 import { createClient } from "@/lib/supabase/client";
 import { getMyStudentProfile, StudentRow } from "@/lib/supabase/students";
-import { homework, HomeworkItem, todayPortion } from "@/data/dashboard";
+import { getLatestLesson, LessonWithTeacher } from "@/lib/supabase/lessons";
+import { HomeworkRow, HomeworkType, listStudentHomework } from "@/lib/supabase/homework";
+import { todayPortion } from "@/data/dashboard";
 import { programs } from "@/data/programs";
 import { localize } from "@/lib/localize";
 import { IconTask, IconTrophy, IconShield, IconFamily, IconBook, IconInbox } from "@/components/icons";
@@ -25,10 +27,10 @@ import {
 } from "@/lib/quranPlan";
 import { getSurahByNumber } from "@/data/quranSurahs";
 
-const TYPE_KEYS: Record<HomeworkItem["type"], "typeRecitation" | "typeReview" | "typeTajweed"> = {
-  تسميع: "typeRecitation",
-  مراجعة: "typeReview",
-  تجويد: "typeTajweed",
+const TYPE_KEYS: Record<HomeworkType, "typeRecitation" | "typeReview" | "typeTajweed"> = {
+  recitation: "typeRecitation",
+  review: "typeReview",
+  tajweed: "typeTajweed",
 };
 
 function ProgressRing({ percent }: { percent: number }) {
@@ -73,11 +75,12 @@ export default function StudentDashboardPage() {
   const tc = useTranslations("Dashboard.common");
   const tStatus = useTranslations("Dashboard.status");
   const tPlan = useTranslations("Signup");
-  const recentHomework = homework.slice(0, 2).map((h) => localize(h, locale));
   const portion = localize(todayPortion, locale);
 
   const [fullName, setFullName] = useState<string | null>(null);
   const [studentRow, setStudentRow] = useState<StudentRow | null>(null);
+  const [latestLesson, setLatestLesson] = useState<LessonWithTeacher | null>(null);
+  const [recentHomework, setRecentHomework] = useState<HomeworkRow[]>([]);
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return;
     let cancelled = false;
@@ -87,10 +90,16 @@ export default function StudentDashboardPage() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user || cancelled) return;
-      const { fullName: name, student } = await getMyStudentProfile(supabase, user.id);
+      const [{ fullName: name, student }, lesson, hw] = await Promise.all([
+        getMyStudentProfile(supabase, user.id),
+        getLatestLesson(supabase, user.id),
+        listStudentHomework(supabase, user.id),
+      ]);
       if (cancelled) return;
       setFullName(name);
       setStudentRow(student);
+      setLatestLesson(lesson);
+      setRecentHomework(hw.filter((h) => h.status !== "graded").slice(0, 2));
     })();
     return () => {
       cancelled = true;
@@ -138,11 +147,17 @@ export default function StudentDashboardPage() {
 
           <div className="card flex flex-col gap-3 p-6">
             <span className="text-sm font-bold text-ink-soft">{t("lastLesson")}</span>
-            <h3 className="text-lg font-extrabold text-ink">{t("lastLessonSurah")}</h3>
-            <p className="text-xs text-ink-soft">{t("lastLessonRange")}</p>
-            <span className="mt-auto w-fit rounded-pill bg-gold-light px-3 py-1 text-xs font-bold text-gold-dark">
-              {tc("with")} {tc("teacherName")}
-            </span>
+            {latestLesson ? (
+              <>
+                <h3 className="text-lg font-extrabold text-ink">{latestLesson.surah}</h3>
+                <p className="text-xs text-ink-soft">{latestLesson.ayah_range}</p>
+                <span className="mt-auto w-fit rounded-pill bg-gold-light px-3 py-1 text-xs font-bold text-gold-dark">
+                  {tc("with")} {latestLesson.teacherName}
+                </span>
+              </>
+            ) : (
+              <p className="mt-auto text-sm text-ink-soft">{t("noLastLesson")}</p>
+            )}
           </div>
 
           <div className="card flex flex-col gap-3 p-6">
@@ -255,17 +270,21 @@ export default function StudentDashboardPage() {
                 <IconTask className="h-5 w-5 text-gold-dark" />
                 {t("myHomework")}
               </h3>
-              <ul className="flex flex-col gap-3">
-                {recentHomework.map((h) => (
-                  <li key={h.id} className="rounded-2xl border border-line bg-bg p-4">
-                    <div className="mb-1 flex items-center justify-between">
-                      <span className="badge">{tStatus(TYPE_KEYS[h.type])}</span>
-                      <span className="text-xs text-ink-soft">{tc("until")} {h.dueDate}</span>
-                    </div>
-                    <p className="text-sm font-bold text-ink">{h.title}</p>
-                  </li>
-                ))}
-              </ul>
+              {recentHomework.length === 0 ? (
+                <p className="text-sm text-ink-soft">{t("noHomework")}</p>
+              ) : (
+                <ul className="flex flex-col gap-3">
+                  {recentHomework.map((h) => (
+                    <li key={h.id} className="rounded-2xl border border-line bg-bg p-4">
+                      <div className="mb-1 flex items-center justify-between">
+                        <span className="badge">{tStatus(TYPE_KEYS[h.type])}</span>
+                        <span className="text-xs text-ink-soft">{tc("until")} {h.due_date}</span>
+                      </div>
+                      <p className="text-sm font-bold text-ink">{h.title}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             <div className="card flex flex-col items-center gap-3 p-6 text-center">

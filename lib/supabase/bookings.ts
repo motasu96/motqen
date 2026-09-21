@@ -83,3 +83,35 @@ export async function cancelBooking(supabase: SupabaseClient, bookingId: string)
   const { error } = await supabase.from("bookings").update({ status: "cancelled" }).eq("id", bookingId);
   return !error;
 }
+
+export type TeacherBooking = {
+  id: string;
+  date: string;
+  time: string;
+  studentId: string;
+  studentName: string;
+};
+
+// All of a teacher's confirmed bookings (both upcoming and past), used to
+// build "join now" and "log this session" lists on the teacher dashboard.
+export async function listTeacherBookings(supabase: SupabaseClient, teacherId: string): Promise<TeacherBooking[]> {
+  const { data } = await supabase
+    .from("bookings")
+    .select("id, session_date, session_time, student_id, profiles(full_name)")
+    .eq("teacher_id", teacherId)
+    .eq("status", "confirmed")
+    .order("session_date", { ascending: true })
+    .order("session_time", { ascending: true });
+
+  return (data ?? []).map((row) => {
+    const profile = row.profiles as unknown as { full_name: string | null } | { full_name: string | null }[] | null;
+    const studentName = Array.isArray(profile) ? profile[0]?.full_name : profile?.full_name;
+    return {
+      id: row.id as string,
+      date: row.session_date as string,
+      time: row.session_time as string,
+      studentId: row.student_id as string,
+      studentName: studentName || "",
+    };
+  });
+}
