@@ -7,25 +7,10 @@ import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { useAdminNav } from "@/components/dashboard/adminNav";
 import { useAdminLogout } from "@/lib/supabase/useAdminLogout";
 import { createClient } from "@/lib/supabase/client";
-import { generateUniqueSlug, TeacherRow } from "@/lib/supabase/teachers";
+import { TeacherRow } from "@/lib/supabase/teachers";
+import { approveApplication, listPendingApplications, rejectApplication, TeacherApplication } from "@/lib/supabase/teacherApplications";
 import { useToast } from "@/components/Toast";
 import { IconStar, IconX } from "@/components/icons";
-
-type TeacherApplication = {
-  id: string;
-  full_name: string;
-  phone: string;
-  email: string;
-  gender: "male" | "female";
-  specialties: string[];
-  years_experience: number | null;
-  ijazah: string | null;
-  bio: string;
-  status: "pending" | "approved" | "rejected";
-  created_at: string;
-  photo_url: string | null;
-  certificate_path: string | null;
-};
 
 type EditForm = {
   name: string;
@@ -80,11 +65,11 @@ export default function AdminTeachersPage() {
 
   async function loadData() {
     const supabase = createClient();
-    const [{ data: apps }, { data: teacherRows }] = await Promise.all([
-      supabase.from("teacher_applications").select("*").eq("status", "pending").order("created_at", { ascending: false }),
+    const [apps, { data: teacherRows }] = await Promise.all([
+      listPendingApplications(supabase),
       supabase.from("teachers").select("*").order("created_at", { ascending: false }),
     ]);
-    setApplications((apps as TeacherApplication[]) ?? []);
+    setApplications(apps);
     setTeachers((teacherRows as TeacherRow[]) ?? []);
     setLoading(false);
   }
@@ -95,35 +80,8 @@ export default function AdminTeachersPage() {
 
   async function approve(app: TeacherApplication) {
     setActingOn(app.id);
-    const supabase = createClient();
-    const slug = await generateUniqueSlug(supabase, app.full_name);
-
-    const { data: inserted, error: insertError } = await supabase
-      .from("teachers")
-      .insert({
-        slug,
-        name: app.full_name,
-        gender: app.gender,
-        specialties: app.specialties,
-        years_experience: app.years_experience ?? 0,
-        bio: app.bio,
-        avatar_url: app.photo_url,
-        application_id: app.id,
-        status: "active",
-      })
-      .select("id")
-      .single();
-
-    if (!insertError && inserted) {
-      await supabase
-        .from("teacher_applications")
-        .update({ status: "approved", reviewed_at: new Date().toISOString() })
-        .eq("id", app.id);
-      fetch("/api/teacher-account", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ teacherRowId: inserted.id, name: app.full_name, email: app.email, phone: app.phone, slug }),
-      }).catch(() => {});
+    const ok = await approveApplication(createClient(), app);
+    if (ok) {
       showToast(t("applicationApproved"), "success");
       await loadData();
     }
@@ -143,13 +101,11 @@ export default function AdminTeachersPage() {
 
   async function reject(app: TeacherApplication) {
     setActingOn(app.id);
-    const supabase = createClient();
-    await supabase
-      .from("teacher_applications")
-      .update({ status: "rejected", reviewed_at: new Date().toISOString() })
-      .eq("id", app.id);
-    showToast(t("applicationRejected"), "success");
-    await loadData();
+    const ok = await rejectApplication(createClient(), app);
+    if (ok) {
+      showToast(t("applicationRejected"), "success");
+      await loadData();
+    }
     setActingOn(null);
   }
 
