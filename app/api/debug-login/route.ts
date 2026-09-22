@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createAnonClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient as createServerClient } from "@/lib/supabase/server";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -9,12 +10,27 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // entirely) and immediately attempts a real sign-in with it, returning the
 // full raw result. Used once to root-cause a login failure that survived
 // every other check. Remove after use.
+//
+// Powerful and dangerous if left open: it can force-reset ANY account's
+// password. Gated to callers with an authenticated admin session only.
 export async function POST(req: NextRequest) {
   const hasSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   );
   if (!hasSupabase) {
     return NextResponse.json({ error: "Supabase is not configured" }, { status: 501 });
+  }
+
+  const callerSupabase = await createServerClient();
+  const {
+    data: { user: callerUser },
+  } = await callerSupabase.auth.getUser();
+  if (!callerUser) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+  const { data: callerProfile } = await callerSupabase.from("profiles").select("role").eq("id", callerUser.id).single();
+  if (callerProfile?.role !== "admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   let payload: { email?: unknown; password?: unknown };
