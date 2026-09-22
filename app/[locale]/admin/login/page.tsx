@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import Logo from "@/components/Logo";
 import { useToast } from "@/components/Toast";
 import { IconShield } from "@/components/icons";
@@ -62,7 +62,10 @@ export default function AdminLoginPage() {
             <input id="admin-login-email" name="email" required type="email" dir="ltr" className="input" placeholder="admin@motqen.site" />
           </div>
           <div className="flex flex-col gap-2">
-            <label htmlFor="admin-login-password" className="text-sm font-bold text-ink">{tLogin("passwordLabel")}</label>
+            <div className="flex items-center justify-between">
+              <label htmlFor="admin-login-password" className="text-sm font-bold text-ink">{tLogin("passwordLabel")}</label>
+              <Link href="/forgot-password" className="text-xs font-bold text-gold-dark">{tLogin("forgotPassword")}</Link>
+            </div>
             <input id="admin-login-password" name="password" required type="password" className="input" placeholder="••••••••" />
           </div>
           <button type="submit" disabled={loading} className="btn-primary mt-2 w-full disabled:opacity-70">
