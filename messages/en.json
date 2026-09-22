@@ -366,6 +366,8 @@
     "metaTitle": "Teachers | Motqen",
     "title": "Our Teachers",
     "description": "A select group of religiously qualified teachers with a connected chain of transmission (Ijazah).",
+    "noTeachersTitle": "No teachers yet",
+    "noTeachersDesc": "We're working on bringing in a select group of qualified teachers, check back soon.",
     "studentsSuffix": "students",
     "yearsSuffix": "years experience",
     "bookSession": "Book a Session",

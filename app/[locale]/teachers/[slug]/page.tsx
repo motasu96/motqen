@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getTeacherBySlug, Teacher } from "@/data/teachers";
+import { Teacher } from "@/data/teachers";
 import { Breadcrumb, Rating } from "@/components/ui";
 import TeacherProfileTabs from "@/components/TeacherProfileTabs";
 import { localize } from "@/lib/localize";
@@ -16,16 +16,13 @@ import TeacherBookingSection from "@/components/TeacherBookingSection";
 export const dynamic = "force-dynamic";
 
 async function loadTeacher(slug: string): Promise<Teacher | null> {
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    try {
-      const supabase = await createClient();
-      const dbTeacher = await getTeacherBySlugFromDb(supabase, slug);
-      if (dbTeacher) return dbTeacher;
-    } catch {
-      // fall through to the static fallback below
-    }
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return null;
+  try {
+    const supabase = await createClient();
+    return await getTeacherBySlugFromDb(supabase, slug);
+  } catch {
+    return null;
   }
-  return getTeacherBySlug(slug) ?? null;
 }
 
 export async function generateMetadata({

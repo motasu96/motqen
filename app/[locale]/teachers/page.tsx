@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { teachers as staticTeachers } from "@/data/teachers";
 import { Breadcrumb, Rating } from "@/components/ui";
 import { IconTeacherBadge } from "@/components/icons";
 import { localize } from "@/lib/localize";
@@ -15,13 +14,12 @@ import { getActiveTeachers } from "@/lib/supabase/teachers";
 export const dynamic = "force-dynamic";
 
 async function loadTeachers() {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return staticTeachers;
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return [];
   try {
     const supabase = await createClient();
-    const dbTeachers = await getActiveTeachers(supabase);
-    return dbTeachers.length > 0 ? dbTeachers : staticTeachers;
+    return await getActiveTeachers(supabase);
   } catch {
-    return staticTeachers;
+    return [];
   }
 }
 
@@ -54,26 +52,34 @@ function TeachersPageContent({ teachers }: { teachers: Awaited<ReturnType<typeof
         <p className="max-w-xl text-ink-soft">{t("description")}</p>
       </div>
 
-      <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {teachers.map((teacher) => {
-          const te = localize(teacher, locale);
-          return (
-            <Link key={teacher.slug} href={`/teachers/${teacher.slug}`} className="card-interactive flex flex-col items-center gap-4 p-7 text-center">
-              <div className="relative h-20 w-20 overflow-hidden rounded-full">
-                <Image src={teacher.avatarUrl} alt={te.name} fill sizes="80px" className="object-cover" />
-              </div>
-              <div>
-                <h3 className="text-base font-extrabold text-ink">{te.name}</h3>
-                <p className="text-sm text-ink-soft">{te.title}</p>
-              </div>
-              <Rating value={teacher.stats.rating} />
-              <span className="text-xs text-ink-soft">
-                {teacher.stats.students}+ {t("studentsSuffix")} · {teacher.stats.yearsExperience}+ {t("yearsSuffix")}
-              </span>
-            </Link>
-          );
-        })}
-      </div>
+      {teachers.length === 0 ? (
+        <div className="card mt-10 flex flex-col items-center gap-2 p-10 text-center">
+          <IconTeacherBadge className="h-8 w-8 text-gold-dark" aria-hidden="true" />
+          <h3 className="text-base font-extrabold text-ink">{t("noTeachersTitle")}</h3>
+          <p className="text-sm text-ink-soft">{t("noTeachersDesc")}</p>
+        </div>
+      ) : (
+        <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {teachers.map((teacher) => {
+            const te = localize(teacher, locale);
+            return (
+              <Link key={teacher.slug} href={`/teachers/${teacher.slug}`} className="card-interactive flex flex-col items-center gap-4 p-7 text-center">
+                <div className="relative h-20 w-20 overflow-hidden rounded-full">
+                  <Image src={teacher.avatarUrl} alt={te.name} fill sizes="80px" className="object-cover" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-ink">{te.name}</h3>
+                  <p className="text-sm text-ink-soft">{te.title}</p>
+                </div>
+                <Rating value={teacher.stats.rating} />
+                <span className="text-xs text-ink-soft">
+                  {teacher.stats.students}+ {t("studentsSuffix")} · {teacher.stats.yearsExperience}+ {t("yearsSuffix")}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
 
       <div className="card mt-12 flex flex-col items-center gap-4 p-8 text-center sm:flex-row sm:justify-between sm:text-start">
         <div className="flex items-center gap-4">
