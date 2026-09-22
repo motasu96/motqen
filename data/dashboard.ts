@@ -394,25 +394,6 @@ export const adminPrograms: AdminProgram[] = [
   { slug: "barnamej-nisaa", title: "برامج النساء", enrolled: 135, teachers: 4, monthlyRevenue: 27000, status: "مسودة", en: { title: "Women's Programs" } },
 ];
 
-export type AdminArticle = {
-  slug: string;
-  title: string;
-  author: string;
-  status: "منشور" | "مسودة";
-  views: number;
-  date: string;
-  en: { title: string; author: string };
-};
-
-export const adminArticles: AdminArticle[] = [
-  { slug: "keeping-quran-after-hifz", title: "كيف تحافظ على القرآن بعد حفظه؟", author: "أ. عبدالله السلمي", status: "منشور", views: 3420, date: "2024-05-30", en: { title: "How to Retain the Quran After Memorizing It", author: "Ust. Abdullah Al-Salmi" } },
-  { slug: "raising-kids-on-quran", title: "تربية الأطفال على حفظ القرآن", author: "أ. فاطمة الزهراني", status: "منشور", views: 2810, date: "2024-05-18", en: { title: "Raising Children to Memorize the Quran", author: "Ust. Fatima Al-Zahrani" } },
-  { slug: "common-tilawa-mistakes", title: "أخطاء شائعة في تعلم التلاوة", author: "أ. خالد المطيري", status: "منشور", views: 1950, date: "2024-05-10", en: { title: "Common Mistakes in Learning Recitation", author: "Ust. Khalid Al-Mutairi" } },
-  { slug: "virtue-of-hifz", title: "فضل حفظ القرآن وتعلمه", author: "فريق متقن", status: "منشور", views: 4100, date: "2024-05-05", en: { title: "The Virtue of Memorizing and Learning the Quran", author: "Motqen Team" } },
-  { slug: "effective-revision-tips", title: "نصائح للمراجعة الفعالة", author: "أ. ماجد القحطاني", status: "مسودة", views: 0, date: "2024-04-28", en: { title: "Tips for Effective Review", author: "Ust. Majed Al-Qahtani" } },
-  { slug: "tajweed-rules-simplified", title: "أحكام التجويد المبسطة للمبتدئين", author: "أ. سارة الحربي", status: "منشور", views: 2260, date: "2024-04-20", en: { title: "Simplified Tajweed Rules for Beginners", author: "Ust. Sarah Al-Harbi" } },
-];
-
 export const adminNotices: Notice[] = [
   {
     id: "an1",

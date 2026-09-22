@@ -2,19 +2,31 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { useLocale, useTranslations } from "next-intl";
-import { articles, Article } from "@/data/articles";
+import { ArticleCategory, ArticleRow, getPublishedArticleBySlug, incrementArticleViews, paragraphsOf, readMinutesOf } from "@/lib/supabase/articles";
 import { Breadcrumb } from "@/components/ui";
-import { localize } from "@/lib/localize";
+import { createClient } from "@/lib/supabase/server";
 
-const CATEGORY_KEYS: Record<Article["category"], "catHifz" | "catTajweed" | "catTarbiya" | "catGeneral"> = {
+// Article data is DB-backed and can change (new posts, edits), so this
+// route renders per-request instead of being baked into the static build.
+export const dynamic = "force-dynamic";
+
+const CATEGORY_KEYS: Record<ArticleCategory, "catHifz" | "catTajweed" | "catTarbiya" | "catGeneral"> = {
   الحفظ: "catHifz",
   التجويد: "catTajweed",
   التربية: "catTarbiya",
   عام: "catGeneral",
 };
 
-export function generateStaticParams() {
-  return articles.map((a) => ({ slug: a.slug }));
+async function loadArticle(slug: string): Promise<ArticleRow | null> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return null;
+  try {
+    const supabase = await createClient();
+    const article = await getPublishedArticleBySlug(supabase, slug);
+    if (article) incrementArticleViews(supabase, slug).catch(() => {});
+    return article;
+  } catch {
+    return null;
+  }
 }
 
 export async function generateMetadata({
@@ -23,13 +35,14 @@ export async function generateMetadata({
   params: Promise<{ slug: string; locale: string }>;
 }): Promise<Metadata> {
   const { slug, locale } = await params;
-  const article = articles.find((a) => a.slug === slug);
+  const article = await loadArticle(slug);
   if (!article) return {};
-  const la = localize(article, locale);
+  const title = locale === "en" && article.title_en ? article.title_en : article.title;
+  const excerpt = locale === "en" && article.excerpt_en ? article.excerpt_en : article.excerpt;
   const t = await getTranslations({ locale, namespace: "Site" });
   return {
-    title: `${la.title} | ${t("siteName")}`,
-    description: la.excerpt,
+    title: `${title} | ${t("siteName")}`,
+    description: excerpt,
   };
 }
 
@@ -39,17 +52,20 @@ export default async function ArticleDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const article = articles.find((a) => a.slug === slug);
+  const article = await loadArticle(slug);
   if (!article) notFound();
 
   return <ArticleDetailContent article={article} />;
 }
 
-function ArticleDetailContent({ article }: { article: Article }) {
+function ArticleDetailContent({ article }: { article: ArticleRow }) {
   const locale = useLocale();
   const t = useTranslations("Articles");
   const tNav = useTranslations("Nav");
-  const la = localize(article, locale);
+
+  const title = locale === "en" && article.title_en ? article.title_en : article.title;
+  const content = locale === "en" && article.content_en ? article.content_en : article.content;
+  const paragraphs = paragraphsOf(content);
 
   return (
     <article className="container-page section">
@@ -57,17 +73,19 @@ function ArticleDetailContent({ article }: { article: Article }) {
         items={[
           { label: tNav("home"), href: "/" },
           { label: tNav("articles"), href: "/articles" },
-          { label: la.title },
+          { label: title },
         ]}
       />
 
       <div className="mx-auto mt-8 max-w-3xl">
         <span className="badge">{t(CATEGORY_KEYS[article.category])}</span>
-        <h1 className="mt-4 text-2xl font-extrabold leading-snug text-ink sm:text-3xl">{la.title}</h1>
-        <p className="mt-3 text-sm text-ink-soft">{article.date} · {article.readMinutes} {t("readMinutes")}</p>
+        <h1 className="mt-4 text-2xl font-extrabold leading-snug text-ink sm:text-3xl">{title}</h1>
+        <p className="mt-3 text-sm text-ink-soft">
+          {article.created_at.slice(0, 10)} · {readMinutesOf(content)} {t("readMinutes")}
+        </p>
 
         <div className="mt-8 flex flex-col gap-5">
-          {la.content.map((paragraph, i) => (
+          {paragraphs.map((paragraph, i) => (
             <p key={i} className="leading-loose text-ink-soft">
               {paragraph}
             </p>

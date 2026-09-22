@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next";
 import { programs } from "@/data/programs";
-import { articles } from "@/data/articles";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveTeachers } from "@/lib/supabase/teachers";
+import { listPublishedArticles } from "@/lib/supabase/articles";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.motqen.site";
 
@@ -34,6 +34,17 @@ async function loadTeacherSlugs(): Promise<string[]> {
   }
 }
 
+async function loadArticleEntries(): Promise<{ slug: string; date: string }[]> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return [];
+  try {
+    const supabase = await createClient();
+    const articles = await listPublishedArticles(supabase);
+    return articles.map((a) => ({ slug: a.slug, date: a.created_at }));
+  } catch {
+    return [];
+  }
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
@@ -46,7 +57,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const teacherSlugs = await loadTeacherSlugs();
   const teacherRoutes = teacherSlugs.map((slug) => entry(`/teachers/${slug}`, now));
 
-  const articleRoutes = articles.map((a) => entry(`/articles/${a.slug}`, new Date(a.date)));
+  const articleEntries = await loadArticleEntries();
+  const articleRoutes = articleEntries.map((a) => entry(`/articles/${a.slug}`, new Date(a.date)));
 
   return [...staticRoutes, ...programRoutes, ...teacherRoutes, ...articleRoutes];
 }
