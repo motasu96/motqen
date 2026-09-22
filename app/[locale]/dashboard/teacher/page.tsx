@@ -1,46 +1,90 @@
 "use client";
 
-import { useLocale, useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { useTeacherNav } from "@/components/dashboard/teacherNav";
 import { useTeacherLogout } from "@/lib/supabase/useTeacherLogout";
 import { useTeacherProfile } from "@/lib/supabase/useTeacherProfile";
+import { createClient } from "@/lib/supabase/client";
+import { getMyTeacherId } from "@/lib/supabase/teacherStudents";
+import {
+  getTeacherOverviewStats,
+  listTeacherRecentStudents,
+  TeacherOverviewStats,
+  TeacherRecentStudent,
+} from "@/lib/supabase/teacherOverview";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
 import TeacherSessionsWidget from "@/components/dashboard/TeacherSessionsWidget";
-import { teacherStudents, TeacherStudent } from "@/data/dashboard";
-import { localize } from "@/lib/localize";
 import { IconCalendar, IconChart, IconFamily, IconTask, IconUsers, IconShield } from "@/components/icons";
 
-const STATUS_KEYS: Record<TeacherStudent["status"], "personRegular" | "personLate" | "personStruggling"> = {
-  منتظم: "personRegular",
-  متأخر: "personLate",
-  متعثر: "personStruggling",
+const STATUS_KEYS: Record<TeacherRecentStudent["status"], "personRegular" | "personLate" | "personStruggling"> = {
+  regular: "personRegular",
+  late: "personLate",
+  struggling: "personStruggling",
 };
 
-const STATUS_STYLES: Record<TeacherStudent["status"], string> = {
-  منتظم: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400",
-  متأخر: "bg-gold-light text-gold-dark",
-  متعثر: "bg-red-50 text-red-500 dark:bg-red-500/15 dark:text-red-400",
+const STATUS_STYLES: Record<TeacherRecentStudent["status"], string> = {
+  regular: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400",
+  late: "bg-gold-light text-gold-dark",
+  struggling: "bg-red-50 text-red-500 dark:bg-red-500/15 dark:text-red-400",
 };
 
 export default function TeacherDashboardPage() {
   const teacherNav = useTeacherNav();
   const handleLogout = useTeacherLogout();
   const { name: teacherName, title: teacherTitle } = useTeacherProfile();
-  const locale = useLocale();
   const t = useTranslations("Dashboard.teacher");
   const tc = useTranslations("Dashboard.common");
   const tStatus = useTranslations("Dashboard.status");
 
-  const STATS = [
-    { icon: IconUsers, value: "125", label: t("statTotalStudents") },
-    { icon: IconCalendar, value: "4", label: t("statTodaySessions") },
-    { icon: IconTask, value: "18", label: t("statPendingHomework") },
-    { icon: IconChart, value: "12", label: t("statCompletedSessions") },
-  ];
+  const [teacherId, setTeacherId] = useState<string | null>(null);
+  const [stats, setStats] = useState<TeacherOverviewStats | null>(null);
+  const [recentStudents, setRecentStudents] = useState<TeacherRecentStudent[]>([]);
+  const [ready, setReady] = useState(false);
 
-  const previewStudents = teacherStudents.slice(0, 4).map((s) => ({ raw: s, l: localize(s, locale) }));
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+        setReady(true);
+        return;
+      }
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user || cancelled) {
+        setReady(true);
+        return;
+      }
+      const tId = await getMyTeacherId(supabase, user.id);
+      if (!tId || cancelled) {
+        setReady(true);
+        return;
+      }
+      const [overviewStats, students] = await Promise.all([
+        getTeacherOverviewStats(supabase, tId),
+        listTeacherRecentStudents(supabase, tId),
+      ]);
+      if (cancelled) return;
+      setTeacherId(tId);
+      setStats(overviewStats);
+      setRecentStudents(students);
+      setReady(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const STATS = [
+    { icon: IconUsers, value: stats ? stats.totalStudents.toLocaleString("en-US") : tc("dash"), label: t("statTotalStudents") },
+    { icon: IconCalendar, value: stats ? stats.todaySessions.toLocaleString("en-US") : tc("dash"), label: t("statTodaySessions") },
+    { icon: IconTask, value: stats ? stats.pendingHomework.toLocaleString("en-US") : tc("dash"), label: t("statPendingHomework") },
+    { icon: IconChart, value: stats ? stats.completedSessions.toLocaleString("en-US") : tc("dash"), label: t("statCompletedSessions") },
+  ];
 
   return (
     <DashboardShell navItems={teacherNav} userName={teacherName} userSubtitle={teacherTitle} onLogout={handleLogout}>
@@ -62,25 +106,27 @@ export default function TeacherDashboardPage() {
           ))}
         </div>
 
-        <div className="card flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-4">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gold-light">
-              <IconShield className="h-5 w-5 text-gold-dark" />
-            </span>
-            <div>
-              <h3 className="text-base font-extrabold text-ink">{t("directTitle")}</h3>
-              <p className="text-sm text-ink-soft">{t("directDesc")}</p>
+        {teacherId && (
+          <div className="card flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-4">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gold-light">
+                <IconShield className="h-5 w-5 text-gold-dark" />
+              </span>
+              <div>
+                <h3 className="text-base font-extrabold text-ink">{t("directTitle")}</h3>
+                <p className="text-sm text-ink-soft">{t("directDesc")}</p>
+              </div>
             </div>
+            <JoinMeetingButton
+              room={`teacher-${teacherId}`}
+              displayName={teacherName}
+              subject={t("directSubject")}
+              label={t("directCta")}
+              lobby
+              className="shrink-0 justify-center"
+            />
           </div>
-          <JoinMeetingButton
-            room="teacher-abdullah-alsalmi"
-            displayName={teacherName}
-            subject={t("directSubject")}
-            label={t("directCta")}
-            lobby
-            className="shrink-0 justify-center"
-          />
-        </div>
+        )}
 
         <div className="card flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-4">
@@ -103,34 +149,40 @@ export default function TeacherDashboardPage() {
           <div className="flex items-center justify-between p-6">
             <h3 className="text-base font-extrabold text-ink">{t("studentsListTitle")}</h3>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[560px] text-sm">
-              <thead>
-                <tr className="border-y border-line bg-bg text-ink-soft">
-                  <th className="px-6 py-3 text-start font-bold">{tc("name")}</th>
-                  <th className="px-6 py-3 text-start font-bold">{tc("lastSession")}</th>
-                  <th className="px-6 py-3 text-start font-bold">{tc("statusLabel")}</th>
-                  <th className="px-6 py-3 text-start font-bold">{tc("action")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {previewStudents.map(({ raw, l }) => (
-                  <tr key={raw.id} className="border-b border-line last:border-0">
-                    <td className="px-6 py-4 font-bold text-ink">{l.name}</td>
-                    <td className="px-6 py-4 text-ink-soft">{raw.lastSession}</td>
-                    <td className="px-6 py-4">
-                      <span className={`rounded-pill px-3 py-1 text-xs font-bold ${STATUS_STYLES[raw.status]}`}>
-                        {tStatus(STATUS_KEYS[raw.status])}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <button className="text-xs font-bold text-gold-dark hover:underline">{tc("viewProfile")}</button>
-                    </td>
+          {!ready ? null : recentStudents.length === 0 ? (
+            <p className="px-6 pb-6 text-sm text-ink-soft">{t("noStudentsYet")}</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[560px] text-sm">
+                <thead>
+                  <tr className="border-y border-line bg-bg text-ink-soft">
+                    <th className="px-6 py-3 text-start font-bold">{tc("name")}</th>
+                    <th className="px-6 py-3 text-start font-bold">{tc("lastSession")}</th>
+                    <th className="px-6 py-3 text-start font-bold">{tc("statusLabel")}</th>
+                    <th className="px-6 py-3 text-start font-bold">{tc("action")}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {recentStudents.map((s) => (
+                    <tr key={s.id} className="border-b border-line last:border-0">
+                      <td className="px-6 py-4 font-bold text-ink">{s.name || tc("dash")}</td>
+                      <td className="px-6 py-4 text-ink-soft">{s.lastSessionDate ?? tc("dash")}</td>
+                      <td className="px-6 py-4">
+                        <span className={`rounded-pill px-3 py-1 text-xs font-bold ${STATUS_STYLES[s.status]}`}>
+                          {tStatus(STATUS_KEYS[s.status])}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <Link href="/dashboard/teacher/students" className="text-xs font-bold text-gold-dark hover:underline">
+                          {tc("viewProfile")}
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </DashboardShell>
