@@ -49,6 +49,12 @@ export default function LoginPage() {
       showToast(t("errorInvalidCredentials"), "error");
       return;
     }
+    if (profile.role !== role) {
+      await supabase.auth.signOut();
+      setLoading(false);
+      showToast(t("errorRoleMismatch", { role: role === "student" ? t("roleStudent") : t("roleTeacher") }), "error");
+      return;
+    }
 
     setLoading(false);
     showToast(t("toastSuccess"), "success");
