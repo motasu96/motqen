@@ -1,4 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
+import { buildPlan, overallProgressPercent, weekIndexForDate } from "@/lib/quranPlan";
 
 export type OverviewStat = {
   value: number;
@@ -85,17 +86,20 @@ export type AdminRecentStudent = {
   programSlug: string | null;
   teacherName: string;
   joinDate: string;
+  progressPercent: number | null;
   status: "regular" | "late" | "struggling";
 };
 
 // Status is derived from how recently the student last attended a lesson —
 // there's no explicit status field, so this is the honest signal we have.
-export async function listRecentStudents(supabase: SupabaseClient, limit = 5): Promise<AdminRecentStudent[]> {
-  const { data: students } = await supabase
+// limit === undefined fetches every student (used by the admin students list).
+async function fetchAdminStudents(supabase: SupabaseClient, limit?: number): Promise<AdminRecentStudent[]> {
+  let query = supabase
     .from("students")
-    .select("id, program_slug, created_at, profiles(full_name)")
-    .order("created_at", { ascending: false })
-    .limit(limit);
+    .select("id, program_slug, created_at, already_memorized_juz, plan_duration_months, review_days_per_week, plan_direction, profiles(full_name)")
+    .order("created_at", { ascending: false });
+  if (limit) query = query.limit(limit);
+  const { data: students } = await query;
 
   if (!students || students.length === 0) return [];
   const ids = students.map((s) => s.id as string);
@@ -142,13 +146,35 @@ export async function listRecentStudents(supabase: SupabaseClient, limit = 5): P
       const days = (now - new Date(lastAttended).getTime()) / (1000 * 60 * 60 * 24);
       status = days <= 14 ? "regular" : days <= 30 ? "late" : "struggling";
     }
+
+    let progressPercent: number | null = null;
+    if (s.plan_duration_months) {
+      const plan = buildPlan({
+        durationMonths: s.plan_duration_months as number,
+        alreadyMemorizedJuz: s.already_memorized_juz as number,
+        reviewDaysPerWeek: (s.review_days_per_week === 2 ? 2 : 1) as 1 | 2,
+        direction: s.plan_direction === "fromStart" ? "fromStart" : "fromEnd",
+      });
+      const weekIndex = weekIndexForDate(plan, new Date(s.created_at as string), new Date());
+      progressPercent = overallProgressPercent(plan, weekIndex);
+    }
+
     return {
       id: s.id as string,
       name: name || "",
       programSlug: s.program_slug as string | null,
       teacherName: teacherByStudent.get(s.id as string) ?? "",
       joinDate: s.created_at as string,
+      progressPercent,
       status,
     };
   });
+}
+
+export async function listRecentStudents(supabase: SupabaseClient, limit = 5): Promise<AdminRecentStudent[]> {
+  return fetchAdminStudents(supabase, limit);
+}
+
+export async function listAllStudents(supabase: SupabaseClient): Promise<AdminRecentStudent[]> {
+  return fetchAdminStudents(supabase);
 }
