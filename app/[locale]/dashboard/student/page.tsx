@@ -13,7 +13,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getMyStudentProfile, StudentRow } from "@/lib/supabase/students";
 import { getLatestLesson, LessonWithTeacher } from "@/lib/supabase/lessons";
 import { HomeworkRow, HomeworkType, listStudentHomework } from "@/lib/supabase/homework";
-import { todayPortion } from "@/data/dashboard";
+import { getStudentPrimaryTeacher } from "@/lib/supabase/teachers";
 import { programs } from "@/data/programs";
 import { localize } from "@/lib/localize";
 import { IconTask, IconTrophy, IconShield, IconFamily, IconBook, IconInbox } from "@/components/icons";
@@ -38,6 +38,7 @@ type DashboardCache = {
   studentRow: StudentRow | null;
   latestLesson: LessonWithTeacher | null;
   recentHomework: HomeworkRow[];
+  primaryTeacher: { id: string; name: string } | null;
 };
 
 const CACHE_KEY = "motqen_student_dashboard_cache";
@@ -99,13 +100,13 @@ export default function StudentDashboardPage() {
   const tc = useTranslations("Dashboard.common");
   const tStatus = useTranslations("Dashboard.status");
   const tPlan = useTranslations("Signup");
-  const portion = localize(todayPortion, locale);
 
   const cached = typeof window !== "undefined" ? readDashboardCache() : null;
   const [fullName, setFullName] = useState<string | null>(cached?.fullName ?? null);
   const [studentRow, setStudentRow] = useState<StudentRow | null>(cached?.studentRow ?? null);
   const [latestLesson, setLatestLesson] = useState<LessonWithTeacher | null>(cached?.latestLesson ?? null);
   const [recentHomework, setRecentHomework] = useState<HomeworkRow[]>(cached?.recentHomework ?? []);
+  const [primaryTeacher, setPrimaryTeacher] = useState<{ id: string; name: string } | null>(cached?.primaryTeacher ?? null);
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return;
     let cancelled = false;
@@ -115,10 +116,11 @@ export default function StudentDashboardPage() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user || cancelled) return;
-      const [{ fullName: name, student }, lesson, hw] = await Promise.all([
+      const [{ fullName: name, student }, lesson, hw, teacher] = await Promise.all([
         getMyStudentProfile(supabase, user.id),
         getLatestLesson(supabase, user.id),
         listStudentHomework(supabase, user.id),
+        getStudentPrimaryTeacher(supabase, user.id),
       ]);
       if (cancelled) return;
       const recent = hw.filter((h) => h.status !== "graded").slice(0, 2);
@@ -126,7 +128,8 @@ export default function StudentDashboardPage() {
       setStudentRow(student);
       setLatestLesson(lesson);
       setRecentHomework(recent);
-      writeDashboardCache({ fullName: name, studentRow: student, latestLesson: lesson, recentHomework: recent });
+      setPrimaryTeacher(teacher);
+      writeDashboardCache({ fullName: name, studentRow: student, latestLesson: lesson, recentHomework: recent, primaryTeacher: teacher });
     })();
     return () => {
       cancelled = true;
@@ -168,7 +171,7 @@ export default function StudentDashboardPage() {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           <div className="card flex flex-col items-center gap-3 p-6 text-center">
             <span className="text-sm font-bold text-ink-soft">{t("memorizationProgress")}</span>
-            <ProgressRing percent={planData ? planData.percent : 68} />
+            <ProgressRing percent={planData ? planData.percent : 0} />
             <span className="text-xs text-ink-soft">{t("progressEncouragement")}</span>
           </div>
 
@@ -235,12 +238,6 @@ export default function StudentDashboardPage() {
                 <p className="text-sm font-bold text-ink">{t("planCompleted")}</p>
               )}
             </div>
-          ) : portion.hasPortion ? (
-            <div className="flex flex-col gap-2 rounded-2xl border border-line bg-bg p-4">
-              <h4 className="text-lg font-extrabold text-ink">{portion.surah}</h4>
-              <p className="text-sm text-ink-soft">{portion.range}</p>
-              <p className="text-xs text-ink-soft">{portion.note}</p>
-            </div>
           ) : (
             <div className="flex items-center gap-3 rounded-2xl border border-dashed border-line px-4 py-4">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold-light">
@@ -254,24 +251,26 @@ export default function StudentDashboardPage() {
           )}
         </div>
 
-        <div className="card flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-4">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gold-light">
-              <IconShield className="h-5 w-5 text-gold-dark" />
-            </span>
-            <div>
-              <h3 className="text-base font-extrabold text-ink">{t("directTitle")}</h3>
-              <p className="text-sm text-ink-soft">{t("directDesc")}</p>
+        {primaryTeacher && (
+          <div className="card flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-4">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gold-light">
+                <IconShield className="h-5 w-5 text-gold-dark" />
+              </span>
+              <div>
+                <h3 className="text-base font-extrabold text-ink">{t("directTitle")}</h3>
+                <p className="text-sm text-ink-soft">{t("directDesc")}</p>
+              </div>
             </div>
+            <JoinMeetingButton
+              room={`teacher-${primaryTeacher.id}`}
+              displayName={studentName}
+              subject={t("directSubject")}
+              label={t("directCta")}
+              className="shrink-0 justify-center"
+            />
           </div>
-          <JoinMeetingButton
-            room="teacher-abdullah-alsalmi"
-            displayName={studentName}
-            subject={t("directSubject")}
-            label={t("directCta")}
-            className="shrink-0 justify-center"
-          />
-        </div>
+        )}
 
         <div className="card flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-4">

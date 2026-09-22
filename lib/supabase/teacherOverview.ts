@@ -1,4 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
+import { buildPlan, overallProgressPercent, weekIndexForDate } from "@/lib/quranPlan";
 
 export type TeacherOverviewStats = {
   totalStudents: number;
@@ -101,4 +102,90 @@ export async function listTeacherRecentStudents(
   });
 
   return rows.slice(0, limit);
+}
+
+function monthBounds(monthsAgo: number) {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth() - monthsAgo, 1);
+  const end = new Date(now.getFullYear(), now.getMonth() - monthsAgo + 1, 1);
+  return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10) };
+}
+
+export type TeacherReportsData = {
+  avgStudentProgress: number | null;
+  attendanceRatePercent: number | null;
+  rating: number | null;
+  completedThisMonth: number;
+  weeklySessions: number[]; // oldest to newest, `weeksBack` entries ending this week
+};
+
+// Attendance rate is computed from lessons the teacher has explicitly
+// logged (attended vs. absent) — the only honest signal available, since
+// there's no separate "session happened" record beyond that.
+export async function getTeacherReportsData(
+  supabase: SupabaseClient,
+  teacherId: string,
+  weeksBack = 4
+): Promise<TeacherReportsData> {
+  const thisMonth = monthBounds(0);
+
+  const [{ data: bookingRows }, { data: lessonRows }, { data: teacherRow }] = await Promise.all([
+    supabase.from("bookings").select("student_id").eq("teacher_id", teacherId),
+    supabase.from("lessons").select("attended, session_date").eq("teacher_id", teacherId),
+    supabase.from("teachers").select("rating").eq("id", teacherId).maybeSingle(),
+  ]);
+
+  const studentIds = Array.from(new Set((bookingRows ?? []).map((r) => r.student_id as string)));
+  let avgStudentProgress: number | null = null;
+  if (studentIds.length > 0) {
+    const { data: studentRows } = await supabase
+      .from("students")
+      .select("id, created_at, already_memorized_juz, plan_duration_months, review_days_per_week, plan_direction")
+      .in("id", studentIds);
+    const percents: number[] = [];
+    for (const s of studentRows ?? []) {
+      if (!s.plan_duration_months) continue;
+      const plan = buildPlan({
+        durationMonths: s.plan_duration_months as number,
+        alreadyMemorizedJuz: s.already_memorized_juz as number,
+        reviewDaysPerWeek: (s.review_days_per_week === 2 ? 2 : 1) as 1 | 2,
+        direction: s.plan_direction === "fromStart" ? "fromStart" : "fromEnd",
+      });
+      const weekIndex = weekIndexForDate(plan, new Date(s.created_at as string), new Date());
+      percents.push(overallProgressPercent(plan, weekIndex));
+    }
+    avgStudentProgress = percents.length > 0 ? Math.round(percents.reduce((a, b) => a + b, 0) / percents.length) : null;
+  }
+
+  const totalLogged = lessonRows?.length ?? 0;
+  const attendedCount = lessonRows?.filter((r) => r.attended).length ?? 0;
+  const attendanceRatePercent = totalLogged > 0 ? Math.round((attendedCount / totalLogged) * 100) : null;
+
+  const completedThisMonth = (lessonRows ?? []).filter(
+    (r) => r.attended && (r.session_date as string) >= thisMonth.start && (r.session_date as string) < thisMonth.end
+  ).length;
+
+  const weeklySessions: number[] = [];
+  const now = new Date();
+  for (let i = weeksBack - 1; i >= 0; i--) {
+    const weekStart = new Date(now);
+    weekStart.setHours(0, 0, 0, 0);
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay() - i * 7);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 7);
+    const startStr = weekStart.toISOString().slice(0, 10);
+    const endStr = weekEnd.toISOString().slice(0, 10);
+    weeklySessions.push(
+      (lessonRows ?? []).filter((r) => r.attended && (r.session_date as string) >= startStr && (r.session_date as string) < endStr)
+        .length
+    );
+  }
+
+  return {
+    avgStudentProgress,
+    attendanceRatePercent,
+    rating: (teacherRow?.rating as number | null | undefined) ?? null,
+    completedThisMonth,
+    weeklySessions,
+  };
 }

@@ -74,6 +74,27 @@ export async function getTeacherBookingInfo(
   return data ? { id: data.id as string, name: data.name as string } : null;
 }
 
+// The teacher a student is currently working with, used for the "direct
+// entry" walk-in card — their most recent confirmed booking, past or
+// upcoming. Returns null if the student has never booked a session.
+export async function getStudentPrimaryTeacher(
+  supabase: SupabaseClient,
+  studentId: string
+): Promise<{ id: string; name: string } | null> {
+  const { data } = await supabase
+    .from("bookings")
+    .select("teachers(id, name)")
+    .eq("student_id", studentId)
+    .eq("status", "confirmed")
+    .order("session_date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!data) return null;
+  const teacher = data.teachers as unknown as { id: string; name: string } | { id: string; name: string }[] | null;
+  const t = Array.isArray(teacher) ? teacher[0] : teacher;
+  return t ? { id: t.id, name: t.name } : null;
+}
+
 const ARABIC_TO_LATIN: Record<string, string> = {
   ا: "a", أ: "a", إ: "i", آ: "a", ب: "b", ت: "t", ث: "th", ج: "j", ح: "h", خ: "kh",
   د: "d", ذ: "dh", ر: "r", ز: "z", س: "s", ش: "sh", ص: "s", ض: "d", ط: "t", ظ: "z",
