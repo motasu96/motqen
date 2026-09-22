@@ -188,7 +188,9 @@
     "toastSuccess": "Logged in successfully, welcome back.",
     "errorInvalidCredentials": "Incorrect email or password.",
     "errorEmailNotConfirmed": "This email isn't confirmed yet. Use \"Forgot password?\" to set a new password and confirm the account.",
-    "errorRoleMismatch": "This account is not a {role} account."
+    "errorRoleMismatch": "This account is not a {role} account.",
+    "showPassword": "Show",
+    "hidePassword": "Hide"
   },
   "Onboarding": {
     "metaTitle": "Initial Assessment | Motqen",

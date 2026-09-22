@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { Link, useRouter } from "@/i18n/navigation";
 import Logo from "@/components/Logo";
+import PasswordInput from "@/components/PasswordInput";
 import { programs } from "@/data/programs";
 import { IconCheck } from "@/components/icons";
 import { useToast } from "@/components/Toast";
@@ -24,6 +25,7 @@ function SignupFlow() {
   const preselectedProgram = searchParams.get("program") ?? "";
   const { showToast } = useToast();
   const t = useTranslations("Signup");
+  const tLogin = useTranslations("Login");
   const locale = useLocale();
 
   const STUDENT_TYPES: { key: StudentType; title: string; desc: string }[] = [
@@ -106,8 +108,8 @@ function SignupFlow() {
     if (stepKind === "info") {
       if (!form.name.trim() || !form.phone.trim()) return t("errorNamePhone");
       if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) return t("errorEmail");
-      if (form.password.length < 6) return t("errorPassword");
-      if (form.password !== form.confirmPassword) return t("errorPasswordMatch");
+      if (form.password.trim().length < 6) return t("errorPassword");
+      if (form.password.trim() !== form.confirmPassword.trim()) return t("errorPasswordMatch");
       if (!programSlug) return t("errorProgram");
     }
     if (stepKind === "plan" && !planDurationMonths) return t("errorPlan");
@@ -163,7 +165,7 @@ function SignupFlow() {
       const supabase = createClient();
       const { data, error } = await supabase.auth.signUp({
         email: form.email.trim(),
-        password: form.password,
+        password: form.password.trim(),
         options: { data: { role: "student", full_name: form.name.trim(), phone: form.phone.trim() } },
       });
       if (error) {
@@ -346,28 +348,28 @@ function SignupFlow() {
               <div className="grid gap-5 sm:grid-cols-2">
                 <div className="flex flex-col gap-2">
                   <label htmlFor="signup-password" className="text-sm font-bold text-ink">{t("passwordLabel")}</label>
-                  <input
+                  <PasswordInput
                     id="signup-password"
                     dir="ltr"
-                    type="password"
-                    className="input"
                     value={form.password}
                     onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
                     placeholder={t("passwordPlaceholder")}
+                    showLabel={tLogin("showPassword")}
+                    hideLabel={tLogin("hidePassword")}
                   />
                 </div>
                 <div className="flex flex-col gap-2">
                   <label htmlFor="signup-confirm-password" className="text-sm font-bold text-ink">
                     {t("confirmPasswordLabel")}
                   </label>
-                  <input
+                  <PasswordInput
                     id="signup-confirm-password"
                     dir="ltr"
-                    type="password"
-                    className="input"
                     value={form.confirmPassword}
                     onChange={(e) => setForm((f) => ({ ...f, confirmPassword: e.target.value }))}
                     placeholder={t("passwordPlaceholder")}
+                    showLabel={tLogin("showPassword")}
+                    hideLabel={tLogin("hidePassword")}
                   />
                 </div>
               </div>

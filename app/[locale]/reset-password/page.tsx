@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import Logo from "@/components/Logo";
+import PasswordInput from "@/components/PasswordInput";
 import { IconCheck } from "@/components/icons";
 import { useToast } from "@/components/Toast";
 import { createClient } from "@/lib/supabase/client";
@@ -15,6 +16,7 @@ export default function ResetPasswordPage() {
   const [done, setDone] = useState(false);
   const { showToast } = useToast();
   const t = useTranslations("ResetPassword");
+  const tLogin = useTranslations("Login");
 
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -56,8 +58,8 @@ export default function ResetPasswordPage() {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
-    const password = (data.get("password") as string) ?? "";
-    const confirmPassword = (data.get("confirmPassword") as string) ?? "";
+    const password = ((data.get("password") as string) ?? "").trim();
+    const confirmPassword = ((data.get("confirmPassword") as string) ?? "").trim();
 
     if (password.length < 6) {
       showToast(t("errorPassword"), "error");
@@ -115,11 +117,27 @@ export default function ResetPasswordPage() {
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
                 <label htmlFor="rp-password" className="text-sm font-bold text-ink">{t("newPasswordLabel")}</label>
-                <input id="rp-password" name="password" required type="password" dir="ltr" className="input" placeholder={t("passwordPlaceholder")} />
+                <PasswordInput
+                  id="rp-password"
+                  name="password"
+                  required
+                  dir="ltr"
+                  placeholder={t("passwordPlaceholder")}
+                  showLabel={tLogin("showPassword")}
+                  hideLabel={tLogin("hidePassword")}
+                />
               </div>
               <div className="flex flex-col gap-2">
                 <label htmlFor="rp-confirm" className="text-sm font-bold text-ink">{t("confirmPasswordLabel")}</label>
-                <input id="rp-confirm" name="confirmPassword" required type="password" dir="ltr" className="input" placeholder={t("passwordPlaceholder")} />
+                <PasswordInput
+                  id="rp-confirm"
+                  name="confirmPassword"
+                  required
+                  dir="ltr"
+                  placeholder={t("passwordPlaceholder")}
+                  showLabel={tLogin("showPassword")}
+                  hideLabel={tLogin("hidePassword")}
+                />
               </div>
               <button type="submit" disabled={submitting} className="btn-primary mt-2 w-full disabled:opacity-70">
                 {submitting ? t("submitting") : t("submit")}

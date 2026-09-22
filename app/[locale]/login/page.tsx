@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import Logo from "@/components/Logo";
+import PasswordInput from "@/components/PasswordInput";
 import { useToast } from "@/components/Toast";
 import { createClient } from "@/lib/supabase/client";
 
@@ -17,8 +18,8 @@ export default function LoginPage() {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
-    const email = (new FormData(form).get("email") as string) ?? "";
-    const password = (new FormData(form).get("password") as string) ?? "";
+    const email = ((new FormData(form).get("email") as string) ?? "").trim();
+    const password = ((new FormData(form).get("password") as string) ?? "").trim();
 
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
       setLoading(true);
@@ -101,7 +102,14 @@ export default function LoginPage() {
               <label htmlFor="login-password" className="text-sm font-bold text-ink">{t("passwordLabel")}</label>
               <Link href="/forgot-password" className="text-xs font-bold text-gold-dark">{t("forgotPassword")}</Link>
             </div>
-            <input id="login-password" name="password" required type="password" className="input" placeholder="••••••••" />
+            <PasswordInput
+              id="login-password"
+              name="password"
+              required
+              placeholder="••••••••"
+              showLabel={t("showPassword")}
+              hideLabel={t("hidePassword")}
+            />
           </div>
           <button type="submit" disabled={loading} className="btn-primary mt-2 w-full disabled:opacity-70">
             {loading ? t("submitting") : t("submit")}
