@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { buildTeacherApprovedEmail } from "@/lib/emails/teacherApprovedEmail";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createAccountSetupLink } from "@/lib/supabase/accountSetup";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -53,13 +54,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: linkError.message }, { status: 502 });
   }
 
-  const { data: linkData, error: genLinkError } = await supabase.auth.admin.generateLink({
-    type: "recovery",
-    email,
-    options: { redirectTo: `${SITE_URL}/reset-password` },
-  });
-  if (genLinkError || !linkData.properties?.action_link) {
-    return NextResponse.json({ error: genLinkError?.message ?? "Failed to generate setup link" }, { status: 502 });
+  const setupLink = await createAccountSetupLink(supabase, created.user.id, SITE_URL);
+  if ("error" in setupLink) {
+    return NextResponse.json({ error: setupLink.error }, { status: 502 });
   }
 
   const apiKey = process.env.RESEND_API_KEY;
@@ -68,7 +65,7 @@ export async function POST(req: NextRequest) {
     const { subject, html } = buildTeacherApprovedEmail({
       name,
       profileUrl: `${SITE_URL}/teachers/${slug}`,
-      setupLink: linkData.properties.action_link,
+      setupLink: setupLink.link,
     });
     try {
       await resend.emails.send({ from: "متقن | Motqen <info@motqen.site>", to: email, subject, html });

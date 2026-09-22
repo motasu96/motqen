@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { buildTeacherApprovedEmail } from "@/lib/emails/teacherApprovedEmail";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createAccountSetupLink } from "@/lib/supabase/accountSetup";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SITE_URL = "https://www.motqen.site";
@@ -117,14 +118,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No account or application found for this teacher", reason: "no_email" }, { status: 404 });
   }
 
-  const { data: linkData, error: genLinkError } = await supabase.auth.admin.generateLink({
-    type: "recovery",
-    email,
-    options: { redirectTo: `${SITE_URL}/reset-password` },
-  });
-  if (genLinkError || !linkData.properties?.action_link) {
-    console.error("[teacher-resend-setup] generateLink failed", { email, genLinkError });
-    return NextResponse.json({ error: genLinkError?.message ?? "Failed to generate setup link", reason: "link" }, { status: 502 });
+  if (!profileId) {
+    console.error("[teacher-resend-setup] profileId unexpectedly missing", { teacherRowId });
+    return NextResponse.json({ error: "No account found for this teacher", reason: "no_email" }, { status: 404 });
+  }
+
+  const setupLink = await createAccountSetupLink(supabase, profileId, SITE_URL);
+  if ("error" in setupLink) {
+    console.error("[teacher-resend-setup] createAccountSetupLink failed", { email, error: setupLink.error });
+    return NextResponse.json({ error: setupLink.error, reason: "link" }, { status: 502 });
   }
 
   const apiKey = process.env.RESEND_API_KEY;
@@ -137,7 +139,7 @@ export async function POST(req: NextRequest) {
   const { subject, html } = buildTeacherApprovedEmail({
     name: teacher.name,
     profileUrl: `${SITE_URL}/teachers/${teacher.slug}`,
-    setupLink: linkData.properties.action_link,
+    setupLink: setupLink.link,
   });
 
   try {
