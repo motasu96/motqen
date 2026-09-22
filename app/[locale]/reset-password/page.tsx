@@ -21,20 +21,32 @@ export default function ResetPasswordPage() {
       setReady(true);
       return;
     }
+    // Require actual evidence in the URL that this visit came from a recovery
+    // link (Supabase appends either a #...type=recovery hash or a ?code=...
+    // param) before trusting any session at all. This is what stops a stale,
+    // unrelated session left over in the browser from making a plain visit to
+    // this page (or an invalid/expired link) falsely look valid — while still
+    // accepting a real session once Supabase establishes it, since the
+    // PASSWORD_RECOVERY event alone isn't reliably fired by this SDK setup.
+    const hasRecoveryEvidence =
+      window.location.hash.includes("type=recovery") || new URLSearchParams(window.location.search).has("code");
+    if (!hasRecoveryEvidence) {
+      setReady(true);
+      return;
+    }
+
     const supabase = createClient();
-    // Only a genuine PASSWORD_RECOVERY event proves this visit came from a valid
-    // recovery link. Treating "any existing session" as valid would let a stale,
-    // unrelated session in the browser (e.g. left over from a previous login)
-    // make an invalid or already-used recovery link falsely appear to work.
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
-        setValidLink(true);
-      }
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) setValidLink(true);
       setReady(true);
     });
-    const timeout = setTimeout(() => setReady(true), 2000);
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) setValidLink(true);
+      setReady(true);
+    });
+    const timeout = setTimeout(() => setReady(true), 3000);
     return () => {
       subscription.unsubscribe();
       clearTimeout(timeout);
