@@ -6,6 +6,7 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { useAdminNav } from "@/components/dashboard/adminNav";
 import { useAdminLogout } from "@/lib/supabase/useAdminLogout";
+import { useAdminProfile } from "@/lib/supabase/useAdminProfile";
 import { createClient } from "@/lib/supabase/client";
 import { createNotice, deleteNotice, listAllNotices, NoticeAudience, NoticeRow } from "@/lib/supabase/notices";
 import { useToast } from "@/components/Toast";
@@ -14,6 +15,7 @@ import { IconMegaphone, IconX } from "@/components/icons";
 export default function AdminNoticesPage() {
   const adminNav = useAdminNav();
   const handleLogout = useAdminLogout();
+  const { name: adminName, title: adminTitle, updateName } = useAdminProfile();
   const t = useTranslations("Dashboard.admin");
   const tc = useTranslations("Dashboard.common");
   const { showToast } = useToast();
@@ -72,7 +74,7 @@ export default function AdminNoticesPage() {
   };
 
   return (
-    <DashboardShell navItems={adminNav} userName={tc("adminName")} userSubtitle={tc("adminTitle")} onLogout={handleLogout}>
+    <DashboardShell navItems={adminNav} userName={adminName} userSubtitle={adminTitle} onLogout={handleLogout} onEditName={updateName}>
       <DashboardPageHeader title={t("noticesTitle")} subtitle={t("noticesSubtitle")} />
 
       <div className="flex flex-col gap-6">

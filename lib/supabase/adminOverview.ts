@@ -69,6 +69,62 @@ export async function getAdminOverviewStats(supabase: SupabaseClient): Promise<A
   };
 }
 
+export type AdminReportsData = {
+  avgTeacherRating: number | null;
+  avgStudentProgress: number | null;
+  retentionRatePercent: number | null;
+  newStudentsThisMonth: number;
+  monthlyBookings: number[]; // oldest to newest, `monthsBack` entries ending this month
+};
+
+// Retention here means "attended at least one lesson in the last 30 days",
+// out of all students who have ever had a lesson logged — the only signal
+// we actually have, since there's no subscription/renewal concept yet.
+export async function getReportsData(supabase: SupabaseClient, monthsBack = 5): Promise<AdminReportsData> {
+  const thisMonth = monthBounds(0);
+
+  const [{ data: teacherRows }, students, { data: recentLessons }, { count: totalStudentsWithLessons }] =
+    await Promise.all([
+      supabase.from("teachers").select("rating"),
+      listAllStudents(supabase),
+      supabase
+        .from("lessons")
+        .select("student_id")
+        .eq("attended", true)
+        .gte("session_date", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)),
+      supabase.from("lessons").select("student_id", { count: "exact", head: true }).eq("attended", true),
+    ]);
+
+  const ratings = (teacherRows ?? []).map((r) => r.rating as number).filter((r) => typeof r === "number");
+  const avgTeacherRating = ratings.length > 0 ? Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10 : null;
+
+  const withProgress = students.filter((s) => s.progressPercent !== null);
+  const avgStudentProgress =
+    withProgress.length > 0
+      ? Math.round(withProgress.reduce((sum, s) => sum + (s.progressPercent ?? 0), 0) / withProgress.length)
+      : null;
+
+  const activeStudentIds = new Set((recentLessons ?? []).map((l) => l.student_id as string));
+  const studentsEverAttended = totalStudentsWithLessons && totalStudentsWithLessons > 0 ? await countDistinctStudentsWithLessons(supabase) : 0;
+  const retentionRatePercent =
+    studentsEverAttended > 0 ? Math.round((activeStudentIds.size / studentsEverAttended) * 100) : null;
+
+  const newStudentsThisMonth = await countInRange(supabase, "students", "created_at", thisMonth.start, thisMonth.end);
+
+  const monthlyBookings: number[] = [];
+  for (let i = monthsBack - 1; i >= 0; i--) {
+    const { start, end } = monthBounds(i);
+    monthlyBookings.push(await countInRange(supabase, "bookings", "created_at", start, end));
+  }
+
+  return { avgTeacherRating, avgStudentProgress, retentionRatePercent, newStudentsThisMonth, monthlyBookings };
+}
+
+async function countDistinctStudentsWithLessons(supabase: SupabaseClient): Promise<number> {
+  const { data } = await supabase.from("lessons").select("student_id").eq("attended", true);
+  return new Set((data ?? []).map((r) => r.student_id as string)).size;
+}
+
 export async function getEnrollmentByProgram(supabase: SupabaseClient): Promise<Record<string, number>> {
   const { data } = await supabase.from("students").select("program_slug");
   const counts: Record<string, number> = {};

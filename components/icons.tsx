@@ -348,3 +348,10 @@ export function IconWhatsApp(props: IconProps) {
     </svg>
   );
 }
+export function IconPencil(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M14.06 4.94 19.06 9.94M4 20l1.09-4.36a2 2 0 0 1 .53-.94l10.1-10.1a1.6 1.6 0 0 1 2.26 0l1.42 1.42a1.6 1.6 0 0 1 0 2.26l-10.1 10.1a2 2 0 0 1-.94.53L4 20Z" />
+    </svg>
+  );
+}

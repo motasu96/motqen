@@ -6,6 +6,7 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { useAdminNav } from "@/components/dashboard/adminNav";
 import { useAdminLogout } from "@/lib/supabase/useAdminLogout";
+import { useAdminProfile } from "@/lib/supabase/useAdminProfile";
 import { createClient } from "@/lib/supabase/client";
 import { TeacherRow } from "@/lib/supabase/teachers";
 import { approveApplication, listPendingApplications, rejectApplication, TeacherApplication } from "@/lib/supabase/teacherApplications";
@@ -49,6 +50,7 @@ function toEditForm(row: TeacherRow): EditForm {
 export default function AdminTeachersPage() {
   const adminNav = useAdminNav();
   const handleLogout = useAdminLogout();
+  const { name: adminName, title: adminTitle, updateName } = useAdminProfile();
   const t = useTranslations("Dashboard.admin");
   const tc = useTranslations("Dashboard.common");
   const tStatus = useTranslations("Dashboard.status");
@@ -186,7 +188,7 @@ export default function AdminTeachersPage() {
   }
 
   return (
-    <DashboardShell navItems={adminNav} userName={tc("adminName")} userSubtitle={tc("adminTitle")} onLogout={handleLogout}>
+    <DashboardShell navItems={adminNav} userName={adminName} userSubtitle={adminTitle} onLogout={handleLogout} onEditName={updateName}>
       <DashboardPageHeader title={t("teachersTitle")} subtitle={t("teachersSubtitle")} />
 
       <div className="card mb-6 p-6">

@@ -7,6 +7,7 @@ import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { Link } from "@/i18n/navigation";
 import { useAdminNav } from "@/components/dashboard/adminNav";
 import { useAdminLogout } from "@/lib/supabase/useAdminLogout";
+import { useAdminProfile } from "@/lib/supabase/useAdminProfile";
 import { createClient } from "@/lib/supabase/client";
 import { programs } from "@/data/programs";
 import { localize } from "@/lib/localize";
@@ -15,6 +16,7 @@ import { getEnrollmentByProgram } from "@/lib/supabase/adminOverview";
 export default function AdminProgramsPage() {
   const adminNav = useAdminNav();
   const handleLogout = useAdminLogout();
+  const { name: adminName, title: adminTitle, updateName } = useAdminProfile();
   const locale = useLocale();
   const t = useTranslations("Dashboard.admin");
   const tc = useTranslations("Dashboard.common");
@@ -41,7 +43,7 @@ export default function AdminProgramsPage() {
   }, []);
 
   return (
-    <DashboardShell navItems={adminNav} userName={tc("adminName")} userSubtitle={tc("adminTitle")} onLogout={handleLogout}>
+    <DashboardShell navItems={adminNav} userName={adminName} userSubtitle={adminTitle} onLogout={handleLogout} onEditName={updateName}>
       <DashboardPageHeader title={t("programsTitle")} subtitle={t("programsSubtitle")} />
 
       {!ready ? null : (

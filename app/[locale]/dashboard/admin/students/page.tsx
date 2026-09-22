@@ -6,6 +6,7 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { useAdminNav } from "@/components/dashboard/adminNav";
 import { useAdminLogout } from "@/lib/supabase/useAdminLogout";
+import { useAdminProfile } from "@/lib/supabase/useAdminProfile";
 import { createClient } from "@/lib/supabase/client";
 import { programs } from "@/data/programs";
 import { localize } from "@/lib/localize";
@@ -26,6 +27,7 @@ const STATUS_STYLES: Record<AdminRecentStudent["status"], string> = {
 export default function AdminStudentsPage() {
   const adminNav = useAdminNav();
   const handleLogout = useAdminLogout();
+  const { name: adminName, title: adminTitle, updateName } = useAdminProfile();
   const locale = useLocale();
   const t = useTranslations("Dashboard.admin");
   const tc = useTranslations("Dashboard.common");
@@ -53,7 +55,7 @@ export default function AdminStudentsPage() {
   }, []);
 
   return (
-    <DashboardShell navItems={adminNav} userName={tc("adminName")} userSubtitle={tc("adminTitle")} onLogout={handleLogout}>
+    <DashboardShell navItems={adminNav} userName={adminName} userSubtitle={adminTitle} onLogout={handleLogout} onEditName={updateName}>
       <DashboardPageHeader title={t("studentsTitle")} subtitle={t("studentsSubtitle")} />
 
       {!ready ? null : students.length === 0 ? (

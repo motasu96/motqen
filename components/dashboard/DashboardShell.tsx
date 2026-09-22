@@ -2,11 +2,12 @@
 
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
-import { ReactNode, useEffect, useState } from "react";
+import { FormEvent, ReactNode, useEffect, useState } from "react";
 import { ComponentType } from "react";
-import { IconLogout, IconMenu, IconX } from "@/components/icons";
+import { IconCheck, IconLogout, IconMenu, IconPencil, IconX } from "@/components/icons";
 import Logo from "@/components/Logo";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useToast } from "@/components/Toast";
 
 export type DashboardNavItem = {
   href: string;
@@ -19,17 +20,33 @@ export default function DashboardShell({
   userName,
   userSubtitle,
   onLogout,
+  onEditName,
   children,
 }: {
   navItems: DashboardNavItem[];
   userName: string;
   userSubtitle: string;
   onLogout?: () => void;
+  onEditName?: (newName: string) => Promise<boolean>;
   children: ReactNode;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState(userName);
+  const [savingName, setSavingName] = useState(false);
   const t = useTranslations("Dashboard");
+  const { showToast } = useToast();
+
+  async function submitNameEdit(e: FormEvent) {
+    e.preventDefault();
+    if (!onEditName) return;
+    setSavingName(true);
+    const ok = await onEditName(nameInput);
+    setSavingName(false);
+    showToast(ok ? t("nameUpdated") : t("errorNameUpdate"), ok ? "success" : "error");
+    if (ok) setEditingName(false);
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -40,6 +57,10 @@ export default function DashboardShell({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open]);
 
+  useEffect(() => {
+    if (!editingName) setNameInput(userName);
+  }, [userName, editingName]);
+
   const nav = (
     <div className="flex h-full flex-col gap-6 p-6">
       <div className="flex items-center justify-between">
@@ -47,13 +68,54 @@ export default function DashboardShell({
         <ThemeToggle className="h-9 w-9" />
       </div>
       <div className="flex items-center gap-3 rounded-2xl bg-bg p-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gold-light text-sm font-extrabold text-gold-dark">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold-light text-sm font-extrabold text-gold-dark">
           {userName[0]}
         </div>
-        <div>
-          <div className="text-sm font-extrabold text-ink">{userName}</div>
-          <div className="text-xs text-ink-soft">{userSubtitle}</div>
-        </div>
+        {editingName ? (
+          <form onSubmit={submitNameEdit} className="flex flex-1 items-center gap-1.5">
+            <input
+              autoFocus
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              className="w-full min-w-0 rounded-lg border border-line bg-card px-2 py-1 text-sm font-extrabold text-ink"
+            />
+            <button
+              type="submit"
+              disabled={savingName}
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-gold-dark disabled:opacity-50"
+              aria-label={t("saveName")}
+            >
+              <IconCheck className="h-4 w-4" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setEditingName(false);
+                setNameInput(userName);
+              }}
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-ink-soft"
+              aria-label={t("cancelEditName")}
+            >
+              <IconX className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </form>
+        ) : (
+          <div className="flex min-w-0 flex-1 items-center gap-1.5">
+            <div className="min-w-0">
+              <div className="truncate text-sm font-extrabold text-ink">{userName}</div>
+              <div className="text-xs text-ink-soft">{userSubtitle}</div>
+            </div>
+            {onEditName && (
+              <button
+                onClick={() => setEditingName(true)}
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-ink-soft transition-colors hover:text-gold-dark"
+                aria-label={t("editName")}
+              >
+                <IconPencil className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       <nav className="flex flex-1 flex-col gap-1">

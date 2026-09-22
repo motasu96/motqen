@@ -6,6 +6,7 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { useAdminNav } from "@/components/dashboard/adminNav";
 import { useAdminLogout } from "@/lib/supabase/useAdminLogout";
+import { useAdminProfile } from "@/lib/supabase/useAdminProfile";
 import { createClient } from "@/lib/supabase/client";
 import {
   ArticleCategory,
@@ -41,6 +42,7 @@ const EMPTY_FORM: ArticleInput = {
 export default function AdminArticlesPage() {
   const adminNav = useAdminNav();
   const handleLogout = useAdminLogout();
+  const { name: adminName, title: adminTitle, updateName } = useAdminProfile();
   const t = useTranslations("Dashboard.admin");
   const tc = useTranslations("Dashboard.common");
   const tStatus = useTranslations("Dashboard.status");
@@ -130,7 +132,7 @@ export default function AdminArticlesPage() {
   }
 
   return (
-    <DashboardShell navItems={adminNav} userName={tc("adminName")} userSubtitle={tc("adminTitle")} onLogout={handleLogout}>
+    <DashboardShell navItems={adminNav} userName={adminName} userSubtitle={adminTitle} onLogout={handleLogout} onEditName={updateName}>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <DashboardPageHeader title={t("articlesTitle")} subtitle={t("articlesSubtitle")} />
         <button onClick={openCreate} className="btn-primary shrink-0">

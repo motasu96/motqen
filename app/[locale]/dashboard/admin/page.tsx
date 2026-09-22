@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { useAdminNav } from "@/components/dashboard/adminNav";
 import { useAdminLogout } from "@/lib/supabase/useAdminLogout";
+import { useAdminProfile } from "@/lib/supabase/useAdminProfile";
 import { createClient } from "@/lib/supabase/client";
 import { programs } from "@/data/programs";
 import { localize } from "@/lib/localize";
@@ -39,6 +40,7 @@ const STATUS_STYLES: Record<AdminRecentStudent["status"], string> = {
 export default function AdminDashboardPage() {
   const adminNav = useAdminNav();
   const handleLogout = useAdminLogout();
+  const { name: adminName, title: adminTitle, updateName } = useAdminProfile();
   const locale = useLocale();
   const t = useTranslations("Dashboard.admin");
   const tc = useTranslations("Dashboard.common");
@@ -112,7 +114,7 @@ export default function AdminDashboardPage() {
     : [];
 
   return (
-    <DashboardShell navItems={adminNav} userName={tc("adminName")} userSubtitle={tc("adminTitle")} onLogout={handleLogout}>
+    <DashboardShell navItems={adminNav} userName={adminName} userSubtitle={adminTitle} onLogout={handleLogout} onEditName={updateName}>
       <div className="flex flex-col gap-6">
         <div>
           <h1 className="text-xl font-extrabold text-ink sm:text-2xl">{t("dashboardTitle")}</h1>
