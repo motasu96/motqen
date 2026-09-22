@@ -187,6 +187,7 @@
     "createAccount": "Create a new account",
     "toastSuccess": "Logged in successfully, welcome back.",
     "errorInvalidCredentials": "Incorrect email or password.",
+    "errorEmailNotConfirmed": "This email isn't confirmed yet. Use \"Forgot password?\" to set a new password and confirm the account.",
     "errorRoleMismatch": "This account is not a {role} account."
   },
   "Onboarding": {

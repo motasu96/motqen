@@ -34,7 +34,11 @@ export default function LoginPage() {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error || !data.user) {
       setLoading(false);
-      showToast(t("errorInvalidCredentials"), "error");
+      if (error) console.error("[login] signInWithPassword failed:", error.status, error.message);
+      showToast(
+        error?.message === "Email not confirmed" ? t("errorEmailNotConfirmed") : t("errorInvalidCredentials"),
+        "error"
+      );
       return;
     }
 
