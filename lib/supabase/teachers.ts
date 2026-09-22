@@ -30,7 +30,7 @@ export function mapTeacherRow(row: TeacherRow): Teacher {
     name: row.name,
     title: row.title ?? "",
     bio: row.bio ?? "",
-    avatarUrl: row.avatar_url ?? (row.gender === "female" ? "/images/teacher-female.jpg" : "/images/teacher-male.jpg"),
+    avatarUrl: row.avatar_url ?? "/icon.png",
     gender: row.gender,
     stats: {
       students: row.students_count,
