@@ -22,19 +22,23 @@ export default function ResetPasswordPage() {
       return;
     }
     const supabase = createClient();
+    // Only a genuine PASSWORD_RECOVERY event proves this visit came from a valid
+    // recovery link. Treating "any existing session" as valid would let a stale,
+    // unrelated session in the browser (e.g. left over from a previous login)
+    // make an invalid or already-used recovery link falsely appear to work.
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "PASSWORD_RECOVERY" || session) {
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
         setValidLink(true);
       }
       setReady(true);
     });
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setValidLink(true);
-      setReady(true);
-    });
-    return () => subscription.unsubscribe();
+    const timeout = setTimeout(() => setReady(true), 2000);
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
   }, []);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
