@@ -462,6 +462,22 @@
     "errorInvalidCredentials": "Invalid email or password",
     "errorNotAdmin": "This account does not have access to the admin dashboard"
   },
+  "AdminBootstrap": {
+    "metaTitle": "Set Up Admin Account | Motqen",
+    "title": "Create the First Admin Account",
+    "subtitle": "This page only works once, as long as no admin account exists yet",
+    "fullNameLabel": "Full Name",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "submit": "Create Account",
+    "submitting": "Creating...",
+    "toastSuccess": "Admin account created successfully",
+    "successTitle": "Created Successfully",
+    "successDesc": "You can now log in with the email and password you entered",
+    "goToLogin": "Go to Login",
+    "errorAlreadyExists": "An admin account already exists, this page only works once",
+    "errorGeneric": "Failed to create the account, try again"
+  },
   "Dashboard": {
     "logout": "Log Out",
     "openMenu": "Open menu",
