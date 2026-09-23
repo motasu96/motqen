@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { toPng } from "html-to-image";
+import { jsPDF } from "jspdf";
 import QRCode from "qrcode";
 import { CertificateRow } from "@/lib/supabase/certificates";
 import CertificateTemplate from "@/components/CertificateTemplate";
@@ -55,13 +56,16 @@ export default function CertificateView({ cert, onClose }: { cert: CertificateRo
     setDownloading(true);
     try {
       if (document.fonts?.ready) await document.fonts.ready;
-      const dataUrl = await toPng(node, { pixelRatio: 2, cacheBust: true });
-      const a = document.createElement("a");
-      a.href = dataUrl;
-      a.download = `${cert.certificate_number}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      // pixelRatio 3 renders the 1123x794 template at ~3369x2382px, which
+      // maps to ~288 DPI once placed on an A4 page below — print-quality
+      // sharpness rather than the ~96 DPI a screen-res capture would give.
+      const dataUrl = await toPng(node, { pixelRatio: 3, cacheBust: true });
+      // The template's 1123x794 size is itself A4 landscape at 96 DPI
+      // (1123/96*25.4 ≈ 297mm, 794/96*25.4 ≈ 210mm), so the image fills the
+      // page edge-to-edge with no distortion.
+      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      pdf.addImage(dataUrl, "PNG", 0, 0, 297, 210, undefined, "FAST");
+      pdf.save(`${cert.certificate_number}.pdf`);
     } catch {
       // eslint-disable-next-line no-console
       console.error("Certificate export failed");
