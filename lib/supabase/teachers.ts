@@ -73,6 +73,13 @@ export async function getTeacherBookingInfo(
   return data ? { id: data.id as string, name: data.name as string } : null;
 }
 
+// The teacher's own bookable times of day (canonical "HH:MM" values),
+// used to populate the booking calendar's time-slot buttons.
+export async function getTeacherAvailableTimes(supabase: SupabaseClient, teacherId: string): Promise<string[]> {
+  const { data } = await supabase.from("teachers").select("available_times").eq("id", teacherId).single();
+  return (data?.available_times as string[] | null) ?? [];
+}
+
 // The teacher a student is currently working with, used for the "direct
 // entry" walk-in card — their most recent confirmed booking, past or
 // upcoming. Returns null if the student has never booked a session.

@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useToast } from "@/components/Toast";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
 import { createClient } from "@/lib/supabase/client";
 import { createBooking, getTakenSlots } from "@/lib/supabase/bookings";
+import { getTeacherAvailableTimes } from "@/lib/supabase/teachers";
 import { useUpcomingBookings } from "@/lib/supabase/useUpcomingBookings";
+import { DEFAULT_AVAILABLE_TIMES, formatTimeSlot } from "@/lib/timeSlots";
 import { IconCalendar, IconCheck, IconClock, IconFamily } from "@/components/icons";
 
 const HOLD_DURATION_MS = 10 * 60 * 1000;
@@ -34,10 +36,12 @@ type BookingType = "trial" | "group";
 
 export default function BookingCalendar({ teacherId, teacherName }: { teacherId: string; teacherName: string }) {
   const { showToast } = useToast();
+  const locale = useLocale();
   const t = useTranslations("Dashboard.student");
   const tc = useTranslations("Dashboard.common");
 
-  const TIME_SLOTS = tc.raw("timeSlots") as string[];
+  const [availableTimes, setAvailableTimes] = useState<string[]>(DEFAULT_AVAILABLE_TIMES);
+  const TIME_SLOTS = useMemo(() => availableTimes.map((hhmm) => formatTimeSlot(hhmm, locale)), [availableTimes, locale]);
   const DAY_LABELS = tc.raw("weekDaysShort") as string[];
 
   const days = useMemo(() => buildNextDays(7, DAY_LABELS), [DAY_LABELS]);
@@ -52,6 +56,18 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
   const [takenSlots, setTakenSlots] = useState<Set<string>>(new Set());
   const [slotsReady, setSlotsReady] = useState(false);
   const { upcoming, ready, cancel, reload } = useUpcomingBookings();
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const times = await getTeacherAvailableTimes(createClient(), teacherId);
+      if (cancelled || times.length === 0) return;
+      setAvailableTimes(times);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [teacherId]);
 
   useEffect(() => {
     let cancelled = false;

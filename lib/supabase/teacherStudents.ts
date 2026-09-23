@@ -7,6 +7,20 @@ export async function getMyTeacherId(supabase: SupabaseClient, userId: string): 
   return (data?.id as string | undefined) ?? null;
 }
 
+export async function getMyAvailableTimes(supabase: SupabaseClient, teacherId: string): Promise<string[]> {
+  const { data } = await supabase.from("teachers").select("available_times").eq("id", teacherId).single();
+  return (data?.available_times as string[] | null) ?? [];
+}
+
+export async function updateMyAvailableTimes(
+  supabase: SupabaseClient,
+  teacherId: string,
+  times: string[]
+): Promise<boolean> {
+  const { error } = await supabase.from("teachers").update({ available_times: times }).eq("id", teacherId);
+  return !error;
+}
+
 // The real students a teacher has actually taught (anyone who booked a
 // session with them), used to populate "assign homework to" pickers.
 export async function listTeacherStudents(supabase: SupabaseClient, teacherId: string): Promise<TeacherStudentOption[]> {
