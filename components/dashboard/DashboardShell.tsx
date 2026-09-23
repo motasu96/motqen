@@ -58,12 +58,21 @@ export default function DashboardShell({
   }, [open]);
 
   useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
+
+  useEffect(() => {
     if (!editingName) setNameInput(userName);
   }, [userName, editingName]);
 
   function renderNav(inDrawer: boolean) {
     return (
-    <div className="flex h-full flex-col gap-6 p-6">
+    <div className="flex min-h-full flex-col gap-6 p-6">
       <div className="flex items-center justify-between">
         <Logo />
         {!inDrawer && <ThemeToggle className="h-9 w-9" />}
@@ -180,11 +189,11 @@ export default function DashboardShell({
         </div>
 
         {open && (
-          <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true">
+          <div className="fixed inset-0 z-50 h-dvh lg:hidden" role="dialog" aria-modal="true">
             <div className="animate-overlay-in absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
             <div
               id="dashboard-mobile-nav"
-              className="animate-drawer-in absolute inset-y-0 right-0 w-80 max-w-[85vw] bg-card shadow-soft"
+              className="animate-drawer-in absolute inset-y-0 right-0 h-dvh w-80 max-w-[85vw] overflow-y-auto bg-card shadow-soft"
             >
               <button
                 onClick={() => setOpen(false)}
