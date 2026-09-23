@@ -52,6 +52,11 @@ export default function TeacherHomeworkPage() {
   const [gradingId, setGradingId] = useState<string | null>(null);
   const [gradeValue, setGradeValue] = useState("");
 
+  function startGrading(h: HomeworkWithStudent) {
+    setGradingId(h.id);
+    setGradeValue(h.grade ?? "");
+  }
+
   async function load(tId: string) {
     const supabase = createClient();
     const [studentRows, hwRows] = await Promise.all([
@@ -176,25 +181,38 @@ export default function TeacherHomeworkPage() {
                     <p className="text-xs text-ink-soft">{h.studentName} · {tc("until")} {h.due_date}</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    {h.grade && <span className="text-sm font-extrabold text-gold-dark">{h.grade}</span>}
-                    {h.status === "submitted" &&
-                      (gradingId === h.id ? (
-                        <div className="flex items-center gap-2">
-                          <input
-                            value={gradeValue}
-                            onChange={(e) => setGradeValue(e.target.value)}
-                            placeholder={t("gradePlaceholder")}
-                            className="input w-28 py-2 text-xs"
-                          />
-                          <button onClick={() => handleGrade(h.id)} className="btn-primary px-3 py-2 text-xs">
-                            {tc("accept")}
-                          </button>
-                        </div>
-                      ) : (
-                        <button onClick={() => setGradingId(h.id)} className="btn-primary px-4 py-2 text-xs">
-                          {tc("reviewNow")}
+                    {gradingId === h.id ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          value={gradeValue}
+                          onChange={(e) => setGradeValue(e.target.value)}
+                          placeholder={t("gradePlaceholder")}
+                          className="input w-28 py-2 text-xs"
+                        />
+                        <button onClick={() => handleGrade(h.id)} className="btn-primary px-3 py-2 text-xs">
+                          {tc("accept")}
                         </button>
-                      ))}
+                        <button onClick={() => setGradingId(null)} className="text-xs font-bold text-ink-soft hover:text-gold-dark">
+                          {tc("cancel")}
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        {h.grade && <span className="text-sm font-extrabold text-gold-dark">{h.grade}</span>}
+                        {h.status === "submitted" ? (
+                          <button onClick={() => startGrading(h)} className="btn-primary px-4 py-2 text-xs">
+                            {tc("reviewNow")}
+                          </button>
+                        ) : h.status === "graded" ? (
+                          <button
+                            onClick={() => startGrading(h)}
+                            className="text-xs font-bold text-ink-soft transition-colors hover:text-gold-dark"
+                          >
+                            {tc("edit")}
+                          </button>
+                        ) : null}
+                      </>
+                    )}
                   </div>
                 </div>
               ))

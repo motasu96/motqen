@@ -43,11 +43,18 @@ export async function listStudentLessons(supabase: SupabaseClient, studentId: st
   return (data ?? []).map(mapLessonRow);
 }
 
-// Booking ids that already have a logged lesson, so the teacher dashboard
-// only offers "log this session" for sessions that still need it.
-export async function getLoggedBookingIds(supabase: SupabaseClient, teacherId: string): Promise<Set<string>> {
-  const { data } = await supabase.from("lessons").select("booking_id").eq("teacher_id", teacherId);
-  return new Set((data ?? []).map((r) => r.booking_id).filter((id): id is string => Boolean(id)));
+// Full lesson rows for a teacher, keyed by booking id — used to show and
+// let the teacher edit what they already logged for a past session.
+export async function listTeacherLessonsByBooking(
+  supabase: SupabaseClient,
+  teacherId: string
+): Promise<Map<string, LessonRow>> {
+  const { data } = await supabase.from("lessons").select("*").eq("teacher_id", teacherId);
+  const byBooking = new Map<string, LessonRow>();
+  for (const row of (data as LessonRow[] | null) ?? []) {
+    if (row.booking_id) byBooking.set(row.booking_id, row);
+  }
+  return byBooking;
 }
 
 export async function createLesson(
@@ -73,6 +80,23 @@ export async function createLesson(
     ayah_range: params.attended ? params.ayahRange || null : null,
     notes: params.notes || null,
   });
+  return !error;
+}
+
+export async function updateLesson(
+  supabase: SupabaseClient,
+  id: string,
+  params: { attended: boolean; surah?: string; ayahRange?: string; notes?: string }
+): Promise<boolean> {
+  const { error } = await supabase
+    .from("lessons")
+    .update({
+      attended: params.attended,
+      surah: params.attended ? params.surah || null : null,
+      ayah_range: params.attended ? params.ayahRange || null : null,
+      notes: params.notes || null,
+    })
+    .eq("id", id);
   return !error;
 }
 

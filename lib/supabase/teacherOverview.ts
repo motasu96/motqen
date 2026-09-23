@@ -38,12 +38,17 @@ export type TeacherRecentStudent = {
   id: string;
   name: string;
   lastSessionDate: string | null;
-  status: "regular" | "late" | "struggling";
+  status: "regular" | "late" | "struggling" | "new";
 };
+
+const NEW_STUDENT_GRACE_DAYS = 14;
 
 // Status is derived from how recently the student last attended a lesson
 // with this teacher — there's no explicit status field, so this is the
-// honest signal we have. Sorted by most-recent session first.
+// honest signal we have. A student who hasn't had a first logged lesson
+// yet is "new" (not "struggling") for a grace period from their earliest
+// booking, since a lesson simply not having happened yet isn't the same
+// as falling behind. Sorted by most-recent session first.
 export async function listTeacherRecentStudents(
   supabase: SupabaseClient,
   teacherId: string,
@@ -51,16 +56,20 @@ export async function listTeacherRecentStudents(
 ): Promise<TeacherRecentStudent[]> {
   const { data: bookingRows } = await supabase
     .from("bookings")
-    .select("student_id, profiles(full_name)")
+    .select("student_id, session_date, profiles(full_name)")
     .eq("teacher_id", teacherId);
 
   const nameById = new Map<string, string>();
+  const firstBookingById = new Map<string, string>();
   for (const row of bookingRows ?? []) {
     const profile = row.profiles as unknown as { full_name: string | null } | { full_name: string | null }[] | null;
     const name = Array.isArray(profile) ? profile[0]?.full_name : profile?.full_name;
     const studentId = row.student_id as string | null;
-    if (studentId && !nameById.has(studentId)) {
-      nameById.set(studentId, name || "");
+    const sessionDate = row.session_date as string | null;
+    if (!studentId) continue;
+    if (!nameById.has(studentId)) nameById.set(studentId, name || "");
+    if (sessionDate && (!firstBookingById.has(studentId) || sessionDate < firstBookingById.get(studentId)!)) {
+      firstBookingById.set(studentId, sessionDate);
     }
   }
 
@@ -86,10 +95,14 @@ export async function listTeacherRecentStudents(
   const now = Date.now();
   const rows: TeacherRecentStudent[] = ids.map((id) => {
     const lastSessionDate = lastSessionByStudent.get(id) ?? null;
-    let status: TeacherRecentStudent["status"] = "struggling";
+    let status: TeacherRecentStudent["status"];
     if (lastSessionDate) {
       const days = (now - new Date(lastSessionDate).getTime()) / (1000 * 60 * 60 * 24);
       status = days <= 14 ? "regular" : days <= 30 ? "late" : "struggling";
+    } else {
+      const firstBooking = firstBookingById.get(id);
+      const daysSinceJoined = firstBooking ? (now - new Date(firstBooking).getTime()) / (1000 * 60 * 60 * 24) : 0;
+      status = daysSinceJoined <= NEW_STUDENT_GRACE_DAYS ? "new" : "struggling";
     }
     return { id, name: nameById.get(id) || "", lastSessionDate, status };
   });

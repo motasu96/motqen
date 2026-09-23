@@ -14,11 +14,20 @@ import { confirmMemorization } from "@/lib/supabase/memorization";
 import { useToast } from "@/components/Toast";
 import { IconExam, IconFolder } from "@/components/icons";
 
-function ExamScoreForm({ exam, onRecorded }: { exam: ExamRow; onRecorded: (id: string, score: number, maxScore: number) => void }) {
+function ExamScoreForm({
+  exam,
+  onRecorded,
+  onCancel,
+}: {
+  exam: ExamRow;
+  onRecorded: (id: string, score: number, maxScore: number) => void;
+  onCancel?: () => void;
+}) {
   const t = useTranslations("Dashboard.teacher");
+  const tc = useTranslations("Dashboard.common");
   const { showToast } = useToast();
-  const [score, setScore] = useState("");
-  const [maxScore, setMaxScore] = useState("100");
+  const [score, setScore] = useState(exam.score != null ? String(exam.score) : "");
+  const [maxScore, setMaxScore] = useState(exam.max_score != null ? String(exam.max_score) : "100");
   const [saving, setSaving] = useState(false);
 
   async function handleRecord() {
@@ -47,16 +56,23 @@ function ExamScoreForm({ exam, onRecorded }: { exam: ExamRow; onRecorded: (id: s
       <button onClick={handleRecord} disabled={saving} className="btn-primary px-3 py-1.5 text-xs disabled:opacity-70">
         {t("recordScoreCta")}
       </button>
+      {onCancel && (
+        <button onClick={onCancel} className="text-xs font-bold text-ink-soft hover:text-gold-dark">
+          {tc("cancel")}
+        </button>
+      )}
     </div>
   );
 }
 
 function StudentActionsRow({ student, teacherId }: { student: TeacherStudentOption; teacherId: string }) {
   const t = useTranslations("Dashboard.teacher");
+  const tc = useTranslations("Dashboard.common");
   const tStatus = useTranslations("Dashboard.status");
   const { showToast } = useToast();
   const [openPanel, setOpenPanel] = useState<"exam" | "memorization" | null>(null);
   const [studentExams, setStudentExams] = useState<ExamRow[]>([]);
+  const [editingExamId, setEditingExamId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -71,6 +87,7 @@ function StudentActionsRow({ student, teacherId }: { student: TeacherStudentOpti
 
   function handleScoreRecorded(id: string, score: number, maxScore: number) {
     setStudentExams((prev) => prev.map((e) => (e.id === id ? { ...e, status: "completed", score, max_score: maxScore } : e)));
+    setEditingExamId(null);
   }
 
   const [examTitle, setExamTitle] = useState("");
@@ -208,12 +225,24 @@ function StudentActionsRow({ student, teacherId }: { student: TeacherStudentOpti
           {studentExams.map((exam) => (
             <div key={exam.id} className="flex flex-wrap items-center justify-between gap-2 text-xs">
               <span className="font-bold text-ink">{exam.title} — {exam.exam_date}</span>
-              {exam.status === "completed" ? (
-                <span className="rounded-pill bg-emerald-50 px-3 py-1 font-bold text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400">
-                  {tStatus("examCompleted")}: {exam.score} / {exam.max_score}
-                </span>
+              {exam.status === "completed" && editingExamId !== exam.id ? (
+                <div className="flex items-center gap-2">
+                  <span className="rounded-pill bg-emerald-50 px-3 py-1 font-bold text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400">
+                    {tStatus("examCompleted")}: {exam.score} / {exam.max_score}
+                  </span>
+                  <button
+                    onClick={() => setEditingExamId(exam.id)}
+                    className="text-xs font-bold text-ink-soft transition-colors hover:text-gold-dark"
+                  >
+                    {tc("edit")}
+                  </button>
+                </div>
               ) : (
-                <ExamScoreForm exam={exam} onRecorded={handleScoreRecorded} />
+                <ExamScoreForm
+                  exam={exam}
+                  onRecorded={handleScoreRecorded}
+                  onCancel={exam.status === "completed" ? () => setEditingExamId(null) : undefined}
+                />
               )}
             </div>
           ))}

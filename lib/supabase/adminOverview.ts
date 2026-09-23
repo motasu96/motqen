@@ -143,11 +143,16 @@ export type AdminRecentStudent = {
   teacherName: string;
   joinDate: string;
   progressPercent: number | null;
-  status: "regular" | "late" | "struggling";
+  status: "regular" | "late" | "struggling" | "new";
 };
+
+const NEW_STUDENT_GRACE_DAYS = 14;
 
 // Status is derived from how recently the student last attended a lesson —
 // there's no explicit status field, so this is the honest signal we have.
+// A student with no attended lesson yet is "new" (not "struggling") for a
+// grace period after joining, since a lesson not having happened yet isn't
+// the same as falling behind.
 // limit === undefined fetches every student (used by the admin students list).
 async function fetchAdminStudents(supabase: SupabaseClient, limit?: number): Promise<AdminRecentStudent[]> {
   let query = supabase
@@ -197,10 +202,13 @@ async function fetchAdminStudents(supabase: SupabaseClient, limit?: number): Pro
     const profile = s.profiles as unknown as { full_name: string | null } | { full_name: string | null }[] | null;
     const name = Array.isArray(profile) ? profile[0]?.full_name : profile?.full_name;
     const lastAttended = lastAttendedByStudent.get(s.id as string);
-    let status: AdminRecentStudent["status"] = "struggling";
+    let status: AdminRecentStudent["status"];
     if (lastAttended) {
       const days = (now - new Date(lastAttended).getTime()) / (1000 * 60 * 60 * 24);
       status = days <= 14 ? "regular" : days <= 30 ? "late" : "struggling";
+    } else {
+      const daysSinceJoined = (now - new Date(s.created_at as string).getTime()) / (1000 * 60 * 60 * 24);
+      status = daysSinceJoined <= NEW_STUDENT_GRACE_DAYS ? "new" : "struggling";
     }
 
     let progressPercent: number | null = null;

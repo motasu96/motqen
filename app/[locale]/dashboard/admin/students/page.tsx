@@ -12,16 +12,18 @@ import { programs } from "@/data/programs";
 import { localize } from "@/lib/localize";
 import { AdminRecentStudent, listAllStudents } from "@/lib/supabase/adminOverview";
 
-const STATUS_KEYS: Record<AdminRecentStudent["status"], "personRegular" | "personLate" | "personStruggling"> = {
+const STATUS_KEYS: Record<AdminRecentStudent["status"], "personRegular" | "personLate" | "personStruggling" | "personNew"> = {
   regular: "personRegular",
   late: "personLate",
   struggling: "personStruggling",
+  new: "personNew",
 };
 
 const STATUS_STYLES: Record<AdminRecentStudent["status"], string> = {
   regular: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400",
   late: "bg-gold-light text-gold-dark",
   struggling: "bg-red-50 text-red-500 dark:bg-red-500/15 dark:text-red-400",
+  new: "bg-sky-50 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400",
 };
 
 export default function AdminStudentsPage() {

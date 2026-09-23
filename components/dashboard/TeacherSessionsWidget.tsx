@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { getMyTeacherId } from "@/lib/supabase/teacherStudents";
 import { listTeacherBookings, TeacherBooking } from "@/lib/supabase/bookings";
-import { createLesson, getLoggedBookingIds } from "@/lib/supabase/lessons";
+import { LessonRow, createLesson, listTeacherLessonsByBooking, updateLesson } from "@/lib/supabase/lessons";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
 import { useToast } from "@/components/Toast";
 import { IconCalendar, IconClock } from "@/components/icons";
@@ -13,19 +13,23 @@ import { IconCalendar, IconClock } from "@/components/icons";
 function LogLessonForm({
   booking,
   teacherId,
-  onLogged,
+  lesson,
+  onSaved,
+  onCancel,
 }: {
   booking: TeacherBooking;
   teacherId: string;
-  onLogged: (bookingId: string) => void;
+  lesson?: LessonRow;
+  onSaved: (bookingId: string, lesson: LessonRow) => void;
+  onCancel?: () => void;
 }) {
   const t = useTranslations("Dashboard.teacher");
   const { showToast } = useToast();
-  const [open, setOpen] = useState(false);
-  const [attended, setAttended] = useState(true);
-  const [surah, setSurah] = useState("");
-  const [range, setRange] = useState("");
-  const [notes, setNotes] = useState("");
+  const [open, setOpen] = useState(Boolean(lesson));
+  const [attended, setAttended] = useState(lesson?.attended ?? true);
+  const [surah, setSurah] = useState(lesson?.surah ?? "");
+  const [range, setRange] = useState(lesson?.ayah_range ?? "");
+  const [notes, setNotes] = useState(lesson?.notes ?? "");
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {
@@ -34,23 +38,28 @@ function LogLessonForm({
       return;
     }
     setSaving(true);
-    const ok = await createLesson(createClient(), {
-      bookingId: booking.id,
-      studentId: booking.studentId,
-      teacherId,
-      sessionDate: booking.date,
-      attended,
-      surah: surah.trim(),
-      ayahRange: range.trim(),
-      notes: notes.trim(),
-    });
+    const params = { attended, surah: surah.trim(), ayahRange: range.trim(), notes: notes.trim() };
+    const ok = lesson
+      ? await updateLesson(createClient(), lesson.id, params)
+      : await createLesson(createClient(), { bookingId: booking.id, studentId: booking.studentId, teacherId, sessionDate: booking.date, ...params });
     setSaving(false);
     if (!ok) {
       showToast(t("errorLessonSave"), "error");
       return;
     }
-    showToast(t("toastLessonLogged"), "success");
-    onLogged(booking.id);
+    showToast(lesson ? t("toastLessonUpdated") : t("toastLessonLogged"), "success");
+    onSaved(booking.id, {
+      id: lesson?.id ?? booking.id,
+      booking_id: booking.id,
+      student_id: booking.studentId,
+      teacher_id: teacherId,
+      session_date: booking.date,
+      attended,
+      surah: attended ? surah.trim() : null,
+      ayah_range: attended ? range.trim() : null,
+      notes: notes.trim() || null,
+      created_at: lesson?.created_at ?? new Date().toISOString(),
+    });
   }
 
   if (!open) {
@@ -108,11 +117,63 @@ function LogLessonForm({
         <button onClick={handleSave} disabled={saving} className="btn-primary px-4 py-2 text-xs disabled:opacity-70">
           {t("saveLessonCta")}
         </button>
-        <button onClick={() => setOpen(false)} className="text-xs font-bold text-ink-soft hover:text-gold-dark">
+        <button onClick={onCancel ?? (() => setOpen(false))} className="text-xs font-bold text-ink-soft hover:text-gold-dark">
           {t("cancelLessonCta")}
         </button>
       </div>
     </div>
+  );
+}
+
+function LoggedSessionRow({
+  booking,
+  teacherId,
+  lesson,
+  onSaved,
+}: {
+  booking: TeacherBooking;
+  teacherId: string;
+  lesson: LessonRow;
+  onSaved: (bookingId: string, lesson: LessonRow) => void;
+}) {
+  const t = useTranslations("Dashboard.teacher");
+  const tc = useTranslations("Dashboard.common");
+  const [editing, setEditing] = useState(false);
+
+  return (
+    <li className="flex flex-col gap-3 rounded-2xl border border-line bg-bg p-4 sm:flex-row sm:items-start sm:justify-between">
+      <div>
+        <div className="text-sm font-bold text-ink">{booking.date} — {booking.time}</div>
+        <div className="text-xs text-ink-soft">{tc("with")} {booking.studentName}</div>
+      </div>
+      {editing ? (
+        <LogLessonForm
+          booking={booking}
+          teacherId={teacherId}
+          lesson={lesson}
+          onSaved={(bookingId, l) => {
+            onSaved(bookingId, l);
+            setEditing(false);
+          }}
+          onCancel={() => setEditing(false)}
+        />
+      ) : (
+        <div className="flex items-center gap-3">
+          <span
+            className={`rounded-pill px-3 py-1 text-xs font-bold ${
+              lesson.attended
+                ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400"
+                : "bg-red-50 text-red-500 dark:bg-red-500/15 dark:text-red-400"
+            }`}
+          >
+            {lesson.attended ? t("attendedCta") : t("absentCta")}
+          </span>
+          <button onClick={() => setEditing(true)} className="text-xs font-bold text-ink-soft transition-colors hover:text-gold-dark">
+            {tc("edit")}
+          </button>
+        </div>
+      )}
+    </li>
   );
 }
 
@@ -121,7 +182,7 @@ export default function TeacherSessionsWidget({ displayName }: { displayName: st
   const tc = useTranslations("Dashboard.common");
   const [teacherId, setTeacherId] = useState<string | null>(null);
   const [bookings, setBookings] = useState<TeacherBooking[]>([]);
-  const [loggedIds, setLoggedIds] = useState<Set<string>>(new Set());
+  const [lessonsByBooking, setLessonsByBooking] = useState<Map<string, LessonRow>>(new Map());
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -144,11 +205,11 @@ export default function TeacherSessionsWidget({ displayName }: { displayName: st
         setReady(true);
         return;
       }
-      const [rows, logged] = await Promise.all([listTeacherBookings(supabase, tId), getLoggedBookingIds(supabase, tId)]);
+      const [rows, lessons] = await Promise.all([listTeacherBookings(supabase, tId), listTeacherLessonsByBooking(supabase, tId)]);
       if (cancelled) return;
       setTeacherId(tId);
       setBookings(rows);
-      setLoggedIds(logged);
+      setLessonsByBooking(lessons);
       setReady(true);
     })();
     return () => {
@@ -160,10 +221,12 @@ export default function TeacherSessionsWidget({ displayName }: { displayName: st
 
   const today = new Date().toISOString().slice(0, 10);
   const upcoming = bookings.filter((b) => b.date >= today);
-  const needsLogging = bookings.filter((b) => b.date < today && !loggedIds.has(b.id));
+  const past = bookings.filter((b) => b.date < today);
+  const needsLogging = past.filter((b) => !lessonsByBooking.has(b.id));
+  const loggedSessions = past.filter((b) => lessonsByBooking.has(b.id));
 
-  function handleLogged(bookingId: string) {
-    setLoggedIds((prev) => new Set(prev).add(bookingId));
+  function handleSaved(bookingId: string, lesson: LessonRow) {
+    setLessonsByBooking((prev) => new Map(prev).set(bookingId, lesson));
   }
 
   return (
@@ -208,8 +271,28 @@ export default function TeacherSessionsWidget({ displayName }: { displayName: st
                   <div className="text-sm font-bold text-ink">{b.date} — {b.time}</div>
                   <div className="text-xs text-ink-soft">{tc("with")} {b.studentName}</div>
                 </div>
-                <LogLessonForm booking={b} teacherId={teacherId} onLogged={handleLogged} />
+                <LogLessonForm booking={b} teacherId={teacherId} onSaved={handleSaved} />
               </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {loggedSessions.length > 0 && (
+        <div className="card flex flex-col gap-4 p-6">
+          <h3 className="flex items-center gap-2 text-base font-extrabold text-ink">
+            <IconClock className="h-5 w-5 text-gold-dark" />
+            {t("loggedSessionsTitle")}
+          </h3>
+          <ul className="flex flex-col gap-3">
+            {loggedSessions.map((b) => (
+              <LoggedSessionRow
+                key={b.id}
+                booking={b}
+                teacherId={teacherId}
+                lesson={lessonsByBooking.get(b.id)!}
+                onSaved={handleSaved}
+              />
             ))}
           </ul>
         </div>

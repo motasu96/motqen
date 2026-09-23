@@ -25,15 +25,17 @@ import {
   TeacherApplication,
 } from "@/lib/supabase/teacherApplications";
 
-const STATUS_KEYS: Record<AdminRecentStudent["status"], "personRegular" | "personLate" | "personStruggling"> = {
+const STATUS_KEYS: Record<AdminRecentStudent["status"], "personRegular" | "personLate" | "personStruggling" | "personNew"> = {
   regular: "personRegular",
   late: "personLate",
   struggling: "personStruggling",
+  new: "personNew",
 };
 
 const STATUS_STYLES: Record<AdminRecentStudent["status"], string> = {
   regular: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400",
   late: "bg-gold-light text-gold-dark",
+  new: "bg-sky-50 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400",
   struggling: "bg-red-50 text-red-500 dark:bg-red-500/15 dark:text-red-400",
 };
 
