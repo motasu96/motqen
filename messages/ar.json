@@ -846,6 +846,9 @@
       "certFieldTeacher": "المعلم",
       "certFieldAchievement": "الإنجاز",
       "certAchievementPlaceholder": "مثال: إتمام حفظ الجزء الثلاثين",
+      "certFieldGradePercent": "المعدل (%)",
+      "certFieldGradeLabel": "التقدير",
+      "selectGradeLabelPlaceholder": "اختر التقدير",
       "certFieldDate": "تاريخ الإصدار",
       "issueCertificateCta": "إصدار الشهادة",
       "issuingCertificate": "جارٍ الإصدار...",
@@ -1075,6 +1078,12 @@
     "viewTitle": "الشهادة",
     "downloadCta": "تحميل الشهادة",
     "labelTeacher": "المعلم:",
-    "labelIssuedBy": "المدير:"
+    "labelIssuedBy": "المدير:",
+    "labelGrade": "المعدل:",
+    "gradeExcellentHigh": "ممتاز مرتفع",
+    "gradeExcellent": "ممتاز",
+    "gradeVeryGood": "جيد جدًا",
+    "gradeGood": "جيد",
+    "gradePass": "مقبول"
   }
 }

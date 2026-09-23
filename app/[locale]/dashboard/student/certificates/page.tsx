@@ -8,7 +8,7 @@ import { useStudentNav } from "@/components/dashboard/studentNav";
 import { useStudentLogout } from "@/lib/supabase/useStudentLogout";
 import { useStudentProfile } from "@/lib/supabase/useStudentProfile";
 import { createClient } from "@/lib/supabase/client";
-import { CertificateRow, listMyCertificates } from "@/lib/supabase/certificates";
+import { CertificateRow, GRADE_LABEL_TRANSLATION_KEYS, listMyCertificates } from "@/lib/supabase/certificates";
 import CertificateView from "@/components/CertificateView";
 import { IconAward } from "@/components/icons";
 
@@ -18,6 +18,7 @@ export default function StudentCertificatesPage() {
   const { name: studentName, title: studentTitle } = useStudentProfile();
   const t = useTranslations("Dashboard.student");
   const tc = useTranslations("Dashboard.common");
+  const tCert = useTranslations("Certificates");
 
   const [certificates, setCertificates] = useState<CertificateRow[]>([]);
   const [ready, setReady] = useState(false);
@@ -67,6 +68,9 @@ export default function StudentCertificatesPage() {
               <div>
                 <div className="text-sm font-extrabold text-ink">{c.achievement}</div>
                 <div className="mt-1 text-xs text-ink-soft">
+                  {c.grade_label ? `${tCert(GRADE_LABEL_TRANSLATION_KEYS[c.grade_label])}` : ""}
+                  {c.grade_percent != null ? ` (${c.grade_percent}%)` : ""}
+                  {c.grade_label || c.grade_percent != null ? " · " : ""}
                   {tc("with")} {c.teacher_name} · {c.issued_at}
                 </div>
               </div>

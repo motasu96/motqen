@@ -846,6 +846,9 @@
       "certFieldTeacher": "Teacher",
       "certFieldAchievement": "Achievement",
       "certAchievementPlaceholder": "e.g. Completed memorizing Juz 30",
+      "certFieldGradePercent": "Score (%)",
+      "certFieldGradeLabel": "Grade",
+      "selectGradeLabelPlaceholder": "Select a grade",
       "certFieldDate": "Issue date",
       "issueCertificateCta": "Issue Certificate",
       "issuingCertificate": "Issuing...",
@@ -1075,6 +1078,12 @@
     "viewTitle": "Certificate",
     "downloadCta": "Download Certificate",
     "labelTeacher": "Teacher:",
-    "labelIssuedBy": "Director:"
+    "labelIssuedBy": "Director:",
+    "labelGrade": "Score:",
+    "gradeExcellentHigh": "Excellent (High)",
+    "gradeExcellent": "Excellent",
+    "gradeVeryGood": "Very Good",
+    "gradeGood": "Good",
+    "gradePass": "Pass"
   }
 }

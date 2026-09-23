@@ -10,6 +10,9 @@ import { useAdminProfile } from "@/lib/supabase/useAdminProfile";
 import { createClient } from "@/lib/supabase/client";
 import {
   CertificateRow,
+  GRADE_LABELS,
+  GRADE_LABEL_TRANSLATION_KEYS,
+  GradeLabel,
   StudentForCertificate,
   deleteCertificate,
   issueCertificate,
@@ -30,6 +33,7 @@ export default function AdminCertificatesPage() {
   const { name: adminName, title: adminTitle } = useAdminProfile();
   const t = useTranslations("Dashboard.admin");
   const tc = useTranslations("Dashboard.common");
+  const tCert = useTranslations("Certificates");
   const { showToast } = useToast();
 
   const [adminId, setAdminId] = useState<string | null>(null);
@@ -41,6 +45,8 @@ export default function AdminCertificatesPage() {
 
   const [studentId, setStudentId] = useState("");
   const [achievement, setAchievement] = useState("");
+  const [gradePercent, setGradePercent] = useState("");
+  const [gradeLabel, setGradeLabel] = useState<GradeLabel | "">("");
   const [issuedAt, setIssuedAt] = useState(todayIso());
   const [issuing, setIssuing] = useState(false);
 
@@ -100,6 +106,8 @@ export default function AdminCertificatesPage() {
       issuedBy: adminId,
       issuedByName: (profile?.full_name as string | null) || adminName,
       achievement: achievement.trim(),
+      gradePercent: gradePercent.trim() ? Number(gradePercent) : null,
+      gradeLabel: gradeLabel || null,
       issuedAt,
     });
     setIssuing(false);
@@ -110,6 +118,8 @@ export default function AdminCertificatesPage() {
     showToast(t("toastCertificateIssued"), "success");
     setStudentId("");
     setAchievement("");
+    setGradePercent("");
+    setGradeLabel("");
     setIssuedAt(todayIso());
     await load();
   }
@@ -159,9 +169,33 @@ export default function AdminCertificatesPage() {
             />
           </div>
 
-          <div className="flex flex-col gap-2 sm:w-56">
-            <label className="text-xs font-bold text-ink-soft">{t("certFieldDate")}</label>
-            <input type="date" value={issuedAt} onChange={(e) => setIssuedAt(e.target.value)} className="input" />
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-ink-soft">{t("certFieldGradePercent")}</label>
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={gradePercent}
+                onChange={(e) => setGradePercent(e.target.value)}
+                className="input"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-ink-soft">{t("certFieldGradeLabel")}</label>
+              <select value={gradeLabel} onChange={(e) => setGradeLabel(e.target.value as GradeLabel | "")} className="input">
+                <option value="">{t("selectGradeLabelPlaceholder")}</option>
+                {GRADE_LABELS.map((g) => (
+                  <option key={g} value={g}>
+                    {tCert(GRADE_LABEL_TRANSLATION_KEYS[g])}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-ink-soft">{t("certFieldDate")}</label>
+              <input type="date" value={issuedAt} onChange={(e) => setIssuedAt(e.target.value)} className="input" />
+            </div>
           </div>
 
           <button onClick={handleIssue} disabled={issuing} className="btn-primary w-fit disabled:opacity-70">
@@ -186,7 +220,9 @@ export default function AdminCertificatesPage() {
                 <div>
                   <div className="text-sm font-bold text-ink">{c.student_name}</div>
                   <div className="text-xs text-ink-soft">
-                    {c.achievement} · {tc("with")} {c.teacher_name} · {c.issued_at}
+                    {c.achievement}
+                    {c.grade_label ? ` · ${tCert(GRADE_LABEL_TRANSLATION_KEYS[c.grade_label])}` : ""}
+                    {c.grade_percent != null ? ` (${c.grade_percent}%)` : ""} · {tc("with")} {c.teacher_name} · {c.issued_at}
                   </div>
                 </div>
               </div>

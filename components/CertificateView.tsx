@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { CertificateRow } from "@/lib/supabase/certificates";
+import { CertificateRow, GRADE_LABEL_TRANSLATION_KEYS } from "@/lib/supabase/certificates";
 import { IconX } from "@/components/icons";
 
 // Certificate template rendering. Until the final design (provided by the
@@ -17,10 +17,18 @@ const CANVAS_HEIGHT = 1131;
 const FIELD_POSITIONS = {
   studentName: { x: CANVAS_WIDTH / 2, y: 500, fontSize: 60, weight: "bold", color: "#8a6d1f" },
   achievement: { x: CANVAS_WIDTH / 2, y: 610, fontSize: 34, weight: "normal", color: "#3a2f22" },
+  grade: { x: CANVAS_WIDTH / 2, y: 660, fontSize: 28, weight: "bold", color: "#8a6d1f" },
   teacherName: { x: CANVAS_WIDTH * 0.72, y: 960, fontSize: 26, weight: "normal", color: "#3a2f22" },
   issuedByName: { x: CANVAS_WIDTH * 0.28, y: 960, fontSize: 26, weight: "normal", color: "#3a2f22" },
   issuedAt: { x: CANVAS_WIDTH / 2, y: 1040, fontSize: 22, weight: "normal", color: "#6b5c46" },
 };
+
+function formatGrade(cert: CertificateRow, tCert: (key: string) => string) {
+  const label = cert.grade_label ? tCert(GRADE_LABEL_TRANSLATION_KEYS[cert.grade_label]) : null;
+  const percent = cert.grade_percent != null ? `${cert.grade_percent}%` : null;
+  if (!label && !percent) return null;
+  return [percent, label].filter(Boolean).join(" — ");
+}
 
 function drawText(ctx: CanvasRenderingContext2D, cert: CertificateRow, tCert: (key: string) => string) {
   ctx.direction = "rtl";
@@ -34,6 +42,8 @@ function drawText(ctx: CanvasRenderingContext2D, cert: CertificateRow, tCert: (k
 
   draw(cert.student_name, FIELD_POSITIONS.studentName);
   draw(cert.achievement, FIELD_POSITIONS.achievement);
+  const grade = formatGrade(cert, tCert);
+  if (grade) draw(`${tCert("labelGrade")} ${grade}`, FIELD_POSITIONS.grade);
   draw(`${tCert("labelTeacher")} ${cert.teacher_name}`, FIELD_POSITIONS.teacherName);
   draw(`${tCert("labelIssuedBy")} ${cert.issued_by_name}`, FIELD_POSITIONS.issuedByName);
   draw(cert.issued_at, FIELD_POSITIONS.issuedAt);

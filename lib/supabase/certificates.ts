@@ -1,5 +1,18 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 
+// Fixed grade-label scale (a dropdown, not free text, to keep certificates
+// consistent). Stored as this canonical key; translated for display.
+export const GRADE_LABELS = ["excellent_high", "excellent", "very_good", "good", "pass"] as const;
+export type GradeLabel = (typeof GRADE_LABELS)[number];
+
+export const GRADE_LABEL_TRANSLATION_KEYS: Record<GradeLabel, string> = {
+  excellent_high: "gradeExcellentHigh",
+  excellent: "gradeExcellent",
+  very_good: "gradeVeryGood",
+  good: "gradeGood",
+  pass: "gradePass",
+};
+
 export type CertificateRow = {
   id: string;
   student_id: string;
@@ -9,6 +22,8 @@ export type CertificateRow = {
   issued_by: string | null;
   issued_by_name: string;
   achievement: string;
+  grade_percent: number | null;
+  grade_label: GradeLabel | null;
   issued_at: string;
   created_at: string;
 };
@@ -69,6 +84,8 @@ export async function issueCertificate(
     issuedBy: string;
     issuedByName: string;
     achievement: string;
+    gradePercent: number | null;
+    gradeLabel: GradeLabel | null;
     issuedAt: string;
   }
 ): Promise<boolean> {
@@ -80,6 +97,8 @@ export async function issueCertificate(
     issued_by: params.issuedBy,
     issued_by_name: params.issuedByName,
     achievement: params.achievement,
+    grade_percent: params.gradePercent,
+    grade_label: params.gradeLabel,
     issued_at: params.issuedAt,
   });
   return !error;
