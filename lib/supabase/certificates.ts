@@ -31,6 +31,7 @@ export type CertificateRow = {
   program_slug: string | null;
   narration: string;
   juz_count: number | null;
+  juz_names: string | null;
   grade_percent: number | null;
   grade_label: GradeLabel | null;
   issued_at: string;
@@ -38,12 +39,13 @@ export type CertificateRow = {
 };
 
 // The public-verification-safe subset (what the `anon` role's column
-// grant actually allows reading) — see migration 0020.
+// grant actually allows reading) — see migrations 0020 and 0021.
 export type PublicCertificate = {
   certificate_number: string;
   student_name: string;
   scope: CertScope;
   juz_count: number | null;
+  juz_names: string | null;
   program_slug: string | null;
   narration: string;
   issued_at: string;
@@ -114,6 +116,7 @@ export async function issueCertificate(
     programSlug: string | null;
     narration: string;
     juzCount: number | null;
+    juzNames: string | null;
     gradePercent: number | null;
     gradeLabel: GradeLabel | null;
     issuedAt: string;
@@ -132,6 +135,7 @@ export async function issueCertificate(
     program_slug: params.programSlug,
     narration: params.narration,
     juz_count: params.juzCount,
+    juz_names: params.juzNames,
     grade_percent: params.gradePercent,
     grade_label: params.gradeLabel,
     issued_at: params.issuedAt,
@@ -164,7 +168,7 @@ export async function deleteCertificate(supabase: SupabaseClient, id: string): P
 export async function verifyCertificate(supabase: SupabaseClient, certificateNumber: string): Promise<PublicCertificate | null> {
   const { data } = await supabase
     .from("certificates")
-    .select("certificate_number, student_name, scope, juz_count, program_slug, narration, issued_at")
+    .select("certificate_number, student_name, scope, juz_count, juz_names, program_slug, narration, issued_at")
     .eq("certificate_number", certificateNumber)
     .maybeSingle();
   return (data as PublicCertificate | null) ?? null;

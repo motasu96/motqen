@@ -51,6 +51,7 @@ export default function AdminCertificatesPage() {
   const [studentId, setStudentId] = useState("");
   const [scope, setScope] = useState<CertScope>("parts");
   const [juzCount, setJuzCount] = useState("10");
+  const [juzNames, setJuzNames] = useState("");
   const [programSlug, setProgramSlug] = useState(programs[0]?.slug ?? "");
   const [narration, setNarration] = useState("حفص عن عاصم");
   const [gradePercent, setGradePercent] = useState("");
@@ -119,6 +120,7 @@ export default function AdminCertificatesPage() {
       programSlug: programSlug || null,
       narration: narration.trim() || "حفص عن عاصم",
       juzCount: scope === "parts" ? Number(juzCount) : null,
+      juzNames: scope === "parts" && juzNames.trim() ? juzNames.trim() : null,
       gradePercent: gradePercent.trim() ? Number(gradePercent) : null,
       gradeLabel: gradeLabel || null,
       issuedAt,
@@ -132,6 +134,7 @@ export default function AdminCertificatesPage() {
     setStudentId("");
     setScope("parts");
     setJuzCount("10");
+    setJuzNames("");
     setNarration("حفص عن عاصم");
     setGradePercent("");
     setGradeLabel("");
@@ -209,6 +212,19 @@ export default function AdminCertificatesPage() {
               </select>
             </div>
           </div>
+
+          {scope === "parts" && (
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-ink-soft">{t("certFieldJuzNames")}</label>
+              <textarea
+                value={juzNames}
+                onChange={(e) => setJuzNames(e.target.value)}
+                placeholder={t("certFieldJuzNamesPlaceholder")}
+                rows={2}
+                className="input resize-none"
+              />
+            </div>
+          )}
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">

@@ -135,6 +135,15 @@ export default function CertificateTemplate({
           </div>
         </div>
 
+        {cert.juz_names && (
+          <div style={{ marginTop: 10, maxWidth: 780, fontSize: 14, color: SUBTLE, lineHeight: 1.6 }}>
+            <span style={{ color: MUTED, fontWeight: 600 }}>
+              الأجزاء المحفوظة · <span dir="ltr">Memorized Juz&apos;</span>:{" "}
+            </span>
+            {cert.juz_names}
+          </div>
+        )}
+
         <div style={{ marginTop: 14, fontFamily: "var(--font-amiri), serif", fontSize: 18, color: GOLD }}>
           «خيركم من تعلّم القرآن وعلّمه» <span style={{ fontSize: 14, color: MUTED }}>رواه البخاري</span>
         </div>

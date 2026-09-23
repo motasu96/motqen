@@ -66,6 +66,12 @@ export default async function VerifyCertificatePage({
                 </div>
                 <div className="text-xs text-ink-soft">{cert.narration}</div>
               </div>
+              {cert.juz_names && (
+                <div>
+                  <div className="text-xs text-ink-soft">{t("labelJuzNames")}</div>
+                  <div className="text-sm font-bold text-ink">{cert.juz_names}</div>
+                </div>
+              )}
               {programTitle && (
                 <div>
                   <div className="text-xs text-ink-soft">{t("labelProgram")}</div>
