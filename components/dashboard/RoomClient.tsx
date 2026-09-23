@@ -60,6 +60,7 @@ export default function RoomClient({
       });
       api.executeCommand("subject", subject);
       api.addEventListener("readyToClose", () => router.back());
+      api.addEventListener("videoConferenceLeft", () => router.back());
       if (enableLobby) {
         api.addEventListener("videoConferenceJoined", () => {
           api.executeCommand("toggleLobby", true);
