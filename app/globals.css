@@ -146,7 +146,16 @@
 }
 
 .animate-page-in {
-  animation: page-in 0.35s ease-out both;
+  /* No "forwards"/"both" fill-mode: this wraps every page's content, so
+     persisting the "to" keyframe's transform (even an identity
+     translateY(0), which still resolves to a real matrix()) makes this
+     element a containing block for every position:fixed descendant —
+     silently breaking full-screen modals anywhere on the page (their
+     inset-0 resolves against this wrapper's own content height instead
+     of the viewport). Opacity doesn't need forcing after the animation
+     ends either, since the element's own cascaded opacity is already 1.
+  */
+  animation: page-in 0.35s ease-out;
 }
 .animate-toast-in {
   animation: toast-in 0.25s ease-out both;

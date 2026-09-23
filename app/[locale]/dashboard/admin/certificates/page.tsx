@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { useAdminNav } from "@/components/dashboard/adminNav";
@@ -10,6 +10,7 @@ import { useAdminProfile } from "@/lib/supabase/useAdminProfile";
 import { createClient } from "@/lib/supabase/client";
 import {
   CertificateRow,
+  CertScope,
   GRADE_LABELS,
   GRADE_LABEL_TRANSLATION_KEYS,
   GradeLabel,
@@ -19,6 +20,9 @@ import {
   listAllCertificates,
   listStudentsForCertificates,
 } from "@/lib/supabase/certificates";
+import { amountShort, certificateTitle } from "@/lib/certificateFormat";
+import { programs } from "@/data/programs";
+import { localize } from "@/lib/localize";
 import CertificateView from "@/components/CertificateView";
 import { useToast } from "@/components/Toast";
 import { IconAward, IconEye } from "@/components/icons";
@@ -31,6 +35,7 @@ export default function AdminCertificatesPage() {
   const adminNav = useAdminNav();
   const handleLogout = useAdminLogout();
   const { name: adminName, title: adminTitle } = useAdminProfile();
+  const locale = useLocale();
   const t = useTranslations("Dashboard.admin");
   const tc = useTranslations("Dashboard.common");
   const tCert = useTranslations("Certificates");
@@ -44,7 +49,10 @@ export default function AdminCertificatesPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [studentId, setStudentId] = useState("");
-  const [achievement, setAchievement] = useState("");
+  const [scope, setScope] = useState<CertScope>("parts");
+  const [juzCount, setJuzCount] = useState("10");
+  const [programSlug, setProgramSlug] = useState(programs[0]?.slug ?? "");
+  const [narration, setNarration] = useState("حفص عن عاصم");
   const [gradePercent, setGradePercent] = useState("");
   const [gradeLabel, setGradeLabel] = useState<GradeLabel | "">("");
   const [issuedAt, setIssuedAt] = useState(todayIso());
@@ -87,7 +95,7 @@ export default function AdminCertificatesPage() {
   const selectedStudent = students.find((s) => s.studentId === studentId) ?? null;
 
   async function handleIssue() {
-    if (!adminId || !selectedStudent || !achievement.trim() || !issuedAt) {
+    if (!adminId || !selectedStudent || !issuedAt || (scope === "parts" && !juzCount.trim())) {
       showToast(t("errorCertificateFields"), "error");
       return;
     }
@@ -101,11 +109,16 @@ export default function AdminCertificatesPage() {
     const ok = await issueCertificate(supabase, {
       studentId: selectedStudent.studentId,
       studentName: selectedStudent.studentName,
+      studentGender: selectedStudent.studentGender,
       teacherId: selectedStudent.teacherId,
       teacherName: selectedStudent.teacherName,
+      teacherGender: selectedStudent.teacherGender,
       issuedBy: adminId,
       issuedByName: (profile?.full_name as string | null) || adminName,
-      achievement: achievement.trim(),
+      scope,
+      programSlug: programSlug || null,
+      narration: narration.trim() || "حفص عن عاصم",
+      juzCount: scope === "parts" ? Number(juzCount) : null,
       gradePercent: gradePercent.trim() ? Number(gradePercent) : null,
       gradeLabel: gradeLabel || null,
       issuedAt,
@@ -117,7 +130,9 @@ export default function AdminCertificatesPage() {
     }
     showToast(t("toastCertificateIssued"), "success");
     setStudentId("");
-    setAchievement("");
+    setScope("parts");
+    setJuzCount("10");
+    setNarration("حفص عن عاصم");
     setGradePercent("");
     setGradeLabel("");
     setIssuedAt(todayIso());
@@ -159,17 +174,54 @@ export default function AdminCertificatesPage() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-bold text-ink-soft">{t("certFieldAchievement")}</label>
-            <input
-              value={achievement}
-              onChange={(e) => setAchievement(e.target.value)}
-              placeholder={t("certAchievementPlaceholder")}
-              className="input"
-            />
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-ink-soft">{t("certFieldScope")}</label>
+              <select value={scope} onChange={(e) => setScope(e.target.value as CertScope)} className="input">
+                <option value="parts">{t("scopeParts")}</option>
+                <option value="khatm">{t("scopeKhatm")}</option>
+              </select>
+            </div>
+            {scope === "parts" && (
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-ink-soft">{t("certFieldJuzCount")}</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={30}
+                  value={juzCount}
+                  onChange={(e) => setJuzCount(e.target.value)}
+                  className="input"
+                />
+              </div>
+            )}
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-ink-soft">{t("certFieldProgram")}</label>
+              <select value={programSlug} onChange={(e) => setProgramSlug(e.target.value)} className="input">
+                {programs.map((p0) => {
+                  const p = localize(p0, locale);
+                  return (
+                    <option key={p.slug} value={p.slug}>
+                      {p.title}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-ink-soft">{t("certFieldNarration")}</label>
+              <input value={narration} onChange={(e) => setNarration(e.target.value)} className="input" />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-ink-soft">{t("certFieldDate")}</label>
+              <input type="date" value={issuedAt} onChange={(e) => setIssuedAt(e.target.value)} className="input" />
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-ink-soft">{t("certFieldGradePercent")}</label>
               <input
@@ -191,10 +243,6 @@ export default function AdminCertificatesPage() {
                   </option>
                 ))}
               </select>
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-ink-soft">{t("certFieldDate")}</label>
-              <input type="date" value={issuedAt} onChange={(e) => setIssuedAt(e.target.value)} className="input" />
             </div>
           </div>
 
@@ -220,7 +268,7 @@ export default function AdminCertificatesPage() {
                 <div>
                   <div className="text-sm font-bold text-ink">{c.student_name}</div>
                   <div className="text-xs text-ink-soft">
-                    {c.achievement}
+                    {certificateTitle(c.scope, locale)} — {amountShort(c.scope, c.juz_count, locale)}
                     {c.grade_label ? ` · ${tCert(GRADE_LABEL_TRANSLATION_KEYS[c.grade_label])}` : ""}
                     {c.grade_percent != null ? ` (${c.grade_percent}%)` : ""} · {tc("with")} {c.teacher_name} · {c.issued_at}
                   </div>
