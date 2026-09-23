@@ -196,7 +196,14 @@ export default function CertificateTemplate({
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-            <div style={{ height: 38 }} />
+            <div style={{ height: 38, display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/director-signature.png"
+                alt=""
+                style={{ height: 40, width: "auto", objectFit: "contain", mixBlendMode: "multiply" }}
+              />
+            </div>
             <div style={{ width: "100%", height: 1, background: INK }} />
             <div style={{ fontSize: 13, color: MUTED }}>
               مدير المقرأة · <span dir="ltr">Director</span>
