@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import { IconVideo } from "@/components/icons";
 import { useToast } from "@/components/Toast";
 
@@ -22,8 +22,9 @@ export default function JoinMeetingButton({
 }) {
   const { showToast } = useToast();
   const t = useTranslations("Dashboard.common");
+  const pathname = usePathname();
 
-  const params = new URLSearchParams({ name: displayName, subject });
+  const params = new URLSearchParams({ name: displayName, subject, return: pathname });
   if (lobby) params.set("lobby", "1");
   const href = `/dashboard/room/${encodeURIComponent(room)}?${params.toString()}`;
 

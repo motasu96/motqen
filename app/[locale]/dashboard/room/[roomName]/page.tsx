@@ -20,10 +20,10 @@ export default async function RoomPage({
   searchParams,
 }: {
   params: Promise<{ roomName: string; locale: string }>;
-  searchParams: Promise<{ name?: string; subject?: string; lobby?: string }>;
+  searchParams: Promise<{ name?: string; subject?: string; lobby?: string; return?: string }>;
 }) {
   const { roomName, locale } = await params;
-  const { name, subject, lobby } = await searchParams;
+  const { name, subject, lobby, return: returnTo } = await searchParams;
   const t = await getTranslations({ locale, namespace: "Dashboard.common" });
 
   return (
@@ -32,6 +32,7 @@ export default async function RoomPage({
       displayName={name || t("guest")}
       subject={subject || t("defaultSessionSubject")}
       enableLobby={lobby === "1"}
+      returnTo={returnTo}
     />
   );
 }

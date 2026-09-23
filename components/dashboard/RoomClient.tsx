@@ -30,17 +30,28 @@ export default function RoomClient({
   displayName,
   subject,
   enableLobby,
+  returnTo,
 }: {
   room: string;
   displayName: string;
   subject: string;
   enableLobby?: boolean;
+  returnTo?: string;
 }) {
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations("Dashboard.common");
   const containerRef = useRef<HTMLDivElement>(null);
   const apiRef = useRef<JitsiMeetAPI | null>(null);
+
+  // router.back() depends on this tab's history actually having a prior
+  // in-app entry (a direct link, refresh, or new-tab open leaves it stuck
+  // with nowhere to go, which is why leaving could silently do nothing).
+  // Prefer navigating to the known page the user joined from.
+  function leave() {
+    if (returnTo) router.push(returnTo);
+    else router.back();
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -59,8 +70,8 @@ export default function RoomClient({
         interfaceConfigOverwrite: { SHOW_JITSI_WATERMARK: false, SHOW_WATERMARK_FOR_GUESTS: false, MOBILE_APP_PROMO: false },
       });
       api.executeCommand("subject", subject);
-      api.addEventListener("readyToClose", () => router.back());
-      api.addEventListener("videoConferenceLeft", () => router.back());
+      api.addEventListener("readyToClose", () => leave());
+      api.addEventListener("videoConferenceLeft", () => leave());
       if (enableLobby) {
         api.addEventListener("videoConferenceJoined", () => {
           api.executeCommand("toggleLobby", true);
@@ -86,7 +97,7 @@ export default function RoomClient({
       apiRef.current?.dispose();
       apiRef.current = null;
     };
-  }, [room, displayName, subject, enableLobby, router, locale]);
+  }, [room, displayName, subject, enableLobby, router, locale, returnTo]);
 
   return (
     <>
@@ -102,7 +113,7 @@ export default function RoomClient({
             )}
           </div>
           <button
-            onClick={() => router.back()}
+            onClick={leave}
             className="flex items-center gap-2 rounded-pill bg-white/10 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-white/20"
           >
             <IconX className="h-4 w-4" aria-hidden="true" />
