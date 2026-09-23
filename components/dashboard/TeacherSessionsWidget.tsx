@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { getMyTeacherId } from "@/lib/supabase/teacherStudents";
@@ -14,18 +15,20 @@ function LogLessonForm({
   booking,
   teacherId,
   lesson,
+  autoOpen,
   onSaved,
   onCancel,
 }: {
   booking: TeacherBooking;
   teacherId: string;
   lesson?: LessonRow;
+  autoOpen?: boolean;
   onSaved: (bookingId: string, lesson: LessonRow) => void;
   onCancel?: () => void;
 }) {
   const t = useTranslations("Dashboard.teacher");
   const { showToast } = useToast();
-  const [open, setOpen] = useState(Boolean(lesson));
+  const [open, setOpen] = useState(Boolean(lesson) || Boolean(autoOpen));
   const [attended, setAttended] = useState(lesson?.attended ?? true);
   const [surah, setSurah] = useState(lesson?.surah ?? "");
   const [range, setRange] = useState(lesson?.ayah_range ?? "");
@@ -129,16 +132,18 @@ function LoggedSessionRow({
   booking,
   teacherId,
   lesson,
+  autoOpen,
   onSaved,
 }: {
   booking: TeacherBooking;
   teacherId: string;
   lesson: LessonRow;
+  autoOpen?: boolean;
   onSaved: (bookingId: string, lesson: LessonRow) => void;
 }) {
   const t = useTranslations("Dashboard.teacher");
   const tc = useTranslations("Dashboard.common");
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(Boolean(autoOpen));
 
   return (
     <li className="flex flex-col gap-3 rounded-2xl border border-line bg-bg p-4 sm:flex-row sm:items-start sm:justify-between">
@@ -180,6 +185,8 @@ function LoggedSessionRow({
 export default function TeacherSessionsWidget({ displayName }: { displayName: string }) {
   const t = useTranslations("Dashboard.teacher");
   const tc = useTranslations("Dashboard.common");
+  const searchParams = useSearchParams();
+  const openLogId = searchParams.get("openLog");
   const [teacherId, setTeacherId] = useState<string | null>(null);
   const [bookings, setBookings] = useState<TeacherBooking[]>([]);
   const [lessonsByBooking, setLessonsByBooking] = useState<Map<string, LessonRow>>(new Map());
@@ -220,8 +227,11 @@ export default function TeacherSessionsWidget({ displayName }: { displayName: st
   if (!ready || !teacherId) return null;
 
   const today = new Date().toISOString().slice(0, 10);
-  const upcoming = bookings.filter((b) => b.date >= today);
-  const past = bookings.filter((b) => b.date < today);
+  // A booking the teacher just left via "log on leave" belongs here
+  // immediately, even if it's still technically "today" by date alone.
+  const isPast = (b: TeacherBooking) => b.date < today || b.id === openLogId;
+  const upcoming = bookings.filter((b) => !isPast(b));
+  const past = bookings.filter(isPast);
   const needsLogging = past.filter((b) => !lessonsByBooking.has(b.id));
   const loggedSessions = past.filter((b) => lessonsByBooking.has(b.id));
 
@@ -251,7 +261,7 @@ export default function TeacherSessionsWidget({ displayName }: { displayName: st
                     <div className="text-xs text-ink-soft">{tc("with")} {b.studentName}</div>
                   </div>
                 </div>
-                <JoinMeetingButton room={b.id} displayName={displayName} subject={t("sessionSubject")} label={t("startSessionCta")} />
+                <JoinMeetingButton room={b.id} displayName={displayName} subject={t("sessionSubject")} label={t("startSessionCta")} logOnLeave />
               </li>
             ))}
           </ul>
@@ -271,7 +281,7 @@ export default function TeacherSessionsWidget({ displayName }: { displayName: st
                   <div className="text-sm font-bold text-ink">{b.date} — {b.time}</div>
                   <div className="text-xs text-ink-soft">{tc("with")} {b.studentName}</div>
                 </div>
-                <LogLessonForm booking={b} teacherId={teacherId} onSaved={handleSaved} />
+                <LogLessonForm booking={b} teacherId={teacherId} autoOpen={b.id === openLogId} onSaved={handleSaved} />
               </li>
             ))}
           </ul>
@@ -291,6 +301,7 @@ export default function TeacherSessionsWidget({ displayName }: { displayName: st
                 booking={b}
                 teacherId={teacherId}
                 lesson={lessonsByBooking.get(b.id)!}
+                autoOpen={b.id === openLogId}
                 onSaved={handleSaved}
               />
             ))}

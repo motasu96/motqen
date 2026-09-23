@@ -12,6 +12,7 @@ export default function JoinMeetingButton({
   label,
   className = "",
   lobby = false,
+  logOnLeave = false,
 }: {
   room: string;
   displayName: string;
@@ -19,6 +20,10 @@ export default function JoinMeetingButton({
   label?: string;
   className?: string;
   lobby?: boolean;
+  // When true, leaving the room returns to this page with ?openLog=<room>
+  // so it can auto-open the matching "log this session" form. Only
+  // meaningful for teacher-initiated joins of a real booking/group room.
+  logOnLeave?: boolean;
 }) {
   const { showToast } = useToast();
   const t = useTranslations("Dashboard.common");
@@ -26,6 +31,7 @@ export default function JoinMeetingButton({
 
   const params = new URLSearchParams({ name: displayName, subject, return: pathname });
   if (lobby) params.set("lobby", "1");
+  if (logOnLeave) params.set("log", "1");
   const href = `/dashboard/room/${encodeURIComponent(room)}?${params.toString()}`;
 
   return (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
@@ -10,6 +11,12 @@ import { useTeacherProfile } from "@/lib/supabase/useTeacherProfile";
 import { createClient } from "@/lib/supabase/client";
 import { getMyTeacherId } from "@/lib/supabase/teacherStudents";
 import { createGroup, deleteGroup, GroupWithMembers, listTeacherGroups } from "@/lib/supabase/groups";
+import {
+  getGroupAttendanceForDate,
+  listGroupAttendanceDates,
+  saveGroupAttendance,
+  StudentAttendance,
+} from "@/lib/supabase/groupAttendance";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
 import { useToast } from "@/components/Toast";
 import { programs } from "@/data/programs";
@@ -22,6 +29,160 @@ function emptyForm(defaultTime: string): FormState {
   return { title: "", titleEn: "", programSlug: programs[0]?.slug ?? "", dayOfWeek: 0, sessionTime: defaultTime, capacity: "6" };
 }
 
+function GroupAttendancePanel({ group, teacherId, onClose }: { group: GroupWithMembers; teacherId: string; onClose: () => void }) {
+  const t = useTranslations("Dashboard.teacher");
+  const tc = useTranslations("Dashboard.common");
+  const { showToast } = useToast();
+  const todayIso = new Date().toISOString().slice(0, 10);
+
+  const [sessionDate, setSessionDate] = useState(todayIso);
+  const [records, setRecords] = useState<Map<string, StudentAttendance>>(new Map());
+  const [loggedDates, setLoggedDates] = useState<string[]>([]);
+  const [ready, setReady] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  async function loadForDate(date: string) {
+    setReady(false);
+    const existing = await getGroupAttendanceForDate(createClient(), group.id, date);
+    const merged = new Map<string, StudentAttendance>();
+    for (const m of group.enrolledMembers) {
+      merged.set(m.id, existing.get(m.id) ?? { attended: true, notes: "" });
+    }
+    setRecords(merged);
+    setReady(true);
+  }
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const dates = await listGroupAttendanceDates(createClient(), group.id);
+      if (cancelled) return;
+      setLoggedDates(dates);
+      await loadForDate(todayIso);
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [group.id]);
+
+  async function selectDate(date: string) {
+    setSessionDate(date);
+    await loadForDate(date);
+  }
+
+  function toggle(studentId: string, attended: boolean) {
+    setRecords((prev) => {
+      const next = new Map(prev);
+      const cur = next.get(studentId) ?? { attended: true, notes: "" };
+      next.set(studentId, { ...cur, attended });
+      return next;
+    });
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    const ok = await saveGroupAttendance(createClient(), {
+      groupId: group.id,
+      teacherId,
+      sessionDate,
+      records: group.enrolledMembers.map((m) => ({
+        studentId: m.id,
+        attended: records.get(m.id)?.attended ?? true,
+        notes: records.get(m.id)?.notes ?? "",
+      })),
+    });
+    setSaving(false);
+    if (!ok) {
+      showToast(t("errorAttendanceSave"), "error");
+      return;
+    }
+    showToast(t("toastAttendanceSaved"), "success");
+    setLoggedDates((prev) => (prev.includes(sessionDate) ? prev : [...prev, sessionDate].sort().reverse()));
+  }
+
+  return (
+    <div className="card animate-fade-up flex flex-col gap-4 p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h4 className="text-sm font-extrabold text-ink">{t("attendanceTitle")}</h4>
+        <button onClick={onClose} className="text-xs font-bold text-ink-soft hover:text-gold-dark">
+          {tc("cancel")}
+        </button>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label className="text-xs font-bold text-ink-soft">{t("attendanceDateLabel")}</label>
+        <input
+          type="date"
+          value={sessionDate}
+          onChange={(e) => selectDate(e.target.value)}
+          className="input w-48 py-2 text-xs"
+        />
+      </div>
+
+      {group.enrolledMembers.length === 0 ? (
+        <p className="text-sm text-ink-soft">{t("noMembersForAttendance")}</p>
+      ) : !ready ? null : (
+        <div className="flex flex-col gap-2">
+          {group.enrolledMembers.map((m) => {
+            const rec = records.get(m.id) ?? { attended: true, notes: "" };
+            return (
+              <div key={m.id} className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-bg px-4 py-2.5">
+                <span className="text-sm font-bold text-ink">{m.name}</span>
+                <div className="grid grid-cols-2 gap-2 rounded-pill border border-line bg-card p-1">
+                  <button
+                    type="button"
+                    onClick={() => toggle(m.id, true)}
+                    aria-pressed={rec.attended}
+                    className={`rounded-pill px-3 py-1 text-xs font-bold transition-colors ${rec.attended ? "bg-gold-gradient text-white" : "text-ink-soft"}`}
+                  >
+                    {t("attendedCta")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggle(m.id, false)}
+                    aria-pressed={!rec.attended}
+                    className={`rounded-pill px-3 py-1 text-xs font-bold transition-colors ${!rec.attended ? "bg-red-500 text-white" : "text-ink-soft"}`}
+                  >
+                    {t("absentCta")}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <button
+        onClick={handleSave}
+        disabled={saving || group.enrolledMembers.length === 0}
+        className="btn-primary w-fit disabled:opacity-70"
+      >
+        {saving ? t("saving") : t("attendanceSaveCta")}
+      </button>
+
+      {loggedDates.length > 0 && (
+        <div className="border-t border-line pt-3">
+          <h5 className="mb-2 text-xs font-extrabold text-ink-soft">{t("attendanceHistoryTitle")}</h5>
+          <div className="flex flex-wrap gap-2">
+            {loggedDates.map((d) => (
+              <button
+                key={d}
+                onClick={() => selectDate(d)}
+                className={`rounded-pill px-3 py-1 text-xs font-bold transition-colors ${
+                  d === sessionDate ? "bg-gold-gradient text-white" : "border border-line text-ink-soft hover:text-gold-dark"
+                }`}
+              >
+                {d}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function TeacherGroupsPage() {
   const teacherNav = useTeacherNav();
   const handleLogout = useTeacherLogout();
@@ -32,11 +193,14 @@ export default function TeacherGroupsPage() {
   const { showToast } = useToast();
   const dayLabels = tc.raw("weekDaysSaturdayFirst") as string[];
   const timeSlots = tc.raw("timeSlots") as string[];
+  const searchParams = useSearchParams();
+  const openLogId = searchParams.get("openLog");
 
   const [teacherId, setTeacherId] = useState<string | null>(null);
   const [groups, setGroups] = useState<GroupWithMembers[]>([]);
   const [ready, setReady] = useState(false);
   const [actingOn, setActingOn] = useState<string | null>(null);
+  const [openAttendanceGroupId, setOpenAttendanceGroupId] = useState<string | null>(openLogId);
 
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState<FormState>(emptyForm(timeSlots[0] ?? ""));
@@ -186,14 +350,21 @@ export default function TeacherGroupsPage() {
                   )}
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <JoinMeetingButton
                     room={g.id}
                     displayName={teacherName}
                     subject={title}
                     label={t("startGroupSession")}
                     className="flex-1 justify-center"
+                    logOnLeave
                   />
+                  <button
+                    onClick={() => setOpenAttendanceGroupId(openAttendanceGroupId === g.id ? null : g.id)}
+                    className="rounded-pill border border-line px-4 py-2 text-xs font-bold text-ink-soft transition-colors hover:bg-bg hover:text-gold-dark"
+                  >
+                    {t("attendanceCta")}
+                  </button>
                   <button
                     onClick={() => handleDelete(g.id)}
                     disabled={actingOn === g.id}
@@ -202,6 +373,10 @@ export default function TeacherGroupsPage() {
                     {t("deleteGroupCta")}
                   </button>
                 </div>
+
+                {openAttendanceGroupId === g.id && teacherId && (
+                  <GroupAttendancePanel group={g} teacherId={teacherId} onClose={() => setOpenAttendanceGroupId(null)} />
+                )}
               </div>
             );
           })}

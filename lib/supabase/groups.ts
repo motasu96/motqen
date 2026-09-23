@@ -12,10 +12,13 @@ export type GroupSessionRow = {
   created_at: string;
 };
 
+export type GroupMember = { id: string; name: string };
+
 export type GroupWithMembers = GroupSessionRow & {
   teacherName: string;
   enrolledCount: number;
   enrolledNames: string[];
+  enrolledMembers: GroupMember[];
 };
 
 async function attachMembers(
@@ -26,22 +29,22 @@ async function attachMembers(
   const ids = groups.map((g) => g.id);
   const { data: enrollments } = await supabase
     .from("group_enrollments")
-    .select("group_id, profiles(full_name)")
+    .select("group_id, student_id, profiles(full_name)")
     .in("group_id", ids);
 
-  const namesByGroup = new Map<string, string[]>();
+  const membersByGroup = new Map<string, GroupMember[]>();
   for (const e of enrollments ?? []) {
     const profile = e.profiles as unknown as { full_name: string | null } | { full_name: string | null }[] | null;
     const name = Array.isArray(profile) ? profile[0]?.full_name : profile?.full_name;
     const groupId = e.group_id as string;
-    const arr = namesByGroup.get(groupId) ?? [];
-    arr.push(name || "");
-    namesByGroup.set(groupId, arr);
+    const arr = membersByGroup.get(groupId) ?? [];
+    arr.push({ id: e.student_id as string, name: name || "" });
+    membersByGroup.set(groupId, arr);
   }
 
   return groups.map((g) => {
-    const names = namesByGroup.get(g.id) ?? [];
-    return { ...g, enrolledCount: names.length, enrolledNames: names };
+    const members = membersByGroup.get(g.id) ?? [];
+    return { ...g, enrolledCount: members.length, enrolledNames: members.map((m) => m.name), enrolledMembers: members };
   });
 }
 

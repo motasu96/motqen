@@ -31,12 +31,14 @@ export default function RoomClient({
   subject,
   enableLobby,
   returnTo,
+  openLogOnLeave,
 }: {
   room: string;
   displayName: string;
   subject: string;
   enableLobby?: boolean;
   returnTo?: string;
+  openLogOnLeave?: boolean;
 }) {
   const router = useRouter();
   const locale = useLocale();
@@ -47,10 +49,20 @@ export default function RoomClient({
   // router.back() depends on this tab's history actually having a prior
   // in-app entry (a direct link, refresh, or new-tab open leaves it stuck
   // with nowhere to go, which is why leaving could silently do nothing).
-  // Prefer navigating to the known page the user joined from.
+  // Prefer navigating to the known page the user joined from. When the
+  // teacher joined via a "log this session on leave" button, also tell
+  // that page which session to auto-open for logging.
   function leave() {
-    if (returnTo) router.push(returnTo);
-    else router.back();
+    if (!returnTo) {
+      router.back();
+      return;
+    }
+    if (openLogOnLeave) {
+      const separator = returnTo.includes("?") ? "&" : "?";
+      router.push(`${returnTo}${separator}openLog=${encodeURIComponent(room)}`);
+    } else {
+      router.push(returnTo);
+    }
   }
 
   useEffect(() => {
@@ -97,7 +109,7 @@ export default function RoomClient({
       apiRef.current?.dispose();
       apiRef.current = null;
     };
-  }, [room, displayName, subject, enableLobby, router, locale, returnTo]);
+  }, [room, displayName, subject, enableLobby, router, locale, returnTo, openLogOnLeave]);
 
   return (
     <>
