@@ -41,14 +41,20 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
   const tc = useTranslations("Dashboard.common");
 
   const [availableTimes, setAvailableTimes] = useState<string[]>(DEFAULT_AVAILABLE_TIMES);
-  const TIME_SLOTS = useMemo(() => availableTimes.map((hhmm) => formatTimeSlot(hhmm, locale)), [availableTimes, locale]);
+  const TIME_SLOTS = useMemo(
+    () => availableTimes.map((hhmm) => ({ hhmm, label: formatTimeSlot(hhmm, locale) })),
+    [availableTimes, locale]
+  );
   const DAY_LABELS = tc.raw("weekDaysShort") as string[];
 
   const days = useMemo(() => buildNextDays(7, DAY_LABELS), [DAY_LABELS]);
+  const todayIso = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const [bookingType, setBookingType] = useState<BookingType>("trial");
   const [selectedDay, setSelectedDay] = useState(days[0].iso);
   const [confirmedFlash, setConfirmedFlash] = useState<string | null>(null);
-  const [pendingSlot, setPendingSlot] = useState<{ day: string; time: string; expiresAt: number } | null>(null);
+  const [pendingSlot, setPendingSlot] = useState<{ day: string; hhmm: string; time: string; expiresAt: number } | null>(
+    null
+  );
   const [now, setNow] = useState(() => Date.now());
   const [submitting, setSubmitting] = useState(false);
   const [studentId, setStudentId] = useState<string | null>(null);
@@ -100,6 +106,13 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
     return () => clearInterval(interval);
   }, [pendingSlot]);
 
+  // Keeps "now" fresh even without an active hold, so a today's slot
+  // that just passed greys itself out without needing a page reload.
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     if (pendingSlot && now >= pendingSlot.expiresAt) {
       setPendingSlot(null);
@@ -117,16 +130,34 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
     return takenSlots.has(`${day}__${time}`);
   }
 
-  function handleSelectSlot(time: string) {
+  // A slot for today whose time has already passed can't be booked —
+  // e.g. it's 4:20 now, so today's 4:00 slot is no longer offered.
+  function isSlotPast(day: string, hhmm: string) {
+    if (day !== todayIso) return false;
+    const [h, m] = hhmm.split(":").map(Number);
+    const nowDate = new Date(now);
+    return h * 60 + m <= nowDate.getHours() * 60 + nowDate.getMinutes();
+  }
+
+  function handleSelectSlot(hhmm: string, time: string) {
     if (isSlotTaken(selectedDay, time)) {
       showToast(t("toastSlotTaken"), "error");
       return;
     }
-    setPendingSlot({ day: selectedDay, time, expiresAt: Date.now() + HOLD_DURATION_MS });
+    if (isSlotPast(selectedDay, hhmm)) {
+      showToast(t("toastSlotPast"), "error");
+      return;
+    }
+    setPendingSlot({ day: selectedDay, hhmm, time, expiresAt: Date.now() + HOLD_DURATION_MS });
   }
 
   async function handleConfirmHold() {
     if (!pendingSlot || !studentId) return;
+    if (isSlotPast(pendingSlot.day, pendingSlot.hhmm)) {
+      setPendingSlot(null);
+      showToast(t("toastSlotPast"), "error");
+      return;
+    }
     setSubmitting(true);
     const { booking, error } = await createBooking(createClient(), {
       studentId,
@@ -240,18 +271,26 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {TIME_SLOTS.map((time) => {
+            {TIME_SLOTS.map(({ hhmm, label: time }) => {
               const taken = slotsReady && isSlotTaken(selectedDay, time);
+              const past = isSlotPast(selectedDay, hhmm);
+              const disabled = taken || past;
               const justConfirmed = confirmedFlash === time;
               const isPending = pendingSlot?.day === selectedDay && pendingSlot?.time === time;
               return (
                 <button
-                  key={time}
-                  disabled={taken}
-                  onClick={() => handleSelectSlot(time)}
-                  aria-label={taken ? t("bookingSlotTakenAria", { time }) : t("bookingSlotFreeAria", { time })}
-                  className={`flex flex-col items-center gap-1 rounded-2xl border px-3 py-3 text-sm font-bold transition-colors ${
+                  key={hhmm}
+                  disabled={disabled}
+                  onClick={() => handleSelectSlot(hhmm, time)}
+                  aria-label={
                     taken
+                      ? t("bookingSlotTakenAria", { time })
+                      : past
+                      ? t("bookingSlotPastAria", { time })
+                      : t("bookingSlotFreeAria", { time })
+                  }
+                  className={`flex flex-col items-center gap-1 rounded-2xl border px-3 py-3 text-sm font-bold transition-colors ${
+                    disabled
                       ? "cursor-not-allowed border-line bg-bg text-ink-soft/60"
                       : justConfirmed
                       ? "animate-confirm-pulse border-gold bg-gold-gradient text-white"
@@ -263,6 +302,7 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
                   <IconClock className="h-4 w-4" />
                   {time}
                   {taken && <span className="text-[10px] font-normal">{t("bookingSlotTaken")}</span>}
+                  {!taken && past && <span className="text-[10px] font-normal">{t("bookingSlotPast")}</span>}
                   {justConfirmed && <span className="text-[10px] font-normal">{t("bookingSlotConfirmed")}</span>}
                 </button>
               );
