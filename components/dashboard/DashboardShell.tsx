@@ -61,11 +61,12 @@ export default function DashboardShell({
     if (!editingName) setNameInput(userName);
   }, [userName, editingName]);
 
-  const nav = (
+  function renderNav(inDrawer: boolean) {
+    return (
     <div className="flex h-full flex-col gap-6 p-6">
       <div className="flex items-center justify-between">
         <Logo />
-        <ThemeToggle className="h-9 w-9" />
+        {!inDrawer && <ThemeToggle className="h-9 w-9" />}
       </div>
       <div className="flex items-center gap-3 rounded-2xl bg-bg p-3">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold-light text-sm font-extrabold text-gold-dark">
@@ -152,12 +153,13 @@ export default function DashboardShell({
         </Link>
       )}
     </div>
-  );
+    );
+  }
 
   return (
     <div className="container-page flex gap-6 py-6 sm:py-8">
       <aside className="hidden w-72 shrink-0 lg:block">
-        <div className="card sticky top-24">{nav}</div>
+        <div className="card sticky top-24">{renderNav(false)}</div>
       </aside>
 
       <div className="flex-1">
@@ -191,7 +193,7 @@ export default function DashboardShell({
               >
                 <IconX className="h-4 w-4" aria-hidden="true" />
               </button>
-              {nav}
+              {renderNav(true)}
             </div>
           </div>
         )}
