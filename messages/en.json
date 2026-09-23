@@ -518,7 +518,8 @@
       "teachers": "Teachers",
       "programs": "Programs",
       "articles": "Articles",
-      "groups": "Group Classes"
+      "groups": "Group Classes",
+      "certificates": "Certificates"
     },
     "status": {
       "lessonCompleted": "Completed",
@@ -549,6 +550,7 @@
       "viewProfile": "View Profile",
       "viewDetails": "View Details",
       "edit": "Edit",
+      "delete": "Delete",
       "accept": "Accept",
       "reject": "Reject",
       "reviewNow": "Review Now",
@@ -643,6 +645,10 @@
       "noExams": "No exams scheduled yet.",
       "archiveTitle": "Archive",
       "archiveSubtitle": "Log of what you've completed memorizing of the Holy Quran",
+      "certificatesTitle": "My Certificates",
+      "certificatesSubtitle": "Memorization completion certificates issued to you",
+      "noCertificatesYetStudent": "No certificates have been issued to you yet",
+      "viewCertificateCta": "View Certificate",
       "archiveTotal": "Total memorized and completed so far",
       "noArchive": "No confirmed memorization records yet.",
       "noticesTitle": "Notices",
@@ -832,6 +838,25 @@
       "teachersSubtitle": "Manage the platform's teachers and track their performance",
       "studentsTitle": "Students",
       "studentsSubtitle": "Track all the platform's students and their progress in programs",
+      "certificatesTitle": "Certificates",
+      "certificatesSubtitle": "Issue memorization completion certificates for students and track issued ones",
+      "issueCertificateTitle": "Issue a New Certificate",
+      "certFieldStudent": "Student",
+      "selectStudentPlaceholder": "Select a student",
+      "certFieldTeacher": "Teacher",
+      "certFieldAchievement": "Achievement",
+      "certAchievementPlaceholder": "e.g. Completed memorizing Juz 30",
+      "certFieldDate": "Issue date",
+      "issueCertificateCta": "Issue Certificate",
+      "issuingCertificate": "Issuing...",
+      "toastCertificateIssued": "Certificate issued successfully",
+      "errorCertificateFields": "Please select a student and write the achievement",
+      "errorCertificateNoTeacher": "No teacher is set for this student yet, a certificate can't be issued right now",
+      "errorCertificateSave": "Couldn't issue the certificate, please try again",
+      "issuedCertificatesTitle": "Issued Certificates",
+      "noCertificatesYet": "No certificates have been issued yet",
+      "confirmDeleteCertificate": "Are you sure you want to delete this certificate?",
+      "certificateDeleted": "Certificate deleted",
       "programsTitle": "Programs",
       "programsSubtitle": "Manage the platform's educational programs and track their enrollment",
       "articlesTitle": "Articles",
@@ -1045,5 +1070,11 @@
     ],
     "contactTitle": "Have a question about these terms?",
     "contactDesc": "Email us anytime at info@motqen.site and we'll get back to you as soon as possible."
+  },
+  "Certificates": {
+    "viewTitle": "Certificate",
+    "downloadCta": "Download Certificate",
+    "labelTeacher": "Teacher:",
+    "labelIssuedBy": "Director:"
   }
 }

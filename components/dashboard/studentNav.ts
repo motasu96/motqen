@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 import {
+  IconAward,
   IconBell,
   IconBook,
   IconChart,
@@ -23,6 +24,7 @@ export function useStudentNav(): DashboardNavItem[] {
     { href: "/dashboard/student/reports", label: t("reports"), icon: IconChart },
     { href: "/dashboard/student/exams", label: t("exams"), icon: IconExam },
     { href: "/dashboard/student/archive", label: t("archive"), icon: IconFolder },
+    { href: "/dashboard/student/certificates", label: t("certificates"), icon: IconAward },
     { href: "/dashboard/student/notices", label: t("notices"), icon: IconBell },
   ];
 }

@@ -518,7 +518,8 @@
       "teachers": "المعلمون",
       "programs": "البرامج",
       "articles": "المقالات",
-      "groups": "الحصص الجماعية"
+      "groups": "الحصص الجماعية",
+      "certificates": "الشهادات"
     },
     "status": {
       "lessonCompleted": "مكتملة",
@@ -549,6 +550,7 @@
       "viewProfile": "عرض الملف",
       "viewDetails": "عرض التفاصيل",
       "edit": "تعديل",
+      "delete": "حذف",
       "accept": "قبول",
       "reject": "رفض",
       "reviewNow": "مراجعة الآن",
@@ -643,6 +645,10 @@
       "noExams": "لا توجد اختبارات مجدولة بعد.",
       "archiveTitle": "المحفوظات",
       "archiveSubtitle": "سجل ما أتممت حفظه من القرآن الكريم",
+      "certificatesTitle": "شهاداتي",
+      "certificatesSubtitle": "شهادات إتمام الحفظ الصادرة لك",
+      "noCertificatesYetStudent": "لم تُصدَر لك أي شهادات بعد",
+      "viewCertificateCta": "عرض الشهادة",
       "archiveTotal": "إجمالي ما تم حفظه وإتمامه حتى الآن",
       "noArchive": "لا يوجد سجل حفظ مؤكَّد بعد.",
       "noticesTitle": "الإعلانات",
@@ -832,6 +838,25 @@
       "teachersSubtitle": "إدارة معلمي ومعلمات المنصة ومتابعة أدائهم",
       "studentsTitle": "الطلاب",
       "studentsSubtitle": "متابعة جميع طلاب المنصة وتقدمهم في البرامج",
+      "certificatesTitle": "الشهادات",
+      "certificatesSubtitle": "إصدار شهادات إتمام الحفظ للطلاب ومتابعة الشهادات الصادرة",
+      "issueCertificateTitle": "إصدار شهادة جديدة",
+      "certFieldStudent": "الطالب",
+      "selectStudentPlaceholder": "اختر طالبًا",
+      "certFieldTeacher": "المعلم",
+      "certFieldAchievement": "الإنجاز",
+      "certAchievementPlaceholder": "مثال: إتمام حفظ الجزء الثلاثين",
+      "certFieldDate": "تاريخ الإصدار",
+      "issueCertificateCta": "إصدار الشهادة",
+      "issuingCertificate": "جارٍ الإصدار...",
+      "toastCertificateIssued": "تم إصدار الشهادة بنجاح",
+      "errorCertificateFields": "الرجاء اختيار الطالب وكتابة الإنجاز",
+      "errorCertificateNoTeacher": "لم يُحدَّد معلم لهذا الطالب بعد، لا يمكن إصدار شهادة له حاليًا",
+      "errorCertificateSave": "تعذّر إصدار الشهادة، حاول مرة أخرى",
+      "issuedCertificatesTitle": "الشهادات الصادرة",
+      "noCertificatesYet": "لم تُصدَر أي شهادات بعد",
+      "confirmDeleteCertificate": "هل أنت متأكد من حذف هذه الشهادة؟",
+      "certificateDeleted": "تم حذف الشهادة",
       "programsTitle": "البرامج",
       "programsSubtitle": "إدارة برامج المنصة التعليمية ومتابعة عدد المسجلين فيها",
       "articlesTitle": "المقالات",
@@ -1045,5 +1070,11 @@
     ],
     "contactTitle": "لديك سؤال حول هذه الشروط؟",
     "contactDesc": "راسلنا في أي وقت على info@motqen.site وسنجيبك في أقرب وقت ممكن."
+  },
+  "Certificates": {
+    "viewTitle": "الشهادة",
+    "downloadCta": "تحميل الشهادة",
+    "labelTeacher": "المعلم:",
+    "labelIssuedBy": "المدير:"
   }
 }

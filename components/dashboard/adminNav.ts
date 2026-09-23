@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 import {
+  IconAward,
   IconBell,
   IconChart,
   IconFolder,
@@ -16,6 +17,7 @@ export function useAdminNav(): DashboardNavItem[] {
     { href: "/dashboard/admin", label: t("home"), icon: IconHome },
     { href: "/dashboard/admin/teachers", label: t("teachers"), icon: IconTeacherBadge },
     { href: "/dashboard/admin/students", label: t("students"), icon: IconUsers },
+    { href: "/dashboard/admin/certificates", label: t("certificates"), icon: IconAward },
     { href: "/dashboard/admin/programs", label: t("programs"), icon: IconQuran },
     { href: "/dashboard/admin/articles", label: t("articles"), icon: IconFolder },
     { href: "/dashboard/admin/reports", label: t("reports"), icon: IconChart },
