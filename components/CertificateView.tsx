@@ -18,6 +18,7 @@ export default function CertificateView({ cert, onClose }: { cert: CertificateRo
   const locale = useLocale();
   const containerRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const exportRef = useRef<HTMLDivElement>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [scale, setScale] = useState(1);
@@ -37,8 +38,8 @@ export default function CertificateView({ cert, onClose }: { cert: CertificateRo
   // transform: scale() shrinks the certificate visually but not its
   // contribution to layout (offsetWidth/offsetHeight stay 1123x794), so
   // the container must reserve exactly the post-scale size itself or the
-  // modal overflows. This keeps the preview correctly sized at any width
-  // while html-to-image still captures the untransformed, full-res node.
+  // modal overflows. This keeps the preview correctly sized at any width;
+  // the download below uses a separate, always-unscaled copy (see exportRef).
   useLayoutEffect(() => {
     function updateScale() {
       const el = containerRef.current;
@@ -51,7 +52,7 @@ export default function CertificateView({ cert, onClose }: { cert: CertificateRo
   }, []);
 
   async function handleDownload() {
-    const node = wrapperRef.current;
+    const node = exportRef.current;
     if (!node) return;
     setDownloading(true);
     try {
@@ -106,6 +107,20 @@ export default function CertificateView({ cert, onClose }: { cert: CertificateRo
         <button onClick={handleDownload} disabled={downloading} className="btn-primary mt-4 w-full disabled:opacity-70">
           {downloading ? "..." : t("downloadCta")}
         </button>
+      </div>
+
+      {/* Export capture must never go through the scaled preview node above:
+          html-to-image paints the wrapper's CSS transform into the canvas
+          while sizing the canvas itself from the untransformed layout box,
+          so a scale(<1) preview renders its content shrunk into a corner
+          with the rest of the canvas left fully transparent — invisible on
+          a page background, but painted white once embedded in the PDF.
+          This off-screen copy is never transformed, so it always captures
+          at true 1:1 size regardless of the modal's on-screen width. */}
+      <div style={{ position: "fixed", top: 0, left: -99999, width: CERT_WIDTH, height: CERT_HEIGHT }} aria-hidden="true">
+        <div ref={exportRef} style={{ width: CERT_WIDTH, height: CERT_HEIGHT }}>
+          <CertificateTemplate cert={cert} locale={locale} qrDataUrl={qrDataUrl} />
+        </div>
       </div>
     </div>
   );
