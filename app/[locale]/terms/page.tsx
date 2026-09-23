@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
-import { useTranslations } from "next-intl";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Breadcrumb, Eyebrow } from "@/components/ui";
 
 type Section = { title: string; body: string[] };
@@ -15,9 +14,11 @@ export async function generateMetadata({
   return { title: t("metaTitle") };
 }
 
-export default function TermsPage() {
-  const t = useTranslations("Terms");
-  const tNav = useTranslations("Nav");
+export default async function TermsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("Terms");
+  const tNav = await getTranslations("Nav");
   const sections = t.raw("sections") as Section[];
 
   return (

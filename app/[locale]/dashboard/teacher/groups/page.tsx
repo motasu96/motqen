@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import DashboardShell from "@/components/dashboard/DashboardShell";
@@ -183,7 +183,7 @@ function GroupAttendancePanel({ group, teacherId, onClose }: { group: GroupWithM
   );
 }
 
-export default function TeacherGroupsPage() {
+function TeacherGroupsPageInner() {
   const teacherNav = useTeacherNav();
   const handleLogout = useTeacherLogout();
   const { name: teacherName, title: teacherTitle } = useTeacherProfile();
@@ -470,5 +470,16 @@ export default function TeacherGroupsPage() {
         </div>
       )}
     </DashboardShell>
+  );
+}
+
+// useSearchParams() isn't known at build time, so Next.js requires a
+// Suspense boundary around it to keep this route statically prerenderable.
+// null is the same fallback the page already shows itself while !ready.
+export default function TeacherGroupsPage() {
+  return (
+    <Suspense fallback={null}>
+      <TeacherGroupsPageInner />
+    </Suspense>
   );
 }

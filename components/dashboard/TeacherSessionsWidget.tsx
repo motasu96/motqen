@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
@@ -182,7 +182,7 @@ function LoggedSessionRow({
   );
 }
 
-export default function TeacherSessionsWidget({ displayName }: { displayName: string }) {
+function TeacherSessionsWidgetInner({ displayName }: { displayName: string }) {
   const t = useTranslations("Dashboard.teacher");
   const tc = useTranslations("Dashboard.common");
   const searchParams = useSearchParams();
@@ -309,5 +309,16 @@ export default function TeacherSessionsWidget({ displayName }: { displayName: st
         </div>
       )}
     </div>
+  );
+}
+
+// useSearchParams() isn't known at build time, so Next.js requires a
+// Suspense boundary around it to keep this route statically prerenderable.
+// null is the same fallback this widget already shows itself while !ready.
+export default function TeacherSessionsWidget({ displayName }: { displayName: string }) {
+  return (
+    <Suspense fallback={null}>
+      <TeacherSessionsWidgetInner displayName={displayName} />
+    </Suspense>
   );
 }

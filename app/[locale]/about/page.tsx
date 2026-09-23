@@ -1,7 +1,6 @@
 import Image from "next/image";
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
-import { useTranslations } from "next-intl";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Breadcrumb } from "@/components/ui";
 import { IconEye, IconHeart, IconAward } from "@/components/icons";
 
@@ -15,9 +14,11 @@ export async function generateMetadata({
   return { title: t("metaTitle") };
 }
 
-export default function AboutPage() {
-  const t = useTranslations("About");
-  const tNav = useTranslations("Nav");
+export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("About");
+  const tNav = await getTranslations("Nav");
 
   const CARDS = [
     { icon: IconEye, title: t("visionTitle"), desc: t("visionDesc") },

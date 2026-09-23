@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { programs } from "@/data/programs";
 import ProgramCard from "@/components/ProgramCard";
@@ -15,8 +15,10 @@ import {
   IconTarget,
 } from "@/components/icons";
 
-export default function HomePage() {
-  const t = useTranslations("Home");
+export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("Home");
 
   const FEATURES = [
     { icon: IconShield, title: t("feature1Title"), desc: t("feature1Desc") },

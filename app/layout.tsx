@@ -1,7 +1,6 @@
-import type { Metadata, Viewport } from "next";
+import type { Viewport } from "next";
 import { Tajawal } from "next/font/google";
 import Script from "next/script";
-import { getLocale, getTranslations } from "next-intl/server";
 import "./globals.css";
 import { ToastProvider } from "@/components/Toast";
 
@@ -22,47 +21,20 @@ const tajawal = Tajawal({
   display: "swap",
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.motqen.site";
-
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale();
-  const t = await getTranslations({ locale, namespace: "Site" });
-  const title = t("title");
-  const description = t("description");
-
-  return {
-    metadataBase: new URL(SITE_URL),
-    title: {
-      default: title,
-      template: "%s",
-    },
-    description,
-    openGraph: {
-      title,
-      description,
-      url: SITE_URL,
-      siteName: t("siteName"),
-      locale: t("ogLocale"),
-      type: "website",
-    },
-    twitter: {
-      card: "summary",
-      title,
-      description,
-    },
-  };
-}
-
 export const viewport: Viewport = {
   themeColor: "#C89B4A",
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const locale = await getLocale();
-  const dir = locale === "ar" ? "rtl" : "ltr";
-
+// No next-intl server calls here (getLocale()/getTranslations() read the
+// request's headers, which forces Next.js to render every single route on
+// the server per-request instead of serving a cached static page). lang/dir
+// default to the site's default locale (ar/rtl) and are corrected
+// client-side by HtmlAttributesSync once next-intl's locale is known;
+// per-locale <title>/<meta> come from app/[locale]/layout.tsx instead,
+// where the locale is already known statically from the route param.
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang={locale} dir={dir} className={tajawal.variable}>
+    <html lang="ar" dir="rtl" className={tajawal.variable}>
       <head>
         <Script id="theme-init" strategy="beforeInteractive">
           {THEME_INIT_SCRIPT}
