@@ -68,7 +68,7 @@ function TeacherProfileContent({ teacher }: { teacher: Teacher }) {
         ]}
       />
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[320px_1fr]">
+      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[320px_1fr]">
         <aside className="card flex h-fit flex-col items-center gap-5 p-7 text-center">
           <div className="relative h-28 w-28 overflow-hidden rounded-full">
             <Image src={teacher.avatarUrl} alt={te.name} fill sizes="112px" className="object-cover" />

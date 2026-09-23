@@ -171,7 +171,7 @@ export default function DashboardShell({
         <div className="card sticky top-24">{renderNav(false)}</div>
       </aside>
 
-      <div className="flex-1">
+      <div className="min-w-0 flex-1">
         <div className="mb-4 flex items-center justify-between lg:hidden">
           <Logo />
           <div className="flex items-center gap-2">
