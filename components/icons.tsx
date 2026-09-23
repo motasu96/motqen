@@ -355,3 +355,19 @@ export function IconPencil(props: IconProps) {
     </svg>
   );
 }
+export function IconChat(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8A2.5 2.5 0 0 1 17.5 16H10l-4.5 4v-4H6.5A2.5 2.5 0 0 1 4 13.5v-8Z" />
+      <path d="M8 8.5h8M8 12h5" />
+    </svg>
+  );
+}
+export function IconSend(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="m4 12 16-7.5-5.5 16-3.3-6.7L4 12Z" />
+      <path d="m11.2 13.8 3.4-3.4" />
+    </svg>
+  );
+}

@@ -170,6 +170,18 @@
     "ariaLabel": "Chat with us on WhatsApp",
     "greeting": "Hello, I have a question about the Motqen platform."
   },
+  "Chat": {
+    "openAria": "Chat with us",
+    "closeAria": "Close chat",
+    "title": "Motqen Assistant",
+    "subtitle": "Ask anything about the platform",
+    "greeting": "Hello! How can I help you today?",
+    "placeholder": "Type your question...",
+    "send": "Send",
+    "thinking": "Typing...",
+    "errorGeneric": "Couldn't send your message, please try again.",
+    "unavailable": "Chat is currently unavailable."
+  },
   "Login": {
     "metaTitle": "Log In | Motqen",
     "metaDescription": "Log in to your Motqen account to continue your journey learning the Holy Quran.",
