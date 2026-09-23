@@ -39,7 +39,6 @@ export function mapTeacherRow(row: TeacherRow): Teacher {
       rating: row.rating,
     },
     specialties: row.specialties ?? [],
-    reviews: [],
     en: {
       name: row.name_en ?? row.name,
       title: row.title_en ?? row.title ?? "",

@@ -1,10 +1,3 @@
-export type Review = {
-  name: string;
-  rating: number;
-  comment: string;
-  date: string;
-};
-
 export type TeacherTranslation = {
   name: string;
   title: string;
@@ -26,6 +19,5 @@ export type Teacher = {
     rating: number;
   };
   specialties: string[];
-  reviews: Review[];
   en: TeacherTranslation;
 };
