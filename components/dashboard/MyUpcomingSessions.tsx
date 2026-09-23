@@ -34,7 +34,7 @@ export default function MyUpcomingSessions({
           <IconCalendar className="h-5 w-5 text-gold-dark" />
           {t("upcomingSessionsTitle")}
         </h3>
-        <Link href="/teachers" className="text-xs font-bold text-gold-dark hover:underline">
+        <Link href="/dashboard/student/teachers" className="text-xs font-bold text-gold-dark hover:underline">
           {t("bookNewSessionCta")}
         </Link>
       </div>

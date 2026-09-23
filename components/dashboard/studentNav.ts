@@ -8,6 +8,7 @@ import {
   IconFolder,
   IconHome,
   IconTask,
+  IconTeacherBadge,
 } from "@/components/icons";
 import { DashboardNavItem } from "./DashboardShell";
 
@@ -15,6 +16,7 @@ export function useStudentNav(): DashboardNavItem[] {
   const t = useTranslations("Dashboard.nav");
   return [
     { href: "/dashboard/student", label: t("home"), icon: IconHome },
+    { href: "/dashboard/student/teachers", label: t("teachers"), icon: IconTeacherBadge },
     { href: "/dashboard/student/lessons", label: t("myLessons"), icon: IconBook },
     { href: "/dashboard/student/groups", label: t("groups"), icon: IconFamily },
     { href: "/dashboard/student/homework", label: t("homework"), icon: IconTask },

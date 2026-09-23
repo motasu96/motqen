@@ -678,7 +678,10 @@
       "pendingHoldConfirm": "Confirm Booking",
       "pendingHoldCancel": "Step back from this time",
       "toastHoldExpired": "Your held slot has expired, please choose a time again.",
-      "bookNewSessionCta": "Browse teachers and book a session"
+      "bookNewSessionCta": "Browse teachers and book a session",
+      "browseTeachersTitle": "Browse Teachers",
+      "browseTeachersSubtitle": "Pick a teacher and book a session directly from your dashboard",
+      "backToTeachers": "Back to teachers"
     },
     "teacher": {
       "dashboardTitle": "Teacher Dashboard",

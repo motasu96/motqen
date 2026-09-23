@@ -678,7 +678,10 @@
       "pendingHoldConfirm": "تأكيد الحجز",
       "pendingHoldCancel": "تراجع عن هذا الموعد",
       "toastHoldExpired": "انتهت مهلة تثبيت الموعد، يرجى اختيار موعد مرة أخرى.",
-      "bookNewSessionCta": "تصفّح المعلمين واحجز حصة"
+      "bookNewSessionCta": "تصفّح المعلمين واحجز حصة",
+      "browseTeachersTitle": "تصفّح المعلمين",
+      "browseTeachersSubtitle": "اختر معلمًا واحجز حصة معه مباشرة من لوحتك",
+      "backToTeachers": "رجوع إلى المعلمين"
     },
     "teacher": {
       "dashboardTitle": "لوحة المعلم",
