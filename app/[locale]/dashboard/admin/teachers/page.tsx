@@ -152,6 +152,8 @@ export default function AdminTeachersPage() {
       showToast(t("editSaved"), "success");
       closeEdit();
       await loadData();
+    } else {
+      showToast(t("editSaveError", { error: error.message }), "error");
     }
   }
 
@@ -163,6 +165,19 @@ export default function AdminTeachersPage() {
     if (!error) {
       showToast(t("teacherDeleted"), "success");
       await loadData();
+    }
+    setActingOn(null);
+  }
+
+  async function resetAvatar(row: TeacherRow) {
+    setActingOn(row.id);
+    const supabase = createClient();
+    const { error } = await supabase.from("teachers").update({ avatar_url: null }).eq("id", row.id);
+    if (!error) {
+      showToast(t("resetAvatarSuccess"), "success");
+      await loadData();
+    } else {
+      showToast(t("editSaveError", { error: error.message }), "error");
     }
     setActingOn(null);
   }
@@ -307,6 +322,15 @@ export default function AdminTeachersPage() {
                       <button onClick={() => openEdit(teacher)} className="text-xs font-bold text-gold-dark hover:underline">
                         {t("editTeacher")}
                       </button>
+                      {teacher.avatar_url && (
+                        <button
+                          onClick={() => resetAvatar(teacher)}
+                          disabled={actingOn === teacher.id}
+                          className="text-xs font-bold text-gold-dark hover:underline disabled:opacity-50"
+                        >
+                          {t("resetToDefaultAvatar")}
+                        </button>
+                      )}
                       <button
                         onClick={() => resendSetupEmail(teacher)}
                         disabled={actingOn === teacher.id}

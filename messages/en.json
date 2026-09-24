@@ -949,6 +949,8 @@
       "deleteConfirm": "Are you sure you want to delete {name}? This cannot be undone.",
       "teacherDeleted": "Teacher deleted",
       "editSaved": "Changes saved",
+      "editSaveError": "Couldn't save: {error}",
+      "resetAvatarSuccess": "Photo reset to the default logo",
       "editCancel": "Cancel",
       "editSave": "Save",
       "editSaving": "Saving...",

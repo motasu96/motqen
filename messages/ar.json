@@ -949,6 +949,8 @@
       "deleteConfirm": "هل أنت متأكد من حذف {name}؟ لا يمكن التراجع عن هذا الإجراء.",
       "teacherDeleted": "تم حذف المعلم",
       "editSaved": "تم حفظ التعديلات",
+      "editSaveError": "تعذّر الحفظ: {error}",
+      "resetAvatarSuccess": "تم إعادة تعيين الصورة للشعار الافتراضي",
       "editCancel": "إلغاء",
       "editSave": "حفظ",
       "editSaving": "جارٍ الحفظ...",
