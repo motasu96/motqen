@@ -57,7 +57,14 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           alt=""
           fill
           aria-hidden="true"
-          className="object-cover opacity-70"
+          className="object-cover opacity-70 dark:hidden"
+        />
+        <Image
+          src="/images/hero-bg-network-dark.png"
+          alt=""
+          fill
+          aria-hidden="true"
+          className="hidden object-cover opacity-70 dark:block"
         />
         <div className="container-page relative grid gap-12 py-14 sm:py-20 lg:grid-cols-2 lg:items-center">
           <div className="animate-fade-up order-2 flex flex-col items-start gap-6 lg:order-1">
