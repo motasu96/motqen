@@ -80,14 +80,14 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </div>
 
           <div className="order-2 flex justify-center">
-            <div className="relative flex aspect-square w-full max-w-md items-center justify-center overflow-hidden rounded-2xl bg-card shadow-soft sm:rounded-card-lg">
+            <div className="relative w-full max-w-xl aspect-[2000/1068]">
               <Image
                 src="/images/hero-illustration-new.png"
                 alt={t("heroImageAlt")}
                 fill
                 priority
-                sizes="(min-width: 1024px) 448px, 45vw"
-                className="object-cover"
+                sizes="(min-width: 1024px) 576px, 45vw"
+                className="object-contain"
               />
               {HERO_BADGES.map((b, i) => (
                 <div
