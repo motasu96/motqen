@@ -126,35 +126,40 @@ export default function AdminTeachersPage() {
   async function saveEdit() {
     if (!editingId || !editForm) return;
     setSaving(true);
-    const supabase = createClient();
-    const { error } = await supabase
-      .from("teachers")
-      .update({
-        name: editForm.name,
-        name_en: editForm.name_en || null,
-        title: editForm.title || null,
-        title_en: editForm.title_en || null,
-        bio: editForm.bio || null,
-        bio_en: editForm.bio_en || null,
-        specialties: editForm.specialties.split(/[,،]/).map((s) => s.trim()).filter(Boolean),
-        specialties_en: editForm.specialties_en.split(/[,،]/).map((s) => s.trim()).filter(Boolean),
-        years_experience: Number(editForm.years_experience) || 0,
-        students_count: Number(editForm.students_count) || 0,
-        completed_sessions: Number(editForm.completed_sessions) || 0,
-        rating: Number(editForm.rating) || 0,
-        status: editForm.status,
-        avatar_url: editForm.avatar_url.trim() || null,
-      })
-      .eq("id", editingId);
-
-    setSaving(false);
-    if (!error) {
-      showToast(t("editSaved"), "success");
-      closeEdit();
-      await loadData();
-    } else {
-      showToast(t("editSaveError", { error: error.message }), "error");
+    try {
+      const res = await fetch("/api/admin-teacher-update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          teacherRowId: editingId,
+          name: editForm.name,
+          name_en: editForm.name_en,
+          title: editForm.title,
+          title_en: editForm.title_en,
+          bio: editForm.bio,
+          bio_en: editForm.bio_en,
+          specialties: editForm.specialties.split(/[,،]/).map((s) => s.trim()).filter(Boolean),
+          specialties_en: editForm.specialties_en.split(/[,،]/).map((s) => s.trim()).filter(Boolean),
+          years_experience: editForm.years_experience,
+          students_count: editForm.students_count,
+          completed_sessions: editForm.completed_sessions,
+          rating: editForm.rating,
+          status: editForm.status,
+          avatar_url: editForm.avatar_url.trim(),
+        }),
+      });
+      if (res.ok) {
+        showToast(t("editSaved"), "success");
+        closeEdit();
+        await loadData();
+      } else {
+        const body = await res.json().catch(() => null);
+        showToast(t("editSaveError", { error: body?.error ?? res.statusText }), "error");
+      }
+    } catch (err) {
+      showToast(t("editSaveError", { error: err instanceof Error ? err.message : String(err) }), "error");
     }
+    setSaving(false);
   }
 
   async function deleteTeacher(row: TeacherRow) {
@@ -171,13 +176,21 @@ export default function AdminTeachersPage() {
 
   async function resetAvatar(row: TeacherRow) {
     setActingOn(row.id);
-    const supabase = createClient();
-    const { error } = await supabase.from("teachers").update({ avatar_url: null }).eq("id", row.id);
-    if (!error) {
-      showToast(t("resetAvatarSuccess"), "success");
-      await loadData();
-    } else {
-      showToast(t("editSaveError", { error: error.message }), "error");
+    try {
+      const res = await fetch("/api/admin-teacher-update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teacherRowId: row.id, avatar_url: "" }),
+      });
+      if (res.ok) {
+        showToast(t("resetAvatarSuccess"), "success");
+        await loadData();
+      } else {
+        const body = await res.json().catch(() => null);
+        showToast(t("editSaveError", { error: body?.error ?? res.statusText }), "error");
+      }
+    } catch (err) {
+      showToast(t("editSaveError", { error: err instanceof Error ? err.message : String(err) }), "error");
     }
     setActingOn(null);
   }
