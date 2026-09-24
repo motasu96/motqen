@@ -964,7 +964,10 @@
       "fieldStudents": "عدد الطلاب",
       "fieldSessions": "الجلسات المكتملة",
       "fieldRating": "التقييم",
-      "fieldStatus": "الحالة"
+      "fieldStatus": "الحالة",
+      "fieldAvatarUrl": "رابط الصورة الشخصية",
+      "fieldAvatarUrlHint": "اتركه فارغًا لعرض أيقونة الشعار الافتراضية بدلاً من صورة شخصية.",
+      "resetToDefaultAvatar": "إعادة التعيين للشعار الافتراضي"
     }
   },
   "Privacy": {

@@ -964,7 +964,10 @@
       "fieldStudents": "Students Count",
       "fieldSessions": "Completed Sessions",
       "fieldRating": "Rating",
-      "fieldStatus": "Status"
+      "fieldStatus": "Status",
+      "fieldAvatarUrl": "Profile Photo URL",
+      "fieldAvatarUrlHint": "Leave empty to show the default logo icon instead of a personal photo.",
+      "resetToDefaultAvatar": "Reset to default logo"
     }
   },
   "Privacy": {

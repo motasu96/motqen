@@ -27,6 +27,7 @@ type EditForm = {
   completed_sessions: string;
   rating: string;
   status: "active" | "suspended";
+  avatar_url: string;
 };
 
 function toEditForm(row: TeacherRow): EditForm {
@@ -44,6 +45,7 @@ function toEditForm(row: TeacherRow): EditForm {
     completed_sessions: String(row.completed_sessions),
     rating: String(row.rating),
     status: row.status,
+    avatar_url: row.avatar_url ?? "",
   };
 }
 
@@ -141,6 +143,7 @@ export default function AdminTeachersPage() {
         completed_sessions: Number(editForm.completed_sessions) || 0,
         rating: Number(editForm.rating) || 0,
         status: editForm.status,
+        avatar_url: editForm.avatar_url.trim() || null,
       })
       .eq("id", editingId);
 
@@ -269,7 +272,17 @@ export default function AdminTeachersPage() {
             <tbody>
               {teachers.map((teacher) => (
                 <tr key={teacher.id} className="border-b border-line last:border-0">
-                  <td className="px-6 py-4 font-bold text-ink">{teacher.name}</td>
+                  <td className="px-6 py-4 font-bold text-ink">
+                    <div className="flex items-center gap-3">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={teacher.avatar_url || "/icon.png"}
+                        alt=""
+                        className="h-8 w-8 shrink-0 rounded-full border border-line object-cover"
+                      />
+                      {teacher.name}
+                    </div>
+                  </td>
                   <td className="px-6 py-4 text-ink-soft">{teacher.specialties.join("، ")}</td>
                   <td className="px-6 py-4 text-ink-soft">{teacher.students_count.toLocaleString("en-US")}</td>
                   <td className="px-6 py-4">
@@ -388,6 +401,34 @@ export default function AdminTeachersPage() {
                   <label className="text-sm font-bold text-ink">{t("fieldRating")}</label>
                   <input type="number" step="0.1" dir="ltr" className="input" value={editForm.rating} onChange={(e) => setEditForm({ ...editForm, rating: e.target.value })} />
                 </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-bold text-ink">{t("fieldAvatarUrl")}</label>
+                <div className="flex items-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={editForm.avatar_url.trim() || "/icon.png"}
+                    alt=""
+                    className="h-12 w-12 shrink-0 rounded-full border border-line object-cover"
+                  />
+                  <input
+                    dir="ltr"
+                    className="input"
+                    value={editForm.avatar_url}
+                    onChange={(e) => setEditForm({ ...editForm, avatar_url: e.target.value })}
+                  />
+                  {editForm.avatar_url && (
+                    <button
+                      type="button"
+                      onClick={() => setEditForm({ ...editForm, avatar_url: "" })}
+                      className="shrink-0 whitespace-nowrap text-xs font-bold text-gold-dark hover:underline"
+                    >
+                      {t("resetToDefaultAvatar")}
+                    </button>
+                  )}
+                </div>
+                <p className="text-xs text-ink-soft">{t("fieldAvatarUrlHint")}</p>
               </div>
 
               <div className="flex flex-col gap-2">
