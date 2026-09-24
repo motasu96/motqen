@@ -66,52 +66,52 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           aria-hidden="true"
           className="hidden object-cover object-bottom opacity-70 dark:block"
         />
-        <div className="container-page relative grid gap-12 py-14 sm:py-20 lg:grid-cols-2 lg:items-center">
-          <div className="animate-fade-up order-2 flex flex-col items-start gap-6 lg:order-1">
+        <div className="container-page relative grid grid-cols-2 items-center gap-3 py-10 sm:gap-6 sm:py-14 md:gap-10 lg:gap-12 lg:py-20">
+          <div className="animate-fade-up order-1 flex flex-col items-start gap-2 sm:gap-4 lg:gap-6">
             <Eyebrow>{t("eyebrow")}</Eyebrow>
-            <h1 className="text-4xl font-extrabold leading-[1.25] text-ink sm:text-5xl md:text-6xl">
+            <h1 className="text-lg font-extrabold leading-[1.2] text-ink sm:text-2xl md:text-4xl lg:text-6xl lg:leading-[1.25]">
               {t("titleLine1")}
               <br />
               {t("titleLine2Before")}
               <span className="text-gold-dark">{t("titleLine2Gold")}</span>
             </h1>
-            <p className="max-w-lg text-base leading-relaxed text-ink-soft sm:text-lg">{t("description")}</p>
-            <div className="flex flex-wrap items-center gap-4">
-              <Link href="/signup" className="btn-primary">
+            <p className="text-xs leading-relaxed text-ink-soft sm:max-w-lg sm:text-base lg:text-lg">{t("description")}</p>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+              <Link href="/signup" className="btn-primary px-3 py-1.5 text-xs sm:px-6 sm:py-3 sm:text-sm">
                 {t("ctaStart")} ‹
               </Link>
-              <Link href="/programs" className="btn-outline">
-                <IconPlay className="h-4 w-4" />
+              <Link href="/programs" className="btn-outline px-3 py-1.5 text-xs sm:px-6 sm:py-3 sm:text-sm">
+                <IconPlay className="h-3 w-3 sm:h-4 sm:w-4" />
                 {t("ctaExplore")}
               </Link>
             </div>
-            <div className="flex items-center gap-3 pt-2">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gold-light">
-                <IconAward className="h-6 w-6 text-gold-dark" />
+            <div className="flex items-center gap-2 pt-1 sm:gap-3 sm:pt-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gold-light sm:h-12 sm:w-12">
+                <IconAward className="h-4 w-4 text-gold-dark sm:h-6 sm:w-6" />
               </div>
-              <span className="text-sm font-bold text-ink-soft">{t("certifiedBadge")}</span>
+              <span className="text-[11px] font-bold text-ink-soft sm:text-sm">{t("certifiedBadge")}</span>
             </div>
           </div>
 
-          <div className="order-1 flex justify-center lg:order-2">
-            <div className="relative flex aspect-square w-full max-w-md items-center justify-center overflow-hidden rounded-card-lg bg-card shadow-soft">
+          <div className="order-2 flex justify-center">
+            <div className="relative flex aspect-square w-full max-w-md items-center justify-center overflow-hidden rounded-2xl bg-card shadow-soft sm:rounded-card-lg">
               <Image
                 src="/images/hero-illustration-new.png"
                 alt={t("heroImageAlt")}
                 fill
                 priority
-                sizes="(min-width: 1024px) 448px, 90vw"
+                sizes="(min-width: 1024px) 448px, 45vw"
                 className="object-cover"
               />
               {HERO_BADGES.map((b, i) => (
                 <div
                   key={b.title}
                   style={{ animationDelay: `${i * 0.5}s` }}
-                  className={`animate-float absolute ${b.position}`}
+                  className={`animate-float absolute hidden lg:block ${b.position}`}
                 >
-                  <div className="group flex max-w-[112px] cursor-default items-center gap-1.5 rounded-2xl border border-line bg-card px-2.5 py-1.5 shadow-soft transition-all duration-300 hover:-translate-y-1.5 hover:scale-105 hover:border-gold/50 hover:shadow-[0_20px_36px_-16px_rgba(200,155,74,0.45)] sm:max-w-[150px] sm:gap-2 sm:px-3 sm:py-2">
-                    <b.icon className="h-4 w-4 shrink-0 text-gold-dark transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110 sm:h-5 sm:w-5" aria-hidden="true" />
-                    <span className="text-[10px] font-bold leading-tight text-ink sm:text-xs">{b.title}</span>
+                  <div className="group flex max-w-[150px] cursor-default items-center gap-2 rounded-2xl border border-line bg-card px-3 py-2 shadow-soft transition-all duration-300 hover:-translate-y-1.5 hover:scale-105 hover:border-gold/50 hover:shadow-[0_20px_36px_-16px_rgba(200,155,74,0.45)]">
+                    <b.icon className="h-5 w-5 shrink-0 text-gold-dark transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" aria-hidden="true" />
+                    <span className="text-xs font-bold leading-tight text-ink">{b.title}</span>
                   </div>
                 </div>
               ))}
