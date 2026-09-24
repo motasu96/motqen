@@ -140,7 +140,7 @@
     "reason3Title": "Full transparency",
     "reason3Desc": "We'll send you periodic reports on how many students your support has reached.",
     "formTitle": "Express your interest in donating",
-    "formNote": "This is an initial contact form — no amount will be charged now. Our team will reach out to complete your donation through official channels.",
+    "formNote": "Donate now with crypto (USDT, BTC and 300+ coins), or send your donation interest and our team will reach out to complete it through official channels.",
     "nameLabel": "Full Name",
     "namePlaceholder": "Enter your name",
     "emailLabel": "Email",
@@ -157,7 +157,14 @@
     "successDesc": "We've received your donation interest. Our team will contact you to complete the process through official channels.",
     "donateAgain": "Send another request",
     "bankTitle": "Direct bank transfer",
-    "bankDesc": "You can also donate directly via bank transfer — we'll send you the full details after you submit the form."
+    "bankDesc": "You can also donate directly via bank transfer — we'll send you the full details after you submit the form.",
+    "cryptoSubmit": "Donate now with crypto",
+    "cryptoLoading": "Redirecting to payment...",
+    "cryptoNote": "Crypto payments are processed securely by NOWPayments. Monthly donations are paid one month at a time.",
+    "cryptoMinAmount": "The minimum crypto donation is $5.",
+    "cryptoError": "We couldn't create the payment. Please try again or use the contact form.",
+    "cryptoSuccess": "May God reward you! We received your payment — your donation will be confirmed automatically once the transfer completes on the network.",
+    "cryptoCancelled": "The payment wasn't completed. You can try again anytime."
   },
   "DonatePopup": {
     "title": "Our platform is completely free",

@@ -1,7 +1,7 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { useTranslations } from "next-intl";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Breadcrumb, Eyebrow } from "@/components/ui";
 import { IconCheck, IconEye, IconHeart, IconTarget } from "@/components/icons";
 import { useToast } from "@/components/Toast";
@@ -10,6 +10,7 @@ export default function DonatePage() {
   const t = useTranslations("Donate");
   const tNav = useTranslations("Nav");
   const { showToast } = useToast();
+  const locale = useLocale();
 
   const TIERS = [
     { amount: t("tier1Amount"), period: t("tier1Period"), title: t("tier1Title"), desc: t("tier1Desc"), type: t("tier1Type"), popular: false },
@@ -30,6 +31,15 @@ export default function DonatePage() {
   const [customAmount, setCustomAmount] = useState("");
   const [frequency, setFrequency] = useState<"once" | "monthly">("monthly");
   const [sent, setSent] = useState(false);
+  const [cryptoLoading, setCryptoLoading] = useState(false);
+  const [cryptoStatus, setCryptoStatus] = useState<"success" | "cancelled" | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  // NOWPayments sends the donor back here with ?crypto=success|cancelled.
+  useEffect(() => {
+    const value = new URLSearchParams(window.location.search).get("crypto");
+    if (value === "success" || value === "cancelled") setCryptoStatus(value);
+  }, []);
 
   function handleSelectAmount(value: string) {
     setAmount(value);
@@ -40,6 +50,39 @@ export default function DonatePage() {
     e.preventDefault();
     setSent(true);
     showToast(t("toastSuccess"), "success");
+  }
+
+  async function handleCryptoDonate() {
+    const form = formRef.current;
+    if (!form || !form.reportValidity()) return;
+
+    const selected = Number((customAmount || amount).replace(/[^0-9.]/g, ""));
+    if (!Number.isFinite(selected) || selected < 5) {
+      showToast(t("cryptoMinAmount"), "error");
+      return;
+    }
+
+    const data = new FormData(form);
+    setCryptoLoading(true);
+    try {
+      const res = await fetch("/api/donate/crypto", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: data.get("name"),
+          email: data.get("email"),
+          amount: selected,
+          frequency,
+          locale,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.url) throw new Error(json?.error ?? "failed");
+      window.location.href = json.url;
+    } catch {
+      setCryptoLoading(false);
+      showToast(t("cryptoError"), "error");
+    }
   }
 
   return (
@@ -94,6 +137,17 @@ export default function DonatePage() {
         </div>
       </div>
 
+      {cryptoStatus && (
+        <div
+          role="status"
+          className={`mt-10 rounded-card-lg border p-5 text-sm font-bold ${
+            cryptoStatus === "success" ? "border-gold bg-gold-light text-gold-dark" : "border-line bg-bg text-ink-soft"
+          }`}
+        >
+          {cryptoStatus === "success" ? t("cryptoSuccess") : t("cryptoCancelled")}
+        </div>
+      )}
+
       <div className="mt-14 grid gap-8 lg:grid-cols-[1.2fr_1fr]">
         <div className="card p-7 sm:p-9">
           {sent ? (
@@ -108,7 +162,7 @@ export default function DonatePage() {
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-5">
               <h2 className="text-lg font-extrabold text-ink">{t("formTitle")}</h2>
               <p className="text-xs leading-relaxed text-ink-soft">{t("formNote")}</p>
 
@@ -173,18 +227,29 @@ export default function DonatePage() {
               <div className="grid gap-5 sm:grid-cols-2">
                 <div className="flex flex-col gap-2">
                   <label htmlFor="donate-name" className="text-sm font-bold text-ink">{t("nameLabel")}</label>
-                  <input id="donate-name" required className="input" placeholder={t("namePlaceholder")} />
+                  <input id="donate-name" name="name" required className="input" placeholder={t("namePlaceholder")} />
                 </div>
                 <div className="flex flex-col gap-2">
                   <label htmlFor="donate-email" className="text-sm font-bold text-ink">{t("emailLabel")}</label>
-                  <input id="donate-email" required type="email" dir="ltr" className="input" placeholder={t("emailPlaceholder")} />
+                  <input id="donate-email" name="email" required type="email" dir="ltr" className="input" placeholder={t("emailPlaceholder")} />
                 </div>
               </div>
 
-              <button type="submit" className="btn-primary w-full sm:w-fit">
-                <IconHeart className="h-4 w-4" aria-hidden="true" />
-                {t("submit")}
-              </button>
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <button
+                  type="button"
+                  onClick={handleCryptoDonate}
+                  disabled={cryptoLoading}
+                  className="btn-primary w-full sm:w-fit disabled:opacity-60"
+                >
+                  <IconHeart className="h-4 w-4" aria-hidden="true" />
+                  {cryptoLoading ? t("cryptoLoading") : t("cryptoSubmit")}
+                </button>
+                <button type="submit" className="btn-outline w-full sm:w-fit">
+                  {t("submit")}
+                </button>
+              </div>
+              <p className="text-xs leading-relaxed text-ink-soft">{t("cryptoNote")}</p>
             </form>
           )}
         </div>
