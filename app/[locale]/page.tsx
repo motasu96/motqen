@@ -52,20 +52,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     <>
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <Image
-          src="/images/hero-bg-network.png"
-          alt=""
-          fill
-          aria-hidden="true"
-          className="object-cover opacity-70 dark:hidden"
-        />
-        <Image
-          src="/images/hero-bg-network-dark.png"
-          alt=""
-          fill
-          aria-hidden="true"
-          className="hidden object-cover object-bottom opacity-70 dark:block"
-        />
         <div className="container-page relative grid grid-cols-2 items-center gap-3 py-10 sm:gap-6 sm:py-14 md:gap-10 lg:gap-12 lg:py-20">
           <div className="animate-fade-up order-1 flex flex-col items-start gap-2 sm:gap-4 lg:gap-6">
             <Eyebrow>{t("eyebrow")}</Eyebrow>
