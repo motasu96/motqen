@@ -82,7 +82,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <div className="order-1 flex justify-center lg:order-2">
             <div className="relative flex aspect-square w-full max-w-md items-center justify-center overflow-hidden rounded-card-lg bg-card shadow-soft">
               <Image
-                src="/images/hero-quran.jpg"
+                src="/images/hero-illustration-new.png"
                 alt={t("heroImageAlt")}
                 fill
                 priority
