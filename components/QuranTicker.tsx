@@ -19,7 +19,7 @@ export default function QuranTicker() {
   const quote = quranQuotes[index];
 
   return (
-    <div className="flex items-center justify-center gap-3 rounded-2xl border border-line bg-card/70 px-5 py-4 text-center shadow-soft backdrop-blur">
+    <div className="flex items-center justify-center gap-3 rounded-2xl border border-line bg-bg px-5 py-4 text-center">
       <IconQuran className="hidden h-6 w-6 shrink-0 text-gold-dark sm:block" aria-hidden="true" />
       <div key={index} className="animate-fade-up flex min-h-[3.5rem] flex-col items-center justify-center gap-1.5">
         <p className="max-w-2xl text-sm font-bold leading-relaxed text-ink sm:text-base">{quote.text}</p>
