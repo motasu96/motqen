@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { programs } from "@/data/programs";
 import ProgramCard from "@/components/ProgramCard";
 import { Eyebrow, SectionHeading, Stat } from "@/components/ui";
+import QuranTicker from "@/components/QuranTicker";
 import {
   IconAward,
   IconEye,
@@ -52,6 +53,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     <>
       {/* Hero */}
       <section className="relative overflow-hidden">
+        <div className="container-page relative pt-6 sm:pt-8">
+          <QuranTicker />
+        </div>
         <div className="container-page relative grid grid-cols-2 items-center gap-3 py-10 sm:gap-6 sm:py-14 md:gap-10 lg:gap-12 lg:py-20">
           <div className="animate-fade-up order-1 flex flex-col items-start gap-2 sm:gap-4 lg:gap-6">
             <Eyebrow>{t("eyebrow")}</Eyebrow>
