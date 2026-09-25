@@ -93,6 +93,29 @@ function ProgramDetailContent({ program }: { program: NonNullable<ReturnType<typ
               ))}
             </ul>
           </div>
+
+          {program.courses && program.courses.length > 0 && (
+            <div className="card p-8">
+              <h2 className="mb-1 text-lg font-extrabold text-ink">{t("coursesTitle")}</h2>
+              <p className="mb-5 text-sm text-ink-soft">{t("coursesDesc")}</p>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {program.courses.map((course, i) => {
+                  const c = localize(course, locale);
+                  return (
+                    <div key={c.title} className="flex flex-col gap-2 rounded-2xl border border-line p-5">
+                      <div className="flex items-center gap-2.5">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gold-light text-xs font-extrabold text-gold-dark">
+                          {i + 1}
+                        </span>
+                        <h3 className="text-sm font-extrabold text-ink">{c.title}</h3>
+                      </div>
+                      <p className="text-xs leading-relaxed text-ink-soft">{c.description}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         <aside className="h-fit lg:sticky lg:top-28">

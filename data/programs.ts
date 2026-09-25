@@ -1,3 +1,9 @@
+export type ProgramCourse = {
+  title: string;
+  description: string;
+  en: { title: string; description: string };
+};
+
 export type ProgramTranslation = {
   title: string;
   short: string;
@@ -20,6 +26,7 @@ export type Program = {
   sessionsPerWeek: number;
   ageGroup: string;
   features: string[];
+  courses?: ProgramCourse[];
   en: ProgramTranslation;
 };
 
@@ -78,6 +85,48 @@ export const programs: Program[] = [
       "أحكام التجويد نظريًا وتطبيقيًا",
       "تدريب صوتي مباشر",
       "متابعة فردية دقيقة",
+    ],
+    courses: [
+      {
+        title: "القاعدة النورانية",
+        description:
+          "منهج تأسيسي لتعلم الحروف العربية ومخارجها وأحكام النطق الأساسية، خطوة أولى قبل بدء تلاوة القرآن، مناسب للمبتدئين تمامًا وغير الناطقين بالعربية.",
+        en: {
+          title: "An-Nooraniyah Qaida",
+          description:
+            "A foundational method for learning Arabic letters, their articulation points, and basic pronunciation rules — the first step before beginning Quran recitation, suited for absolute beginners and non-Arabic speakers.",
+        },
+      },
+      {
+        title: "أحكام التجويد التأهيلية",
+        description:
+          "المستوى التمهيدي لأحكام التجويد: مخارج الحروف، صفاتها، وأبرز الأحكام الأساسية كالنون الساكنة والتنوين والمدود، تأسيسًا سليمًا لما بعده.",
+        en: {
+          title: "Foundational Tajweed Rules",
+          description:
+            "The introductory level of Tajweed rules: articulation points, letter characteristics, and core rules such as noon sakinah, tanween, and madd — building a solid foundation for what follows.",
+        },
+      },
+      {
+        title: "أحكام التجويد العليا",
+        description:
+          "مستوى متقدم يتعمق في تفصيلات الأحكام وتطبيقاتها الدقيقة، ويهيئ الطالب للانتقال إلى القراءات ومراحل الإجازة.",
+        en: {
+          title: "Advanced Tajweed Rules",
+          description:
+            "An advanced level that delves into the finer details and precise applications of Tajweed rules, preparing the student to move on to the Qira'at and Ijazah stages.",
+        },
+      },
+      {
+        title: "تأهيل السند",
+        description:
+          "برنامج تحضيري لمن يرغب في التقدم لبرنامج الإجازة بالسند، يراجع فيه الطالب ضبط تلاوته وأحكامه استعدادًا للعرض الكامل على المشايخ المجازين.",
+        en: {
+          title: "Sanad Qualification",
+          description:
+            "A preparatory program for those wishing to apply for the Ijazah with Sanad program, in which the student refines the accuracy of their recitation and rules in preparation for the full recitation to licensed sheikhs.",
+        },
+      },
     ],
     en: {
       title: "Recitation & Tajweed",

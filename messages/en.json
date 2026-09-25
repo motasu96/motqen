@@ -381,7 +381,9 @@
     "bookNow": "Book Now",
     "freeConsult": "Free Consultation",
     "aboutProgram": "About the Program",
-    "featuresTitle": "Program Features"
+    "featuresTitle": "Program Features",
+    "coursesTitle": "Courses within this program",
+    "coursesDesc": "Progressive tracks — students can enroll in the one that fits their level."
   },
   "Teachers": {
     "metaTitle": "Teachers | Motqen",
