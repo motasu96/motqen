@@ -6,6 +6,7 @@ export type GroupSessionRow = {
   title: string;
   title_en: string | null;
   program_slug: string | null;
+  course_slug: string | null;
   day_of_week: number;
   session_time: string;
   capacity: number;
@@ -80,6 +81,7 @@ export async function createGroup(
     title: string;
     titleEn: string;
     programSlug: string;
+    courseSlug?: string;
     dayOfWeek: number;
     sessionTime: string;
     capacity: number;
@@ -90,6 +92,7 @@ export async function createGroup(
     title: params.title,
     title_en: params.titleEn || null,
     program_slug: params.programSlug || null,
+    course_slug: params.courseSlug || null,
     day_of_week: params.dayOfWeek,
     session_time: params.sessionTime,
     capacity: params.capacity,

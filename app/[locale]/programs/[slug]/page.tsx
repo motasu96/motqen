@@ -102,7 +102,7 @@ function ProgramDetailContent({ program }: { program: NonNullable<ReturnType<typ
                 {program.courses.map((course, i) => {
                   const c = localize(course, locale);
                   return (
-                    <div key={c.title} className="flex flex-col gap-2 rounded-2xl border border-line p-5">
+                    <div key={c.title} className="flex flex-col gap-3 rounded-2xl border border-line p-5">
                       <div className="flex items-center gap-2.5">
                         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gold-light text-xs font-extrabold text-gold-dark">
                           {i + 1}
@@ -110,6 +110,12 @@ function ProgramDetailContent({ program }: { program: NonNullable<ReturnType<typ
                         <h3 className="text-sm font-extrabold text-ink">{c.title}</h3>
                       </div>
                       <p className="text-xs leading-relaxed text-ink-soft">{c.description}</p>
+                      <Link
+                        href={`/signup?program=${program.slug}&course=${course.slug}`}
+                        className="mt-1 w-fit text-xs font-extrabold text-gold-dark hover:underline"
+                      >
+                        {t("enrollInCourse")} ‹
+                      </Link>
                     </div>
                   );
                 })}

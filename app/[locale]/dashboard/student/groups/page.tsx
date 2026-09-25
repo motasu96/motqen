@@ -106,6 +106,8 @@ export default function StudentGroupsPage() {
           {groups.map((g) => {
             const program = programs.find((p) => p.slug === g.program_slug);
             const programTitle = program ? localize(program, locale).title : tc("dash");
+            const course = program?.courses?.find((c) => c.slug === g.course_slug);
+            const courseTitle = course ? localize(course, locale).title : null;
             const title = locale === "en" && g.title_en ? g.title_en : g.title;
             const dayLabel = dayLabels[g.day_of_week] ?? "";
             const enrolled = enrolledIds.has(g.id);
@@ -120,7 +122,10 @@ export default function StudentGroupsPage() {
                     <IconFamily className="h-5 w-5 text-gold-dark" />
                   </span>
                   <div>
-                    <span className="badge mb-1.5 w-fit">{programTitle}</span>
+                    <div className="mb-1.5 flex flex-wrap gap-1.5">
+                      <span className="badge w-fit">{programTitle}</span>
+                      {courseTitle && <span className="badge w-fit">{courseTitle}</span>}
+                    </div>
                     <h3 className="text-base font-extrabold leading-snug text-ink">{title}</h3>
                   </div>
                 </div>

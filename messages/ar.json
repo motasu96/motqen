@@ -383,7 +383,8 @@
     "aboutProgram": "عن البرنامج",
     "featuresTitle": "مميزات البرنامج",
     "coursesTitle": "الدورات المتاحة داخل البرنامج",
-    "coursesDesc": "مسارات تدريجية يمكن للطالب التسجيل في المناسب منها حسب مستواه."
+    "coursesDesc": "مسارات تدريجية يمكن للطالب التسجيل في المناسب منها حسب مستواه.",
+    "enrollInCourse": "التحق بهذه الدورة"
   },
   "Teachers": {
     "metaTitle": "المعلمون | متقن",
@@ -829,6 +830,8 @@
       "groupFieldTitle": "عنوان الحلقة",
       "groupFieldTitleEn": "عنوان الحلقة (إنجليزي)",
       "groupFieldProgram": "البرنامج",
+      "groupFieldCourse": "الدورة (اختياري)",
+      "groupFieldCourseNone": "بدون دورة محددة",
       "groupFieldDay": "اليوم",
       "groupFieldTime": "الوقت",
       "groupFieldCapacity": "السعة (عدد المقاعد)",

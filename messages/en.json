@@ -383,7 +383,8 @@
     "aboutProgram": "About the Program",
     "featuresTitle": "Program Features",
     "coursesTitle": "Courses within this program",
-    "coursesDesc": "Progressive tracks — students can enroll in the one that fits their level."
+    "coursesDesc": "Progressive tracks — students can enroll in the one that fits their level.",
+    "enrollInCourse": "Enroll in this course"
   },
   "Teachers": {
     "metaTitle": "Teachers | Motqen",
@@ -829,6 +830,8 @@
       "groupFieldTitle": "Circle Title",
       "groupFieldTitleEn": "Circle Title (English)",
       "groupFieldProgram": "Program",
+      "groupFieldCourse": "Course (optional)",
+      "groupFieldCourseNone": "No specific course",
       "groupFieldDay": "Day",
       "groupFieldTime": "Time",
       "groupFieldCapacity": "Capacity (seats)",

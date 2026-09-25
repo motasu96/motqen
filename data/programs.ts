@@ -1,4 +1,5 @@
 export type ProgramCourse = {
+  slug: string;
   title: string;
   description: string;
   en: { title: string; description: string };
@@ -88,6 +89,7 @@ export const programs: Program[] = [
     ],
     courses: [
       {
+        slug: "qaida-nooraniyah",
         title: "القاعدة النورانية",
         description:
           "منهج تأسيسي لتعلم الحروف العربية ومخارجها وأحكام النطق الأساسية، خطوة أولى قبل بدء تلاوة القرآن، مناسب للمبتدئين تمامًا وغير الناطقين بالعربية.",
@@ -98,6 +100,7 @@ export const programs: Program[] = [
         },
       },
       {
+        slug: "tajweed-foundational",
         title: "أحكام التجويد التأهيلية",
         description:
           "المستوى التمهيدي لأحكام التجويد: مخارج الحروف، صفاتها، وأبرز الأحكام الأساسية كالنون الساكنة والتنوين والمدود، تأسيسًا سليمًا لما بعده.",
@@ -108,6 +111,7 @@ export const programs: Program[] = [
         },
       },
       {
+        slug: "tajweed-advanced",
         title: "أحكام التجويد العليا",
         description:
           "مستوى متقدم يتعمق في تفصيلات الأحكام وتطبيقاتها الدقيقة، ويهيئ الطالب للانتقال إلى القراءات ومراحل الإجازة.",
@@ -118,6 +122,7 @@ export const programs: Program[] = [
         },
       },
       {
+        slug: "sanad-qualification",
         title: "تأهيل السند",
         description:
           "برنامج تحضيري لمن يرغب في التقدم لبرنامج الإجازة بالسند، يراجع فيه الطالب ضبط تلاوته وأحكامه استعدادًا للعرض الكامل على المشايخ المجازين.",

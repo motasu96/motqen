@@ -23,10 +23,26 @@ import { programs } from "@/data/programs";
 import { localize } from "@/lib/localize";
 import { IconCalendar, IconClock, IconFamily, IconX } from "@/components/icons";
 
-type FormState = { title: string; titleEn: string; programSlug: string; dayOfWeek: number; sessionTime: string; capacity: string };
+type FormState = {
+  title: string;
+  titleEn: string;
+  programSlug: string;
+  courseSlug: string;
+  dayOfWeek: number;
+  sessionTime: string;
+  capacity: string;
+};
 
 function emptyForm(defaultTime: string): FormState {
-  return { title: "", titleEn: "", programSlug: programs[0]?.slug ?? "", dayOfWeek: 0, sessionTime: defaultTime, capacity: "6" };
+  return {
+    title: "",
+    titleEn: "",
+    programSlug: programs[0]?.slug ?? "",
+    courseSlug: "",
+    dayOfWeek: 0,
+    sessionTime: defaultTime,
+    capacity: "6",
+  };
 }
 
 function GroupAttendancePanel({ group, teacherId, onClose }: { group: GroupWithMembers; teacherId: string; onClose: () => void }) {
@@ -259,6 +275,7 @@ function TeacherGroupsPageInner() {
       title: form.title.trim(),
       titleEn: form.titleEn.trim(),
       programSlug: form.programSlug,
+      courseSlug: form.courseSlug || undefined,
       dayOfWeek: form.dayOfWeek,
       sessionTime: form.sessionTime,
       capacity,
@@ -304,6 +321,8 @@ function TeacherGroupsPageInner() {
           {groups.map((g) => {
             const program = programs.find((p) => p.slug === g.program_slug);
             const programTitle = program ? localize(program, locale).title : tc("dash");
+            const course = program?.courses?.find((c) => c.slug === g.course_slug);
+            const courseTitle = course ? localize(course, locale).title : null;
             const title = locale === "en" && g.title_en ? g.title_en : g.title;
             const dayLabel = dayLabels[g.day_of_week] ?? "";
 
@@ -315,7 +334,10 @@ function TeacherGroupsPageInner() {
                       <IconFamily className="h-5 w-5 text-gold-dark" />
                     </span>
                     <div>
-                      <span className="badge mb-1.5 w-fit">{programTitle}</span>
+                      <div className="mb-1.5 flex flex-wrap gap-1.5">
+                        <span className="badge w-fit">{programTitle}</span>
+                        {courseTitle && <span className="badge w-fit">{courseTitle}</span>}
+                      </div>
                       <h3 className="text-base font-extrabold leading-snug text-ink">{title}</h3>
                     </div>
                   </div>
@@ -408,7 +430,11 @@ function TeacherGroupsPageInner() {
 
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-bold text-ink">{t("groupFieldProgram")}</label>
-                <select className="input" value={form.programSlug} onChange={(e) => setForm({ ...form, programSlug: e.target.value })}>
+                <select
+                  className="input"
+                  value={form.programSlug}
+                  onChange={(e) => setForm({ ...form, programSlug: e.target.value, courseSlug: "" })}
+                >
                   {programs.map((p0) => {
                     const p = localize(p0, locale);
                     return (
@@ -419,6 +445,31 @@ function TeacherGroupsPageInner() {
                   })}
                 </select>
               </div>
+
+              {(() => {
+                const selectedProgram = programs.find((p) => p.slug === form.programSlug);
+                if (!selectedProgram?.courses || selectedProgram.courses.length === 0) return null;
+                return (
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-bold text-ink">{t("groupFieldCourse")}</label>
+                    <select
+                      className="input"
+                      value={form.courseSlug}
+                      onChange={(e) => setForm({ ...form, courseSlug: e.target.value })}
+                    >
+                      <option value="">{t("groupFieldCourseNone")}</option>
+                      {selectedProgram.courses.map((c0) => {
+                        const c = localize(c0, locale);
+                        return (
+                          <option key={c.slug} value={c.slug}>
+                            {c.title}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                );
+              })()}
 
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="flex flex-col gap-2">
