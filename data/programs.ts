@@ -26,7 +26,7 @@ export type Program = {
 export const programs: Program[] = [
   {
     slug: "hifz-mutqan",
-    image: "/images/prog-hifz.jpg",
+    image: "/images/prog-hifz.png",
     title: "الحفظ المتقن",
     short: "حفظ القرآن الكريم بخطة متقنة ومتابعة مستمرة",
     description:
@@ -62,7 +62,7 @@ export const programs: Program[] = [
   },
   {
     slug: "tilawa-tajweed",
-    image: "/images/prog-tilawa.jpg",
+    image: "/images/prog-tilawa.png",
     title: "التلاوة والتجويد",
     short: "تعلم القراءة الصحيحة وأحكام التجويد",
     description:
@@ -95,7 +95,7 @@ export const programs: Program[] = [
   },
   {
     slug: "muraja-hifz",
-    image: "/images/prog-muraja.jpg",
+    image: "/images/prog-muraja.png",
     title: "الحفظ والمراجعة",
     short: "برامج مخصصة للمراجعة والحفظ بإشراف متخصص",
     description:
@@ -161,7 +161,7 @@ export const programs: Program[] = [
   },
   {
     slug: "bara-em-mutqin",
-    image: "/images/prog-kids.jpg",
+    image: "/images/prog-kids.png",
     title: "برامج الأطفال",
     short: "برامج تعليمية للأطفال بأساليب ممتعة وتفاعلية",
     description:
@@ -194,7 +194,7 @@ export const programs: Program[] = [
   },
   {
     slug: "barnamej-nisaa",
-    image: "/images/prog-nisaa.jpg",
+    image: "/images/prog-nisaa.png",
     title: "برامج النساء",
     short: "برامج خاصة للنساء بخصوصية تامة",
     description:
