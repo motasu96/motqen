@@ -56,7 +56,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <div className="container-page relative pt-6 sm:pt-8">
           <QuranTicker />
         </div>
-        <div className="container-page relative grid grid-cols-2 items-center gap-3 py-10 sm:gap-6 sm:py-14 md:gap-10 lg:gap-12 lg:py-20">
+        <div className="container-page relative grid grid-cols-2 items-center gap-3 pb-10 pt-4 sm:gap-6 sm:pb-14 sm:pt-6 md:gap-10 lg:gap-12 lg:pb-20 lg:pt-8">
           <div className="animate-fade-up order-1 flex flex-col items-start gap-2 sm:gap-4 lg:gap-6">
             <Eyebrow>{t("eyebrow")}</Eyebrow>
             <h1 className="text-lg font-extrabold leading-[1.2] text-ink sm:text-2xl md:text-4xl lg:text-6xl lg:leading-[1.25]">
