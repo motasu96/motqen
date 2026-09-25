@@ -128,7 +128,7 @@ export const programs: Program[] = [
   },
   {
     slug: "qiraat-ashr",
-    image: "/images/prog-qiraat.jpg",
+    image: "/images/prog-qiraat.png",
     title: "الإجازة بالسند",
     short: "احصل على إجازة معتمدة بسند متصل إلى النبي ﷺ",
     description:
