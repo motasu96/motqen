@@ -10,6 +10,8 @@ const THEME_INIT_SCRIPT = `
     var stored = localStorage.getItem("motqen_theme");
     var dark = stored ? stored === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
     if (dark) document.documentElement.classList.add("dark");
+    var accent = localStorage.getItem("motqen_accent");
+    if (accent) document.documentElement.setAttribute("data-accent", accent);
   } catch (e) {}
 })();
 `;

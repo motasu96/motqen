@@ -7,6 +7,7 @@ import { IconHeart, IconMenu, IconX } from "./icons";
 import Logo from "./Logo";
 import LocaleSwitcher from "./LocaleSwitcher";
 import ThemeToggle from "./ThemeToggle";
+import AccentPicker from "./AccentPicker";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
@@ -60,6 +61,7 @@ export default function Header() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
+          <AccentPicker className="h-9 w-9" />
           <ThemeToggle className="h-9 w-9" />
           <LocaleSwitcher />
           <Link
@@ -103,7 +105,10 @@ export default function Header() {
             ))}
             <div className="mt-2 flex items-center justify-between border-t border-line pt-4">
               <LocaleSwitcher />
-              <ThemeToggle className="h-9 w-9" />
+              <div className="flex items-center gap-3">
+                <AccentPicker className="h-9 w-9" />
+                <ThemeToggle className="h-9 w-9" />
+              </div>
             </div>
             <div className="mt-2 flex flex-col gap-2">
               <Link

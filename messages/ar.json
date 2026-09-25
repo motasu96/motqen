@@ -468,7 +468,16 @@
   },
   "Theme": {
     "toggleToDark": "التبديل للوضع الليلي",
-    "toggleToLight": "التبديل للوضع النهاري"
+    "toggleToLight": "التبديل للوضع النهاري",
+    "accentPickerLabel": "اختيار لون الموقع",
+    "accentPickerTitle": "لون الواجهة",
+    "accentDefault": "الذهبي (افتراضي)",
+    "accentVisualBlue": "أزرق فيروزي",
+    "accentCompass": "البوصلة",
+    "accentCoffeeGold": "ذهبي القهوة",
+    "accentHarvey": "هارفي",
+    "accentMetapolis": "ميتابوليس",
+    "accentSandToBlue": "من الرمل إلى الأزرق"
   },
   "EmptyState": {
     "noProgramsTitle": "لا توجد برامج في هذا التصنيف",

@@ -31,6 +31,76 @@
     color-scheme: dark;
   }
 
+  /* Optional accent color themes (data-accent on <html>, set by
+     AccentPicker), layered on top of the base gold palette above. Only the
+     accent-related variables change; background/ink/line stay the site's
+     own tokens so the rest of the design system keeps its contrast. */
+  [data-accent="visual-blue"] {
+    --color-gold: 0 201 150;
+    --color-gold-dark: 0 61 77;
+    --color-gold-light: 201 238 220;
+  }
+  .dark[data-accent="visual-blue"] {
+    --color-gold: 0 201 150;
+    --color-gold-dark: 0 201 150;
+    --color-gold-light: 18 55 41;
+  }
+
+  [data-accent="compass"] {
+    --color-gold: 81 107 139;
+    --color-gold-dark: 5 107 59;
+    --color-gold-light: 217 219 218;
+  }
+  .dark[data-accent="compass"] {
+    --color-gold: 81 107 139;
+    --color-gold-dark: 81 107 139;
+    --color-gold-light: 34 36 39;
+  }
+
+  [data-accent="coffee-gold"] {
+    --color-gold: 201 152 70;
+    --color-gold-dark: 85 64 35;
+    --color-gold-light: 241 228 204;
+  }
+  .dark[data-accent="coffee-gold"] {
+    --color-gold: 201 152 70;
+    --color-gold-dark: 201 152 70;
+    --color-gold-light: 58 45 25;
+  }
+
+  [data-accent="harvey"] {
+    --color-gold: 153 242 200;
+    --color-gold-dark: 31 64 55;
+    --color-gold-light: 231 246 230;
+  }
+  .dark[data-accent="harvey"] {
+    --color-gold: 153 242 200;
+    --color-gold-dark: 153 242 200;
+    --color-gold-light: 48 63 51;
+  }
+
+  [data-accent="metapolis"] {
+    --color-gold: 244 121 31;
+    --color-gold-dark: 101 153 153;
+    --color-gold-light: 250 222 197;
+  }
+  .dark[data-accent="metapolis"] {
+    --color-gold: 244 121 31;
+    --color-gold-dark: 244 121 31;
+    --color-gold-light: 66 39 17;
+  }
+
+  [data-accent="sand-to-blue"] {
+    --color-gold: 222 203 164;
+    --color-gold-dark: 62 81 81;
+    --color-gold-light: 245 238 223;
+  }
+  .dark[data-accent="sand-to-blue"] {
+    --color-gold: 222 203 164;
+    --color-gold-dark: 222 203 164;
+    --color-gold-light: 62 55 44;
+  }
+
   html {
     scroll-behavior: smooth;
   }

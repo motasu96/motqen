@@ -468,7 +468,16 @@
   },
   "Theme": {
     "toggleToDark": "Switch to dark mode",
-    "toggleToLight": "Switch to light mode"
+    "toggleToLight": "Switch to light mode",
+    "accentPickerLabel": "Choose site color",
+    "accentPickerTitle": "Accent color",
+    "accentDefault": "Gold (default)",
+    "accentVisualBlue": "Visual Blue",
+    "accentCompass": "Compass",
+    "accentCoffeeGold": "Coffee Gold",
+    "accentHarvey": "Harvey",
+    "accentMetapolis": "Metapolis",
+    "accentSandToBlue": "Sand to Blue"
   },
   "EmptyState": {
     "noProgramsTitle": "No programs in this category",

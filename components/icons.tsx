@@ -371,3 +371,14 @@ export function IconSend(props: IconProps) {
     </svg>
   );
 }
+export function IconPalette(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.7-.9 1.2-1.85-.25-.5-.15-1.15.35-1.4.35-.2.8-.2 1.2 0 1.3.7 3.05.35 3.85-1.15C19.55 14.2 21 12.7 21 10.5 21 6.36 16.97 3 12 3Z" />
+      <circle cx="7.5" cy="10.5" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="10.5" cy="7" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="7.5" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="17" cy="11.5" r="1.15" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
