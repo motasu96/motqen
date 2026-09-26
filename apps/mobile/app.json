@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "متقن",
+    "slug": "motqen-mobile",
+    "scheme": "motqen",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "site.motqen.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "يحتاج التطبيق الوصول إلى الكاميرا لبدء حصص الفيديو التفاعلية.",
+        "NSMicrophoneUsageDescription": "يحتاج التطبيق الوصول إلى الميكروفون لبدء حصص الفيديو التفاعلية."
+      }
+    },
+    "android": {
+      "package": "site.motqen.app",
+      "permissions": ["CAMERA", "RECORD_AUDIO", "MODIFY_AUDIO_SETTINGS"],
+      "adaptiveIcon": {
+        "backgroundColor": "#FBF7EE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    }
+  }
+}

@@ -19,3 +19,8 @@ npm run dev
 ## نظام التصميم
 
 الألوان والخطوط والزوايا والظلال معرّفة في `tailwind.config.ts` و`app/globals.css` وفق هوية متقن البصرية (خلفية كريمية، لمسات ذهبية، خط Tajawal، اتجاه RTL بالكامل).
+
+## تطبيق الأندرويد/iOS
+
+- `apps/mobile/` — تطبيق React Native (Expo) حقيقي منفصل، يتصل بنفس مشروع Supabase. راجع `apps/mobile/README.md` للتشغيل والبناء.
+- `android/` — تطبيق أندرويد سابق أخف باستخدام Trusted Web Activity (يعرض الموقع نفسه داخل تطبيق قابل للتثبيت، بدون كود منفصل). راجع `android/README.md`.
