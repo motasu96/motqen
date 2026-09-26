@@ -3,13 +3,13 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-nat
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { getTeacherBySlug, Teacher } from "../../lib/teachers";
-import { colors, fonts, radius, shadow } from "../../lib/theme";
+import { fonts, Palette, radius, shadow, useTheme } from "../../lib/theme";
 
-function Stars({ value }: { value: number }) {
+function Stars({ value, color }: { value: number; color: string }) {
   return (
     <View style={{ flexDirection: "row", gap: 3 }}>
       {Array.from({ length: 5 }).map((_, i) => (
-        <Ionicons key={i} name={i < Math.round(value) ? "star" : "star-outline"} size={18} color={colors.gold} />
+        <Ionicons key={i} name={i < Math.round(value) ? "star" : "star-outline"} size={18} color={color} />
       ))}
     </View>
   );
@@ -17,6 +17,8 @@ function Stars({ value }: { value: number }) {
 
 export default function TeacherDetailScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const [teacher, setTeacher] = useState<Teacher | null>(null);
   const [ready, setReady] = useState(false);
 
@@ -60,7 +62,7 @@ export default function TeacherDetailScreen() {
           </View>
           <Text style={styles.name}>{teacher.name}</Text>
           <Text style={styles.title}>{teacher.title}</Text>
-          <Stars value={teacher.stats.rating} />
+          <Stars value={teacher.stats.rating} color={colors.gold} />
 
           <View style={styles.statsGrid}>
             <View style={styles.statItem}>
@@ -106,7 +108,8 @@ export default function TeacherDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(colors: Palette) {
+  return StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg },
   content: { padding: 20, gap: 14, paddingBottom: 32 },
@@ -135,4 +138,5 @@ const styles = StyleSheet.create({
   specialtiesRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   specialtyBadge: { backgroundColor: colors.goldLight, borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 6 },
   specialtyText: { fontFamily: fonts.bold, fontSize: 12, color: colors.goldDark },
-});
+  });
+}

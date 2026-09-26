@@ -14,7 +14,7 @@ import {
   Tajawal_800ExtraBold,
 } from "@expo-google-fonts/tajawal";
 import { AuthProvider } from "../lib/auth";
-import { colors } from "../lib/theme";
+import { ThemeProvider, useTheme } from "../lib/theme";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -23,6 +23,21 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 const TextAny = Text as unknown as { defaultProps?: { style?: unknown } };
 TextAny.defaultProps = TextAny.defaultProps || {};
 TextAny.defaultProps.style = [{ fontFamily: "Tajawal_400Regular" }, TextAny.defaultProps.style];
+
+function ThemedStack() {
+  const { colors, isDark, ready } = useTheme();
+  if (!ready) return null;
+  return (
+    <>
+      <StatusBar style={isDark ? "light" : "dark"} />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="login" />
+        <Stack.Screen name="room/[room]" options={{ presentation: "fullScreenModal" }} />
+      </Stack>
+    </>
+  );
+}
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -41,14 +56,11 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <AuthProvider>
-          <StatusBar style="dark" />
-          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="login" />
-            <Stack.Screen name="room/[room]" options={{ presentation: "fullScreenModal" }} />
-          </Stack>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <ThemedStack />
+          </AuthProvider>
+        </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

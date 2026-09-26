@@ -4,10 +4,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import { useAuth } from "../lib/auth";
 import { listStudentMemorization, MemorizationRecordRow } from "../lib/memorization";
-import { colors, fonts, radius, shadow } from "../lib/theme";
+import { fonts, Palette, radius, shadow, useTheme } from "../lib/theme";
 
 export default function ArchiveScreen() {
   const { session } = useAuth();
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const userId = session?.user?.id;
   const [records, setRecords] = useState<MemorizationRecordRow[]>([]);
   const [ready, setReady] = useState(false);
@@ -68,7 +70,8 @@ export default function ArchiveScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(colors: Palette) {
+  return StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg },
   content: { padding: 20, gap: 12 },
@@ -103,4 +106,5 @@ const styles = StyleSheet.create({
   title: { fontFamily: fonts.bold, fontSize: 14, color: colors.ink, textAlign: "right" },
   meta: { fontFamily: fonts.regular, fontSize: 12, color: colors.inkSoft, textAlign: "right", marginTop: 2 },
   date: { fontFamily: fonts.bold, fontSize: 11, color: colors.inkSoft },
-});
+  });
+}

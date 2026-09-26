@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import { useAuth } from "../lib/auth";
 import { HomeworkRow, listStudentHomework, markHomeworkSubmitted } from "../lib/homework";
-import { colors, fonts, radius, shadow } from "../lib/theme";
+import { fonts, Palette, radius, shadow, useTheme } from "../lib/theme";
 
 const TYPE_LABELS: Record<string, string> = { recitation: "تلاوة", review: "مراجعة", tajweed: "تجويد" };
 const STATUS_LABELS: Record<string, string> = { pending: "بانتظار التسليم", submitted: "تم التسليم", graded: "تم التصحيح" };
@@ -16,6 +16,8 @@ const STATUS_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
 
 export default function HomeworkScreen() {
   const { session } = useAuth();
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const userId = session?.user?.id;
   const [items, setItems] = useState<HomeworkRow[]>([]);
   const [ready, setReady] = useState(false);
@@ -93,7 +95,8 @@ export default function HomeworkScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(colors: Palette) {
+  return StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg },
   content: { padding: 20, gap: 14 },
@@ -110,4 +113,5 @@ const styles = StyleSheet.create({
   grade: { fontFamily: fonts.bold, fontSize: 13, color: colors.goldDark, textAlign: "right", marginTop: 4 },
   button: { backgroundColor: colors.gold, borderRadius: radius.sm, paddingVertical: 10, alignItems: "center", marginTop: 8 },
   buttonText: { color: "#fff", fontFamily: fonts.extraBold, fontSize: 13 },
-});
+  });
+}

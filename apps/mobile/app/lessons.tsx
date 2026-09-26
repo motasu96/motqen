@@ -5,10 +5,12 @@ import { Stack, useRouter } from "expo-router";
 import { useAuth } from "../lib/auth";
 import { listUpcomingBookings, UpcomingBooking } from "../lib/studentProfile";
 import { LessonWithTeacher, listStudentLessons } from "../lib/lessons";
-import { colors, fonts, radius, shadow } from "../lib/theme";
+import { fonts, Palette, radius, shadow, useTheme } from "../lib/theme";
 
 export default function LessonsScreen() {
   const { session } = useAuth();
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const router = useRouter();
   const userId = session?.user?.id;
 
@@ -96,7 +98,8 @@ export default function LessonsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(colors: Palette) {
+  return StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg },
   content: { padding: 20, gap: 14 },
@@ -117,4 +120,5 @@ const styles = StyleSheet.create({
   statusText: { fontFamily: fonts.bold, fontSize: 11 },
   statusOkText: { color: "#059669" },
   statusAbsentText: { color: colors.danger },
-});
+  });
+}

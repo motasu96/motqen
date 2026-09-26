@@ -18,7 +18,7 @@ import { getStudentPrimaryTeacher } from "../../lib/teachers";
 import { getProgramBySlug } from "../../lib/programs";
 import { buildPlan, getWeekPlan, overallProgressPercent, weekIndexForDate } from "../../lib/quranPlan";
 import { getSurahByNumber } from "../../lib/quranSurahs";
-import { colors, fonts, gradients, radius, shadow } from "../../lib/theme";
+import { fonts, gradientFor, Palette, radius, shadow, useTheme } from "../../lib/theme";
 
 const DAY_LABELS = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 
@@ -42,6 +42,8 @@ const MENU_ITEMS = [
 
 export default function HomeScreen() {
   const { session } = useAuth();
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const router = useRouter();
   const userId = session?.user?.id;
 
@@ -109,7 +111,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <LinearGradient colors={gradients.gold} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
+        <LinearGradient colors={gradientFor(colors)} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
           <View style={styles.heroText}>
             <Text style={styles.heroGreeting}>أهلًا بك،</Text>
             <Text style={styles.heroName}>{displayName}</Text>
@@ -299,7 +301,8 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(colors: Palette) {
+  return StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: 20, gap: 14, paddingBottom: 32 },
   hero: {
@@ -392,4 +395,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   menuLabel: { fontFamily: fonts.bold, fontSize: 13, color: colors.ink, textAlign: "center" },
-});
+  });
+}

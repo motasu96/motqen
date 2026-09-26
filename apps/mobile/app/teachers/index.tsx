@@ -3,19 +3,21 @@ import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View }
 import { Ionicons } from "@expo/vector-icons";
 import { Link, Stack } from "expo-router";
 import { getActiveTeachers, Teacher } from "../../lib/teachers";
-import { colors, fonts, radius, shadow } from "../../lib/theme";
+import { fonts, Palette, radius, shadow, useTheme } from "../../lib/theme";
 
-function Stars({ value }: { value: number }) {
+function Stars({ value, color }: { value: number; color: string }) {
   return (
     <View style={{ flexDirection: "row", gap: 2 }}>
       {Array.from({ length: 5 }).map((_, i) => (
-        <Ionicons key={i} name={i < Math.round(value) ? "star" : "star-outline"} size={14} color={colors.gold} />
+        <Ionicons key={i} name={i < Math.round(value) ? "star" : "star-outline"} size={14} color={color} />
       ))}
     </View>
   );
 }
 
 export default function TeachersScreen() {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [ready, setReady] = useState(false);
 
@@ -54,7 +56,7 @@ export default function TeachersScreen() {
                 </View>
                 <Text style={styles.name}>{t.name}</Text>
                 <Text style={styles.title}>{t.title}</Text>
-                <Stars value={t.stats.rating} />
+                <Stars value={t.stats.rating} color={colors.gold} />
                 <Text style={styles.stats}>
                   +{t.stats.students} طالب · +{t.stats.yearsExperience} سنوات خبرة
                 </Text>
@@ -67,7 +69,8 @@ export default function TeachersScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(colors: Palette) {
+  return StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg },
   content: { padding: 20, gap: 14 },
@@ -87,4 +90,5 @@ const styles = StyleSheet.create({
   name: { fontFamily: fonts.extraBold, fontSize: 16, color: colors.ink, textAlign: "center" },
   title: { fontFamily: fonts.regular, fontSize: 13, color: colors.inkSoft, textAlign: "center" },
   stats: { fontFamily: fonts.regular, fontSize: 11, color: colors.inkSoft, textAlign: "center", marginTop: 4 },
-});
+  });
+}

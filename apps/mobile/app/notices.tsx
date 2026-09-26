@@ -3,9 +3,11 @@ import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-nativ
 import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import { listNoticesForStudents, NoticeRow } from "../lib/notices";
-import { colors, fonts, radius, shadow } from "../lib/theme";
+import { fonts, Palette, radius, shadow, useTheme } from "../lib/theme";
 
 export default function NoticesScreen() {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const [items, setItems] = useState<NoticeRow[]>([]);
   const [ready, setReady] = useState(false);
 
@@ -59,7 +61,8 @@ export default function NoticesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(colors: Palette) {
+  return StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg },
   content: { padding: 20, gap: 14 },
@@ -71,4 +74,5 @@ const styles = StyleSheet.create({
   title: { fontFamily: fonts.bold, fontSize: 15, color: colors.ink, textAlign: "right", flex: 1 },
   body: { fontFamily: fonts.regular, fontSize: 13, color: colors.inkSoft, textAlign: "right", lineHeight: 19 },
   date: { fontFamily: fonts.regular, fontSize: 11, color: colors.inkSoft, textAlign: "right", marginTop: 4 },
-});
+  });
+}

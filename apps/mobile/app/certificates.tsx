@@ -10,10 +10,12 @@ import {
   GRADE_LABEL_TEXT,
   listMyCertificates,
 } from "../lib/examsCertificates";
-import { colors, fonts, radius, shadow } from "../lib/theme";
+import { fonts, Palette, radius, shadow, useTheme } from "../lib/theme";
 
 export default function CertificatesScreen() {
   const { session } = useAuth();
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const userId = session?.user?.id;
   const [certificates, setCertificates] = useState<CertificateRow[]>([]);
   const [ready, setReady] = useState(false);
@@ -102,7 +104,8 @@ export default function CertificatesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(colors: Palette) {
+  return StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg },
   content: { padding: 20, gap: 14 },
@@ -120,4 +123,5 @@ const styles = StyleSheet.create({
   modalRow: { fontFamily: fonts.regular, fontSize: 13, color: colors.ink, textAlign: "center" },
   closeButton: { backgroundColor: colors.gold, borderRadius: radius.sm, paddingVertical: 12, alignItems: "center", marginTop: 12 },
   closeButtonText: { color: "#fff", fontFamily: fonts.extraBold, fontSize: 14 },
-});
+  });
+}

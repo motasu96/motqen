@@ -3,10 +3,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { getProgramBySlug } from "../../lib/programs";
-import { colors, fonts, gradients, radius, shadow } from "../../lib/theme";
+import { fonts, gradientFor, Palette, radius, shadow, useTheme } from "../../lib/theme";
 
 export default function ProgramDetailScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const router = useRouter();
   const program = getProgramBySlug(slug);
 
@@ -69,7 +71,7 @@ export default function ProgramDetailScreen() {
         )}
 
         <TouchableOpacity onPress={() => router.push("/(tabs)/groups")} activeOpacity={0.85}>
-          <LinearGradient colors={gradients.gold} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.cta}>
+          <LinearGradient colors={gradientFor(colors)} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.cta}>
             <Text style={styles.ctaText}>عرض الحلقات المتاحة لهذا البرنامج</Text>
           </LinearGradient>
         </TouchableOpacity>
@@ -78,7 +80,8 @@ export default function ProgramDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(colors: Palette) {
+  return StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: 20, gap: 6, paddingBottom: 32 },
   notFound: { textAlign: "center", marginTop: 40, color: colors.inkSoft, fontFamily: fonts.regular },
@@ -107,4 +110,5 @@ const styles = StyleSheet.create({
   courseDesc: { fontFamily: fonts.regular, fontSize: 12, color: colors.inkSoft, textAlign: "right", marginTop: 6, lineHeight: 18 },
   cta: { borderRadius: radius.md, paddingVertical: 15, alignItems: "center", marginTop: 18 },
   ctaText: { color: "#fff", fontFamily: fonts.extraBold, fontSize: 14 },
-});
+  });
+}

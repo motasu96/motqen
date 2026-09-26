@@ -8,7 +8,7 @@ import { listStudentHomework } from "../lib/homework";
 import { listStudentMemorization } from "../lib/memorization";
 import { getMyStudentProfile } from "../lib/studentProfile";
 import { buildPlan, overallProgressPercent, weekIndexForDate } from "../lib/quranPlan";
-import { colors, fonts, radius, shadow } from "../lib/theme";
+import { fonts, Palette, radius, shadow, useTheme } from "../lib/theme";
 
 const GRADE_RE = /^\s*(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)\s*$/;
 
@@ -23,6 +23,8 @@ function weeksAgoBucket(dateStr: string) {
 
 export default function ReportsScreen() {
   const { session } = useAuth();
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const userId = session?.user?.id;
 
   const [ready, setReady] = useState(false);
@@ -130,7 +132,8 @@ export default function ReportsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(colors: Palette) {
+  return StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: 20, gap: 14 },
   statsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
@@ -163,4 +166,5 @@ const styles = StyleSheet.create({
   barTrack: { flex: 1, height: 10, borderRadius: radius.pill, backgroundColor: colors.bg, overflow: "hidden" },
   barFill: { height: "100%", borderRadius: radius.pill, backgroundColor: colors.gold },
   barValue: { width: 56, fontFamily: fonts.bold, fontSize: 12, color: colors.ink, textAlign: "left" },
-});
+  });
+}

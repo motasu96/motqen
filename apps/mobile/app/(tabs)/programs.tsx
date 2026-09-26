@@ -3,7 +3,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import { programs } from "../../lib/programs";
-import { colors, fonts, radius, shadow } from "../../lib/theme";
+import { fonts, Palette, radius, shadow, useTheme } from "../../lib/theme";
 
 const PROGRAM_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   "hifz-mutqan": "book",
@@ -15,6 +15,8 @@ const PROGRAM_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
 };
 
 export default function ProgramsScreen() {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   return (
     <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
       <FlatList
@@ -46,7 +48,8 @@ export default function ProgramsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(colors: Palette) {
+  return StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: 20, gap: 14 },
   card: { backgroundColor: colors.card, borderRadius: radius.lg, padding: 18, borderWidth: 1, borderColor: colors.line, ...shadow.soft },
@@ -64,4 +67,5 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   badgeText: { fontFamily: fonts.bold, fontSize: 11, color: colors.goldDark },
-});
+  });
+}

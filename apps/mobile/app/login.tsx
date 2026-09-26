@@ -16,10 +16,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { Redirect } from "expo-router";
 import { useAuth } from "../lib/auth";
 import { supabase } from "../lib/supabase";
-import { colors, fonts, gradients, radius, shadow } from "../lib/theme";
+import { fonts, gradientFor, Palette, radius, shadow, useTheme } from "../lib/theme";
 
 export default function LoginScreen() {
   const { session, loading: sessionLoading } = useAuth();
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -50,7 +52,7 @@ export default function LoginScreen() {
     <SafeAreaView style={styles.flex}>
       <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <View style={styles.logoMark}>
-          <LinearGradient colors={gradients.gold} style={styles.logoCircle}>
+          <LinearGradient colors={gradientFor(colors)} style={styles.logoCircle}>
             <Ionicons name="book" size={30} color="#fff" />
           </LinearGradient>
           <Text style={styles.logo}>متقن</Text>
@@ -96,7 +98,7 @@ export default function LoginScreen() {
           {error && <Text style={styles.error}>{error}</Text>}
 
           <TouchableOpacity onPress={handleLogin} disabled={submitting} activeOpacity={0.85}>
-            <LinearGradient colors={gradients.gold} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.button}>
+            <LinearGradient colors={gradientFor(colors)} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.button}>
               {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>دخول</Text>}
             </LinearGradient>
           </TouchableOpacity>
@@ -106,7 +108,8 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(colors: Palette) {
+  return StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.bg },
   screen: { flex: 1, justifyContent: "center", padding: 20 },
   logoMark: { alignItems: "center", marginBottom: 28, gap: 4 },
@@ -142,4 +145,5 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   buttonText: { color: "#fff", fontFamily: fonts.extraBold, fontSize: 15 },
-});
+  });
+}

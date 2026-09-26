@@ -6,12 +6,14 @@ import { useRouter } from "expo-router";
 import { useAuth } from "../../lib/auth";
 import { GroupWithTeacher, joinGroup, leaveGroup, listAllGroupsForStudents, listMyGroupEnrollmentIds } from "../../lib/groups";
 import { getProgramBySlug } from "../../lib/programs";
-import { colors, fonts, radius, shadow } from "../../lib/theme";
+import { fonts, Palette, radius, shadow, useTheme } from "../../lib/theme";
 
 const DAY_LABELS = ["السبت", "الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];
 
 export default function GroupsScreen() {
   const { session } = useAuth();
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const router = useRouter();
   const studentId = session?.user?.id;
 
@@ -163,7 +165,8 @@ export default function GroupsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(colors: Palette) {
+  return StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg },
   content: { padding: 20, gap: 14 },
@@ -185,4 +188,5 @@ const styles = StyleSheet.create({
   buttonText: { color: "#fff", fontFamily: fonts.bold, fontSize: 13 },
   leaveButton: { backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.line },
   leaveButtonText: { color: colors.inkSoft, fontFamily: fonts.bold, fontSize: 13 },
-});
+  });
+}

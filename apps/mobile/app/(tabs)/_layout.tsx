@@ -2,10 +2,11 @@ import { Redirect, Tabs } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../lib/auth";
-import { colors, fonts } from "../../lib/theme";
+import { fonts, useTheme } from "../../lib/theme";
 
 export default function TabsLayout() {
   const { session, loading } = useAuth();
+  const { colors } = useTheme();
 
   if (loading) {
     return (
