@@ -9,9 +9,14 @@ export function sanitizeRoomName(raw: string) {
 
 export function buildJitsiUrl(room: string, displayName: string) {
   const roomName = sanitizeRoomName(room);
+  // Jitsi's URL-hash config parser reads string values as quoted JS literals
+  // (e.g. userInfo.displayName="Jane") — an unquoted value is silently
+  // dropped, which is why the display name wasn't showing up.
+  const quotedName = encodeURIComponent(`"${displayName.replace(/"/g, '\\"')}"`);
   const config = [
     "config.prejoinPageEnabled=true",
-    `userInfo.displayName=${encodeURIComponent(displayName)}`,
+    "config.disableDeepLinking=true",
+    `userInfo.displayName=${quotedName}`,
     "interfaceConfig.SHOW_JITSI_WATERMARK=false",
     "interfaceConfig.MOBILE_APP_PROMO=false",
   ].join("&");
