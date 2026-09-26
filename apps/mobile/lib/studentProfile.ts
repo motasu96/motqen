@@ -55,3 +55,8 @@ export async function listUpcomingBookings(userId: string): Promise<UpcomingBook
     };
   });
 }
+
+export async function cancelBooking(bookingId: string): Promise<boolean> {
+  const { error } = await supabase.from("bookings").update({ status: "cancelled" }).eq("id", bookingId);
+  return !error;
+}

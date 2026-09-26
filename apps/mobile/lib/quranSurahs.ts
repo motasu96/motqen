@@ -131,3 +131,7 @@ export const QURAN_SURAHS: QuranSurah[] = [
 ];
 
 export const TOTAL_AYAHS = QURAN_SURAHS.reduce((sum, s) => sum + s.ayahCount, 0);
+
+export function getSurahByNumber(number: number) {
+  return QURAN_SURAHS.find((s) => s.number === number);
+}

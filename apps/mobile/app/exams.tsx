@@ -3,27 +3,24 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-nat
 import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import { useAuth } from "../lib/auth";
-import { CertificateRow, ExamRow, GRADE_LABEL_TEXT, listMyCertificates, listStudentExams } from "../lib/examsCertificates";
+import { ExamRow, listStudentExams } from "../lib/examsCertificates";
 import { colors, fonts, radius, shadow } from "../lib/theme";
 
 const EXAM_STATUS_LABELS: Record<string, string> = { upcoming: "قادم", completed: "منتهي" };
-const CERT_SCOPE_LABELS: Record<string, string> = { parts: "أجزاء", khatm: "ختمة كاملة" };
 
 export default function ExamsScreen() {
   const { session } = useAuth();
   const userId = session?.user?.id;
   const [exams, setExams] = useState<ExamRow[]>([]);
-  const [certificates, setCertificates] = useState<CertificateRow[]>([]);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
     let cancelled = false;
     (async () => {
-      const [examRows, certRows] = await Promise.all([listStudentExams(userId), listMyCertificates(userId)]);
+      const rows = await listStudentExams(userId);
       if (cancelled) return;
-      setExams(examRows);
-      setCertificates(certRows);
+      setExams(rows);
       setReady(true);
     })();
     return () => {
@@ -33,19 +30,18 @@ export default function ExamsScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ headerShown: true, title: "الاختبارات والشهادات" }} />
+      <Stack.Screen options={{ headerShown: true, title: "الاختبارات" }} />
       {!ready ? (
         <View style={styles.center}>
           <ActivityIndicator color={colors.gold} size="large" />
         </View>
       ) : (
         <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-          <View style={styles.sectionHeader}>
-            <Ionicons name="clipboard-outline" size={18} color={colors.goldDark} />
-            <Text style={styles.sectionTitle}>الاختبارات</Text>
-          </View>
           {exams.length === 0 ? (
-            <Text style={styles.empty}>لا توجد اختبارات مسجّلة</Text>
+            <View style={styles.emptyWrap}>
+              <Ionicons name="clipboard-outline" size={40} color={colors.line} />
+              <Text style={styles.empty}>لا توجد اختبارات مسجّلة</Text>
+            </View>
           ) : (
             exams.map((e) => (
               <View key={e.id} style={styles.card}>
@@ -61,24 +57,6 @@ export default function ExamsScreen() {
               </View>
             ))
           )}
-
-          <View style={[styles.sectionHeader, { marginTop: 12 }]}>
-            <Ionicons name="ribbon-outline" size={18} color={colors.goldDark} />
-            <Text style={styles.sectionTitle}>الشهادات</Text>
-          </View>
-          {certificates.length === 0 ? (
-            <Text style={styles.empty}>لا توجد شهادات صادرة بعد</Text>
-          ) : (
-            certificates.map((c) => (
-              <View key={c.id} style={styles.card}>
-                <Text style={styles.title}>{CERT_SCOPE_LABELS[c.scope] ?? c.scope}</Text>
-                <Text style={styles.meta}>رقم الشهادة: {c.certificate_number}</Text>
-                <Text style={styles.meta}>تاريخ الإصدار: {c.issued_at.slice(0, 10)}</Text>
-                <Text style={styles.meta}>المعلم: {c.teacher_name}</Text>
-                {c.grade_label && <Text style={styles.grade}>التقدير: {GRADE_LABEL_TEXT[c.grade_label] ?? c.grade_label}</Text>}
-              </View>
-            ))
-          )}
         </ScrollView>
       )}
     </>
@@ -89,9 +67,8 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg },
   content: { padding: 20, gap: 14 },
-  sectionHeader: { flexDirection: "row", alignItems: "center", gap: 6, justifyContent: "flex-start" },
-  sectionTitle: { fontFamily: fonts.extraBold, fontSize: 15, color: colors.ink, textAlign: "right" },
-  empty: { fontFamily: fonts.regular, fontSize: 13, color: colors.inkSoft, textAlign: "right" },
+  emptyWrap: { alignItems: "center", marginTop: 60, gap: 10 },
+  empty: { fontFamily: fonts.regular, fontSize: 13, color: colors.inkSoft, textAlign: "center" },
   card: { backgroundColor: colors.card, borderRadius: radius.lg, padding: 16, borderWidth: 1, borderColor: colors.line, gap: 3, ...shadow.soft },
   title: { fontFamily: fonts.bold, fontSize: 15, color: colors.ink, textAlign: "right" },
   meta: { fontFamily: fonts.regular, fontSize: 12, color: colors.inkSoft, textAlign: "right" },

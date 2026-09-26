@@ -56,3 +56,18 @@ export async function listMyCertificates(studentId: string): Promise<Certificate
     .order("issued_at", { ascending: false });
   return (data as CertificateRow[]) ?? [];
 }
+
+const AR_JUZ_WORDS: Record<number, string> = { 1: "جزء واحد", 2: "جزءان" };
+
+export function formatJuzCount(n: number): string {
+  return AR_JUZ_WORDS[n] ?? `${n} جزءًا`;
+}
+
+export function certificateTitle(scope: CertScope): string {
+  return scope === "khatm" ? "شهادة ختم القرآن الكريم" : "شهادة حفظ";
+}
+
+export function amountShort(scope: CertScope, juzCount: number | null): string {
+  if (scope === "khatm") return "القرآن كاملًا";
+  return formatJuzCount(juzCount ?? 0);
+}
