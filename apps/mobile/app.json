@@ -12,6 +12,12 @@
     "experiments": {
       "typedRoutes": true
     },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/9f3c530d-1550-432a-8c27-f22f64fa7ac9"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "site.motqen.app",
