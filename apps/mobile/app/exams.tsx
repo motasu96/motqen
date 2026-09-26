@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import { useAuth } from "../lib/auth";
 import { CertificateRow, ExamRow, GRADE_LABEL_TEXT, listMyCertificates, listStudentExams } from "../lib/examsCertificates";
-import { colors } from "../lib/theme";
+import { colors, fonts, radius, shadow } from "../lib/theme";
 
 const EXAM_STATUS_LABELS: Record<string, string> = { upcoming: "قادم", completed: "منتهي" };
 const CERT_SCOPE_LABELS: Record<string, string> = { parts: "أجزاء", khatm: "ختمة كاملة" };
@@ -39,7 +40,10 @@ export default function ExamsScreen() {
         </View>
       ) : (
         <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-          <Text style={styles.sectionTitle}>الاختبارات</Text>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="clipboard-outline" size={18} color={colors.goldDark} />
+            <Text style={styles.sectionTitle}>الاختبارات</Text>
+          </View>
           {exams.length === 0 ? (
             <Text style={styles.empty}>لا توجد اختبارات مسجّلة</Text>
           ) : (
@@ -58,7 +62,10 @@ export default function ExamsScreen() {
             ))
           )}
 
-          <Text style={[styles.sectionTitle, { marginTop: 10 }]}>الشهادات</Text>
+          <View style={[styles.sectionHeader, { marginTop: 12 }]}>
+            <Ionicons name="ribbon-outline" size={18} color={colors.goldDark} />
+            <Text style={styles.sectionTitle}>الشهادات</Text>
+          </View>
           {certificates.length === 0 ? (
             <Text style={styles.empty}>لا توجد شهادات صادرة بعد</Text>
           ) : (
@@ -82,10 +89,11 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg },
   content: { padding: 20, gap: 14 },
-  sectionTitle: { fontSize: 15, fontWeight: "800", color: colors.ink, textAlign: "right" },
-  empty: { fontSize: 13, color: colors.inkSoft, textAlign: "right" },
-  card: { backgroundColor: colors.card, borderRadius: 20, padding: 16, borderWidth: 1, borderColor: colors.line, gap: 3 },
-  title: { fontSize: 15, fontWeight: "800", color: colors.ink, textAlign: "right" },
-  meta: { fontSize: 12, color: colors.inkSoft, textAlign: "right" },
-  grade: { fontSize: 13, fontWeight: "700", color: colors.goldDark, textAlign: "right", marginTop: 4 },
+  sectionHeader: { flexDirection: "row", alignItems: "center", gap: 6, justifyContent: "flex-start" },
+  sectionTitle: { fontFamily: fonts.extraBold, fontSize: 15, color: colors.ink, textAlign: "right" },
+  empty: { fontFamily: fonts.regular, fontSize: 13, color: colors.inkSoft, textAlign: "right" },
+  card: { backgroundColor: colors.card, borderRadius: radius.lg, padding: 16, borderWidth: 1, borderColor: colors.line, gap: 3, ...shadow.soft },
+  title: { fontFamily: fonts.bold, fontSize: 15, color: colors.ink, textAlign: "right" },
+  meta: { fontFamily: fonts.regular, fontSize: 12, color: colors.inkSoft, textAlign: "right" },
+  grade: { fontFamily: fonts.bold, fontSize: 13, color: colors.goldDark, textAlign: "right", marginTop: 4 },
 });

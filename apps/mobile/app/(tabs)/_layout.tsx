@@ -1,7 +1,8 @@
 import { Redirect, Tabs } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../lib/auth";
-import { colors } from "../../lib/theme";
+import { colors, fonts } from "../../lib/theme";
 
 export default function TabsLayout() {
   const { session, loading } = useAuth();
@@ -24,13 +25,46 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: colors.goldDark,
         tabBarInactiveTintColor: colors.inkSoft,
-        tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.line },
+        tabBarLabelStyle: { fontFamily: fonts.bold, fontSize: 11 },
+        tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.line, height: 62, paddingTop: 6, paddingBottom: 8 },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: "الرئيسية" }} />
-      <Tabs.Screen name="programs" options={{ title: "البرامج" }} />
-      <Tabs.Screen name="groups" options={{ title: "حلقاتي" }} />
-      <Tabs.Screen name="profile" options={{ title: "حسابي" }} />
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: "الرئيسية",
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons name={focused ? "home" : "home-outline"} color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="programs"
+        options={{
+          title: "البرامج",
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons name={focused ? "book" : "book-outline"} color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="groups"
+        options={{
+          title: "حلقاتي",
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons name={focused ? "people" : "people-outline"} color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "حسابي",
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons name={focused ? "person" : "person-outline"} color={color} size={size} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }

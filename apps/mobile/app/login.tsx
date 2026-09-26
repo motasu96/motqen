@@ -11,10 +11,12 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 import { Redirect } from "expo-router";
 import { useAuth } from "../lib/auth";
 import { supabase } from "../lib/supabase";
-import { colors } from "../lib/theme";
+import { colors, fonts, gradients, radius, shadow } from "../lib/theme";
 
 export default function LoginScreen() {
   const { session, loading: sessionLoading } = useAuth();
@@ -47,43 +49,58 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={styles.flex}>
       <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-      <View style={styles.card}>
-        <Text style={styles.logo}>متقن</Text>
-        <Text style={styles.subtitle}>تسجيل الدخول إلى حسابك</Text>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>البريد الإلكتروني</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            textAlign={I18nManager.isRTL ? "right" : "left"}
-            placeholder="example@email.com"
-            placeholderTextColor={colors.inkSoft}
-          />
+        <View style={styles.logoMark}>
+          <LinearGradient colors={gradients.gold} style={styles.logoCircle}>
+            <Ionicons name="book" size={30} color="#fff" />
+          </LinearGradient>
+          <Text style={styles.logo}>متقن</Text>
+          <Text style={styles.tagline}>مقرأة القرآن الكريم</Text>
         </View>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>كلمة المرور</Text>
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            textAlign={I18nManager.isRTL ? "right" : "left"}
-            placeholder="••••••••"
-            placeholderTextColor={colors.inkSoft}
-          />
+        <View style={styles.card}>
+          <Text style={styles.subtitle}>تسجيل الدخول إلى حسابك</Text>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>البريد الإلكتروني</Text>
+            <View style={styles.inputWrap}>
+              <Ionicons name="mail-outline" size={18} color={colors.inkSoft} />
+              <TextInput
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                textAlign={I18nManager.isRTL ? "right" : "left"}
+                placeholder="example@email.com"
+                placeholderTextColor={colors.inkSoft}
+              />
+            </View>
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>كلمة المرور</Text>
+            <View style={styles.inputWrap}>
+              <Ionicons name="lock-closed-outline" size={18} color={colors.inkSoft} />
+              <TextInput
+                style={styles.input}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                textAlign={I18nManager.isRTL ? "right" : "left"}
+                placeholder="••••••••"
+                placeholderTextColor={colors.inkSoft}
+              />
+            </View>
+          </View>
+
+          {error && <Text style={styles.error}>{error}</Text>}
+
+          <TouchableOpacity onPress={handleLogin} disabled={submitting} activeOpacity={0.85}>
+            <LinearGradient colors={gradients.gold} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.button}>
+              {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>دخول</Text>}
+            </LinearGradient>
+          </TouchableOpacity>
         </View>
-
-        {error && <Text style={styles.error}>{error}</Text>}
-
-        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={submitting}>
-          {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>دخول</Text>}
-        </TouchableOpacity>
-      </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -92,28 +109,37 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.bg },
   screen: { flex: 1, justifyContent: "center", padding: 20 },
-  card: { backgroundColor: colors.card, borderRadius: 24, padding: 24, gap: 6 },
-  logo: { fontSize: 28, fontWeight: "800", color: colors.goldDark, textAlign: "center" },
-  subtitle: { fontSize: 14, color: colors.inkSoft, textAlign: "center", marginBottom: 18 },
+  logoMark: { alignItems: "center", marginBottom: 28, gap: 4 },
+  logoCircle: { width: 64, height: 64, borderRadius: 20, alignItems: "center", justifyContent: "center", marginBottom: 10 },
+  logo: { fontFamily: fonts.extraBold, fontSize: 26, color: colors.goldDark, textAlign: "center" },
+  tagline: { fontFamily: fonts.regular, fontSize: 13, color: colors.inkSoft, textAlign: "center" },
+  card: { backgroundColor: colors.card, borderRadius: radius.xl, padding: 24, gap: 6, ...shadow.card },
+  subtitle: { fontFamily: fonts.bold, fontSize: 15, color: colors.ink, textAlign: "center", marginBottom: 18 },
   field: { marginBottom: 14 },
-  label: { fontSize: 13, fontWeight: "700", color: colors.ink, marginBottom: 6, textAlign: "right" },
-  input: {
+  label: { fontFamily: fonts.bold, fontSize: 13, color: colors.ink, marginBottom: 6, textAlign: "right" },
+  inputWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
     borderWidth: 1,
     borderColor: colors.line,
-    borderRadius: 14,
+    borderRadius: radius.md,
     paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: colors.ink,
     backgroundColor: colors.bg,
   },
-  error: { color: colors.danger, fontSize: 13, textAlign: "center", marginBottom: 10 },
+  input: {
+    flex: 1,
+    paddingVertical: 12,
+    fontFamily: fonts.regular,
+    fontSize: 15,
+    color: colors.ink,
+  },
+  error: { color: colors.danger, fontFamily: fonts.medium, fontSize: 13, textAlign: "center", marginBottom: 10 },
   button: {
-    backgroundColor: colors.gold,
-    borderRadius: 14,
+    borderRadius: radius.md,
     paddingVertical: 14,
     alignItems: "center",
     marginTop: 8,
   },
-  buttonText: { color: "#fff", fontWeight: "800", fontSize: 15 },
+  buttonText: { color: "#fff", fontFamily: fonts.extraBold, fontSize: 15 },
 });

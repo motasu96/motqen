@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import { useAuth } from "../lib/auth";
 import { getAttendanceStats } from "../lib/lessons";
@@ -7,7 +8,7 @@ import { listStudentHomework } from "../lib/homework";
 import { listStudentMemorization } from "../lib/memorization";
 import { getMyStudentProfile } from "../lib/studentProfile";
 import { buildPlan, overallProgressPercent, weekIndexForDate } from "../lib/quranPlan";
-import { colors } from "../lib/theme";
+import { colors, fonts, radius, shadow } from "../lib/theme";
 
 const GRADE_RE = /^\s*(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)\s*$/;
 
@@ -80,10 +81,10 @@ export default function ReportsScreen() {
   }, [userId]);
 
   const STATS = [
-    { label: "نسبة الحضور", value: attendancePercent, hasValue: true },
-    { label: "إنجاز الواجبات", value: homeworkPercent, hasValue: true },
-    { label: "متوسط الدرجات", value: avgGrade ?? 0, hasValue: avgGrade !== null },
-    { label: "إجمالي الحفظ", value: memorizationPercent, hasValue: true },
+    { label: "نسبة الحضور", value: attendancePercent, hasValue: true, icon: "checkmark-done-outline" as const },
+    { label: "إنجاز الواجبات", value: homeworkPercent, hasValue: true, icon: "document-text-outline" as const },
+    { label: "متوسط الدرجات", value: avgGrade ?? 0, hasValue: avgGrade !== null, icon: "trophy-outline" as const },
+    { label: "إجمالي الحفظ", value: memorizationPercent, hasValue: true, icon: "book-outline" as const },
   ];
   const maxPages = Math.max(1, ...weeklyPages);
 
@@ -98,6 +99,9 @@ export default function ReportsScreen() {
             <View style={styles.statsGrid}>
               {STATS.map((s) => (
                 <View key={s.label} style={styles.statCard}>
+                  <View style={styles.statIconBubble}>
+                    <Ionicons name={s.icon} size={18} color={colors.goldDark} />
+                  </View>
                   <Text style={styles.statValue}>{s.hasValue ? `${s.value}%` : "—"}</Text>
                   <Text style={styles.statLabel}>{s.label}</Text>
                 </View>
@@ -105,7 +109,10 @@ export default function ReportsScreen() {
             </View>
 
             <View style={styles.chartCard}>
-              <Text style={styles.chartTitle}>الصفحات المحفوظة أسبوعيًا</Text>
+              <View style={styles.chartHeader}>
+                <Ionicons name="bar-chart-outline" size={18} color={colors.goldDark} />
+                <Text style={styles.chartTitle}>الصفحات المحفوظة أسبوعيًا</Text>
+              </View>
               {weeklyPages.map((pages, i) => (
                 <View key={i} style={styles.barRow}>
                   <Text style={styles.barLabel}>الأسبوع {i + 1}</Text>
@@ -130,18 +137,30 @@ const styles = StyleSheet.create({
   statCard: {
     flexBasis: "47%",
     backgroundColor: colors.card,
-    borderRadius: 18,
+    borderRadius: radius.md,
     padding: 16,
     borderWidth: 1,
     borderColor: colors.line,
+    gap: 6,
+    ...shadow.soft,
   },
-  statValue: { fontSize: 22, fontWeight: "800", color: colors.goldDark, textAlign: "right" },
-  statLabel: { fontSize: 12, color: colors.inkSoft, textAlign: "right", marginTop: 4 },
-  chartCard: { backgroundColor: colors.card, borderRadius: 20, padding: 18, borderWidth: 1, borderColor: colors.line, gap: 12 },
-  chartTitle: { fontSize: 15, fontWeight: "800", color: colors.ink, textAlign: "right", marginBottom: 4 },
+  statIconBubble: {
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    backgroundColor: colors.goldLight,
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "flex-start",
+  },
+  statValue: { fontFamily: fonts.extraBold, fontSize: 22, color: colors.goldDark, textAlign: "right" },
+  statLabel: { fontFamily: fonts.regular, fontSize: 12, color: colors.inkSoft, textAlign: "right" },
+  chartCard: { backgroundColor: colors.card, borderRadius: radius.lg, padding: 18, borderWidth: 1, borderColor: colors.line, gap: 12, ...shadow.soft },
+  chartHeader: { flexDirection: "row", alignItems: "center", gap: 6, justifyContent: "flex-start" },
+  chartTitle: { fontFamily: fonts.extraBold, fontSize: 15, color: colors.ink, textAlign: "right" },
   barRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  barLabel: { width: 64, fontSize: 12, color: colors.inkSoft, textAlign: "right" },
-  barTrack: { flex: 1, height: 10, borderRadius: 999, backgroundColor: colors.bg, overflow: "hidden" },
-  barFill: { height: "100%", borderRadius: 999, backgroundColor: colors.gold },
-  barValue: { width: 56, fontSize: 12, fontWeight: "700", color: colors.ink, textAlign: "left" },
+  barLabel: { width: 64, fontFamily: fonts.regular, fontSize: 12, color: colors.inkSoft, textAlign: "right" },
+  barTrack: { flex: 1, height: 10, borderRadius: radius.pill, backgroundColor: colors.bg, overflow: "hidden" },
+  barFill: { height: "100%", borderRadius: radius.pill, backgroundColor: colors.gold },
+  barValue: { width: 56, fontFamily: fonts.bold, fontSize: 12, color: colors.ink, textAlign: "left" },
 });

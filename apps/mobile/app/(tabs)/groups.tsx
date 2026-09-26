@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useAuth } from "../../lib/auth";
 import { GroupWithTeacher, joinGroup, leaveGroup, listAllGroupsForStudents, listMyGroupEnrollmentIds } from "../../lib/groups";
 import { getProgramBySlug } from "../../lib/programs";
-import { colors } from "../../lib/theme";
+import { colors, fonts, radius, shadow } from "../../lib/theme";
 
 const DAY_LABELS = ["السبت", "الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];
 
@@ -77,71 +78,86 @@ export default function GroupsScreen() {
 
   return (
     <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
-    <FlatList
-      contentContainerStyle={styles.content}
-      data={groups}
-      keyExtractor={(g) => g.id}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.gold} />}
-      ListEmptyComponent={<Text style={styles.empty}>لا توجد حلقات جماعية متاحة حاليًا</Text>}
-      renderItem={({ item: g }) => {
-        const program = getProgramBySlug(g.program_slug ?? "");
-        const course = program?.courses?.find((c) => c.slug === g.course_slug);
-        const enrolled = enrolledIds.has(g.id);
-        const spotsLeft = g.capacity - g.enrolledCount;
-        const isFull = spotsLeft <= 0 && !enrolled;
-        const busy = actingOn === g.id;
+      <FlatList
+        contentContainerStyle={styles.content}
+        data={groups}
+        keyExtractor={(g) => g.id}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.gold} />}
+        ListEmptyComponent={
+          <View style={styles.emptyWrap}>
+            <Ionicons name="people-outline" size={40} color={colors.line} />
+            <Text style={styles.empty}>لا توجد حلقات جماعية متاحة حاليًا</Text>
+          </View>
+        }
+        renderItem={({ item: g }) => {
+          const program = getProgramBySlug(g.program_slug ?? "");
+          const course = program?.courses?.find((c) => c.slug === g.course_slug);
+          const enrolled = enrolledIds.has(g.id);
+          const spotsLeft = g.capacity - g.enrolledCount;
+          const isFull = spotsLeft <= 0 && !enrolled;
+          const busy = actingOn === g.id;
 
-        return (
-          <View style={styles.card}>
-            <View style={styles.badgeRow}>
-              {program && (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{program.title}</Text>
+          return (
+            <View style={styles.card}>
+              <View style={styles.badgeRow}>
+                {program && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{program.title}</Text>
+                  </View>
+                )}
+                {course && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{course.title}</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.title}>{g.title}</Text>
+              <View style={styles.metaRow}>
+                <Ionicons name="calendar-outline" size={14} color={colors.inkSoft} />
+                <Text style={styles.meta}>
+                  {DAY_LABELS[g.day_of_week] ?? ""} · {g.session_time}
+                </Text>
+              </View>
+              <View style={styles.metaRow}>
+                <Ionicons name="person-outline" size={14} color={colors.inkSoft} />
+                <Text style={styles.meta}>مع {g.teacherName}</Text>
+              </View>
+              <View style={styles.metaRow}>
+                <Ionicons name="people-outline" size={14} color={colors.inkSoft} />
+                <Text style={styles.meta}>
+                  {g.enrolledCount} / {g.capacity} {isFull ? "(مكتملة)" : ""}
+                </Text>
+              </View>
+
+              {enrolled ? (
+                <View style={styles.actionsRow}>
+                  <TouchableOpacity
+                    style={[styles.button, styles.joinButton]}
+                    onPress={() => router.push(`/room/${g.id}`)}
+                  >
+                    <Ionicons name="videocam" size={15} color="#fff" />
+                    <Text style={styles.buttonText}>دخول الحصة</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.button, styles.leaveButton]}
+                    disabled={busy}
+                    onPress={() => handleLeave(g.id)}
+                  >
+                    <Text style={styles.leaveButtonText}>إلغاء الانضمام</Text>
+                  </TouchableOpacity>
                 </View>
-              )}
-              {course && (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{course.title}</Text>
-                </View>
+              ) : (
+                <TouchableOpacity
+                  style={[styles.button, styles.joinButton, isFull && styles.buttonDisabled]}
+                  disabled={isFull || busy}
+                  onPress={() => handleJoin(g.id)}
+                >
+                  <Text style={styles.buttonText}>{isFull ? "الحلقة مكتملة" : "انضم إلى الحلقة"}</Text>
+                </TouchableOpacity>
               )}
             </View>
-            <Text style={styles.title}>{g.title}</Text>
-            <Text style={styles.meta}>
-              {DAY_LABELS[g.day_of_week] ?? ""} · {g.session_time}
-            </Text>
-            <Text style={styles.meta}>مع {g.teacherName}</Text>
-            <Text style={styles.meta}>
-              {g.enrolledCount} / {g.capacity} {isFull ? "(مكتملة)" : ""}
-            </Text>
-
-            {enrolled ? (
-              <View style={styles.actionsRow}>
-                <TouchableOpacity
-                  style={[styles.button, styles.joinButton]}
-                  onPress={() => router.push(`/room/${g.id}`)}
-                >
-                  <Text style={styles.buttonText}>دخول الحصة</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.button, styles.leaveButton]}
-                  disabled={busy}
-                  onPress={() => handleLeave(g.id)}
-                >
-                  <Text style={styles.leaveButtonText}>إلغاء الانضمام</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <TouchableOpacity
-                style={[styles.button, styles.joinButton, isFull && styles.buttonDisabled]}
-                disabled={isFull || busy}
-                onPress={() => handleJoin(g.id)}
-              >
-                <Text style={styles.buttonText}>{isFull ? "الحلقة مكتملة" : "انضم إلى الحلقة"}</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        );
-      }}
+          );
+        }}
       />
     </SafeAreaView>
   );
@@ -151,20 +167,22 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg },
   content: { padding: 20, gap: 14 },
-  empty: { textAlign: "center", color: colors.inkSoft, marginTop: 40 },
-  card: { backgroundColor: colors.card, borderRadius: 20, padding: 16, borderWidth: 1, borderColor: colors.line },
+  emptyWrap: { alignItems: "center", marginTop: 60, gap: 10 },
+  empty: { textAlign: "center", color: colors.inkSoft, fontFamily: fonts.regular },
+  card: { backgroundColor: colors.card, borderRadius: radius.lg, padding: 16, borderWidth: 1, borderColor: colors.line, ...shadow.soft },
   // Plain "row": on the app's Arabic locale, RN auto-mirrors it to
   // right-to-left, so the first badge already lands on the right.
   badgeRow: { flexDirection: "row", gap: 6, flexWrap: "wrap", marginBottom: 6 },
-  badge: { backgroundColor: colors.goldLight, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
-  badgeText: { fontSize: 11, fontWeight: "700", color: colors.goldDark },
-  title: { fontSize: 16, fontWeight: "800", color: colors.ink, textAlign: "right" },
-  meta: { fontSize: 12, color: colors.inkSoft, textAlign: "right", marginTop: 2 },
+  badge: { backgroundColor: colors.goldLight, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 3 },
+  badgeText: { fontFamily: fonts.bold, fontSize: 11, color: colors.goldDark },
+  title: { fontFamily: fonts.bold, fontSize: 16, color: colors.ink, textAlign: "right" },
+  metaRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 3, justifyContent: "flex-start" },
+  meta: { fontFamily: fonts.regular, fontSize: 12, color: colors.inkSoft, textAlign: "right" },
   actionsRow: { flexDirection: "row", gap: 8, marginTop: 12 },
-  button: { flex: 1, borderRadius: 12, paddingVertical: 11, alignItems: "center" },
+  button: { flex: 1, flexDirection: "row", gap: 6, borderRadius: radius.sm, paddingVertical: 11, alignItems: "center", justifyContent: "center" },
   joinButton: { backgroundColor: colors.gold },
   buttonDisabled: { opacity: 0.5 },
-  buttonText: { color: "#fff", fontWeight: "800", fontSize: 13 },
+  buttonText: { color: "#fff", fontFamily: fonts.bold, fontSize: 13 },
   leaveButton: { backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.line },
-  leaveButtonText: { color: colors.inkSoft, fontWeight: "700", fontSize: 13 },
+  leaveButtonText: { color: colors.inkSoft, fontFamily: fonts.bold, fontSize: 13 },
 });

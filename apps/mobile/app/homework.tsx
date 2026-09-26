@@ -1,12 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import { useAuth } from "../lib/auth";
 import { HomeworkRow, listStudentHomework, markHomeworkSubmitted } from "../lib/homework";
-import { colors } from "../lib/theme";
+import { colors, fonts, radius, shadow } from "../lib/theme";
 
 const TYPE_LABELS: Record<string, string> = { recitation: "تلاوة", review: "مراجعة", tajweed: "تجويد" };
 const STATUS_LABELS: Record<string, string> = { pending: "بانتظار التسليم", submitted: "تم التسليم", graded: "تم التصحيح" };
+const STATUS_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
+  pending: "time-outline",
+  submitted: "checkmark-circle-outline",
+  graded: "ribbon-outline",
+};
 
 export default function HomeworkScreen() {
   const { session } = useAuth();
@@ -46,7 +52,12 @@ export default function HomeworkScreen() {
           contentContainerStyle={styles.content}
           data={items}
           keyExtractor={(h) => h.id}
-          ListEmptyComponent={<Text style={styles.empty}>لا توجد واجبات حاليًا</Text>}
+          ListEmptyComponent={
+            <View style={styles.emptyWrap}>
+              <Ionicons name="document-text-outline" size={40} color={colors.line} />
+              <Text style={styles.empty}>لا توجد واجبات حاليًا</Text>
+            </View>
+          }
           renderItem={({ item: h }) => (
             <View style={styles.card}>
               <View style={styles.headerRow}>
@@ -55,8 +66,14 @@ export default function HomeworkScreen() {
                 </View>
                 <Text style={styles.title}>{h.title}</Text>
               </View>
-              <Text style={styles.meta}>تاريخ التسليم: {h.due_date}</Text>
-              <Text style={styles.meta}>{STATUS_LABELS[h.status] ?? h.status}</Text>
+              <View style={styles.metaRow}>
+                <Ionicons name="calendar-outline" size={13} color={colors.inkSoft} />
+                <Text style={styles.meta}>تاريخ التسليم: {h.due_date}</Text>
+              </View>
+              <View style={styles.metaRow}>
+                <Ionicons name={STATUS_ICONS[h.status] ?? "ellipse-outline"} size={13} color={colors.inkSoft} />
+                <Text style={styles.meta}>{STATUS_LABELS[h.status] ?? h.status}</Text>
+              </View>
               {h.grade && <Text style={styles.grade}>الدرجة: {h.grade}</Text>}
 
               {h.status === "pending" && (
@@ -80,15 +97,17 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg },
   content: { padding: 20, gap: 14 },
-  empty: { textAlign: "center", color: colors.inkSoft, marginTop: 40 },
-  card: { backgroundColor: colors.card, borderRadius: 20, padding: 16, borderWidth: 1, borderColor: colors.line, gap: 4 },
+  emptyWrap: { alignItems: "center", marginTop: 60, gap: 10 },
+  empty: { textAlign: "center", color: colors.inkSoft, fontFamily: fonts.regular },
+  card: { backgroundColor: colors.card, borderRadius: radius.lg, padding: 16, borderWidth: 1, borderColor: colors.line, gap: 4, ...shadow.soft },
   // "flex-start" packs to the physical right here (RTL auto-mirror).
   headerRow: { flexDirection: "row", justifyContent: "flex-start", alignItems: "center", gap: 8, marginBottom: 4 },
-  badge: { backgroundColor: colors.goldLight, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
-  badgeText: { fontSize: 11, fontWeight: "700", color: colors.goldDark },
-  title: { fontSize: 15, fontWeight: "800", color: colors.ink, textAlign: "right" },
-  meta: { fontSize: 12, color: colors.inkSoft, textAlign: "right" },
-  grade: { fontSize: 13, fontWeight: "700", color: colors.goldDark, textAlign: "right", marginTop: 4 },
-  button: { backgroundColor: colors.gold, borderRadius: 12, paddingVertical: 10, alignItems: "center", marginTop: 8 },
-  buttonText: { color: "#fff", fontWeight: "800", fontSize: 13 },
+  badge: { backgroundColor: colors.goldLight, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 3 },
+  badgeText: { fontFamily: fonts.bold, fontSize: 11, color: colors.goldDark },
+  title: { fontFamily: fonts.bold, fontSize: 15, color: colors.ink, textAlign: "right" },
+  metaRow: { flexDirection: "row", alignItems: "center", gap: 6, justifyContent: "flex-start" },
+  meta: { fontFamily: fonts.regular, fontSize: 12, color: colors.inkSoft, textAlign: "right" },
+  grade: { fontFamily: fonts.bold, fontSize: 13, color: colors.goldDark, textAlign: "right", marginTop: 4 },
+  button: { backgroundColor: colors.gold, borderRadius: radius.sm, paddingVertical: 10, alignItems: "center", marginTop: 8 },
+  buttonText: { color: "#fff", fontFamily: fonts.extraBold, fontSize: 13 },
 });

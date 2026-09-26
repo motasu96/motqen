@@ -1,8 +1,18 @@
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import { programs } from "../../lib/programs";
-import { colors } from "../../lib/theme";
+import { colors, fonts, radius, shadow } from "../../lib/theme";
+
+const PROGRAM_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
+  "hifz-mutqan": "book",
+  "tilawa-tajweed": "mic",
+  "muraja-hifz": "repeat",
+  "qiraat-ashr": "ribbon",
+  "bara-em-mutqin": "happy",
+  "barnamej-nisaa": "flower",
+};
 
 export default function ProgramsScreen() {
   return (
@@ -13,9 +23,16 @@ export default function ProgramsScreen() {
         keyExtractor={(p) => p.slug}
         renderItem={({ item }) => (
           <Link href={`/programs/${item.slug}`} asChild>
-            <TouchableOpacity style={styles.card}>
-              <Text style={styles.title}>{item.title}</Text>
-              <Text style={styles.short}>{item.short}</Text>
+            <TouchableOpacity style={styles.card} activeOpacity={0.75}>
+              <View style={styles.headerRow}>
+                <View style={styles.iconBubble}>
+                  <Ionicons name={PROGRAM_ICONS[item.slug] ?? "book-outline"} size={20} color={colors.goldDark} />
+                </View>
+                <View style={styles.headerText}>
+                  <Text style={styles.title}>{item.title}</Text>
+                  <Text style={styles.short}>{item.short}</Text>
+                </View>
+              </View>
               {item.courses && item.courses.length > 0 && (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>{item.courses.length} دورات داخل البرنامج</Text>
@@ -32,18 +49,19 @@ export default function ProgramsScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: 20, gap: 14 },
-  card: { backgroundColor: colors.card, borderRadius: 20, padding: 18, borderWidth: 1, borderColor: colors.line },
-  title: { fontSize: 16, fontWeight: "800", color: colors.ink, textAlign: "right" },
-  short: { fontSize: 13, color: colors.inkSoft, textAlign: "right", marginTop: 4 },
+  card: { backgroundColor: colors.card, borderRadius: radius.lg, padding: 18, borderWidth: 1, borderColor: colors.line, ...shadow.soft },
+  headerRow: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
+  headerText: { flex: 1 },
+  iconBubble: { width: 44, height: 44, borderRadius: 14, backgroundColor: colors.goldLight, alignItems: "center", justifyContent: "center" },
+  title: { fontFamily: fonts.bold, fontSize: 16, color: colors.ink, textAlign: "right" },
+  short: { fontFamily: fonts.regular, fontSize: 13, color: colors.inkSoft, textAlign: "right", marginTop: 4 },
   badge: {
-    // Physical right: with the phone's Arabic locale, RN auto-mirrors
-    // flex cross-axis alignment, so "flex-start" lands on the right here.
     alignSelf: "flex-start",
     backgroundColor: colors.goldLight,
-    borderRadius: 999,
+    borderRadius: radius.pill,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    marginTop: 10,
+    marginTop: 12,
   },
-  badgeText: { fontSize: 11, fontWeight: "700", color: colors.goldDark },
+  badgeText: { fontFamily: fonts.bold, fontSize: 11, color: colors.goldDark },
 });
