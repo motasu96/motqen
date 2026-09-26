@@ -3,6 +3,11 @@ import { supabase } from "./supabase";
 export type StudentRow = {
   id: string;
   program_slug: string | null;
+  plan_duration_months: number | null;
+  already_memorized_juz: number;
+  review_days_per_week: number | null;
+  plan_direction: string | null;
+  created_at: string;
 };
 
 export type MyStudentProfile = {
@@ -13,7 +18,7 @@ export type MyStudentProfile = {
 export async function getMyStudentProfile(userId: string): Promise<MyStudentProfile> {
   const [{ data: profile }, { data: student }] = await Promise.all([
     supabase.from("profiles").select("full_name").eq("id", userId).single(),
-    supabase.from("students").select("id, program_slug").eq("id", userId).maybeSingle(),
+    supabase.from("students").select("*").eq("id", userId).maybeSingle(),
   ]);
   return {
     fullName: (profile?.full_name as string | null) ?? null,

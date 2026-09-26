@@ -90,6 +90,30 @@ export default function HomeScreen() {
             <Text style={styles.cardDesc}>الحفظ، التلاوة والتجويد، المراجعة، والإجازة بالسند</Text>
           </TouchableOpacity>
         </Link>
+
+        <Text style={styles.sectionTitle}>قوائمي</Text>
+        <View style={styles.menuGrid}>
+          <Link href="/reports" asChild>
+            <TouchableOpacity style={styles.menuCard}>
+              <Text style={styles.menuLabel}>التقارير</Text>
+            </TouchableOpacity>
+          </Link>
+          <Link href="/homework" asChild>
+            <TouchableOpacity style={styles.menuCard}>
+              <Text style={styles.menuLabel}>الواجبات</Text>
+            </TouchableOpacity>
+          </Link>
+          <Link href="/exams" asChild>
+            <TouchableOpacity style={styles.menuCard}>
+              <Text style={styles.menuLabel}>الاختبارات والشهادات</Text>
+            </TouchableOpacity>
+          </Link>
+          <Link href="/notices" asChild>
+            <TouchableOpacity style={styles.menuCard}>
+              <Text style={styles.menuLabel}>الإشعارات</Text>
+            </TouchableOpacity>
+          </Link>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -109,4 +133,17 @@ const styles = StyleSheet.create({
   cardLabel: { fontSize: 11, fontWeight: "700", color: colors.goldDark, textAlign: "right", marginBottom: 4 },
   cardTitle: { fontSize: 16, fontWeight: "800", color: colors.ink, textAlign: "right" },
   cardDesc: { fontSize: 13, color: colors.inkSoft, textAlign: "right", marginTop: 4 },
+  sectionTitle: { fontSize: 15, fontWeight: "800", color: colors.ink, textAlign: "right", marginTop: 6 },
+  menuGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  menuCard: {
+    flexBasis: "47%",
+    backgroundColor: colors.card,
+    borderRadius: 18,
+    paddingVertical: 20,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: colors.line,
+    alignItems: "center",
+  },
+  menuLabel: { fontSize: 13, fontWeight: "700", color: colors.ink, textAlign: "center" },
 });
