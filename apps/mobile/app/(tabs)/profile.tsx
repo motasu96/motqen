@@ -1,4 +1,5 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../lib/auth";
 import { supabase } from "../../lib/supabase";
 import { colors } from "../../lib/theme";
@@ -7,14 +8,14 @@ export default function ProfileScreen() {
   const { session } = useAuth();
 
   return (
-    <View style={styles.screen}>
+    <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
       <View style={styles.card}>
         <Text style={styles.email}>{session?.user?.email}</Text>
       </View>
       <TouchableOpacity style={styles.logout} onPress={() => supabase.auth.signOut()}>
         <Text style={styles.logoutText}>تسجيل الخروج</Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 

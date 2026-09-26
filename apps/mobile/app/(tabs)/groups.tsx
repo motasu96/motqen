@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useAuth } from "../../lib/auth";
 import { GroupWithTeacher, joinGroup, leaveGroup, listAllGroupsForStudents, listMyGroupEnrollmentIds } from "../../lib/groups";
@@ -68,15 +69,15 @@ export default function GroupsScreen() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView style={styles.center} edges={["top", "left", "right"]}>
         <ActivityIndicator color={colors.gold} size="large" />
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
+    <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
     <FlatList
-      style={styles.screen}
       contentContainerStyle={styles.content}
       data={groups}
       keyExtractor={(g) => g.id}
@@ -141,7 +142,8 @@ export default function GroupsScreen() {
           </View>
         );
       }}
-    />
+      />
+    </SafeAreaView>
   );
 }
 
@@ -151,12 +153,14 @@ const styles = StyleSheet.create({
   content: { padding: 20, gap: 14 },
   empty: { textAlign: "center", color: colors.inkSoft, marginTop: 40 },
   card: { backgroundColor: colors.card, borderRadius: 20, padding: 16, borderWidth: 1, borderColor: colors.line },
-  badgeRow: { flexDirection: "row-reverse", gap: 6, flexWrap: "wrap", marginBottom: 6 },
+  // Plain "row": on the app's Arabic locale, RN auto-mirrors it to
+  // right-to-left, so the first badge already lands on the right.
+  badgeRow: { flexDirection: "row", gap: 6, flexWrap: "wrap", marginBottom: 6 },
   badge: { backgroundColor: colors.goldLight, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
   badgeText: { fontSize: 11, fontWeight: "700", color: colors.goldDark },
   title: { fontSize: 16, fontWeight: "800", color: colors.ink, textAlign: "right" },
   meta: { fontSize: 12, color: colors.inkSoft, textAlign: "right", marginTop: 2 },
-  actionsRow: { flexDirection: "row-reverse", gap: 8, marginTop: 12 },
+  actionsRow: { flexDirection: "row", gap: 8, marginTop: 12 },
   button: { flex: 1, borderRadius: 12, paddingVertical: 11, alignItems: "center" },
   joinButton: { backgroundColor: colors.gold },
   buttonDisabled: { opacity: 0.5 },

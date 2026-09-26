@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Redirect } from "expo-router";
 import { useAuth } from "../lib/auth";
 import { supabase } from "../lib/supabase";
@@ -44,10 +45,8 @@ export default function LoginScreen() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.screen}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
+    <SafeAreaView style={styles.flex}>
+      <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <View style={styles.card}>
         <Text style={styles.logo}>متقن</Text>
         <Text style={styles.subtitle}>تسجيل الدخول إلى حسابك</Text>
@@ -85,12 +84,14 @@ export default function LoginScreen() {
           {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>دخول</Text>}
         </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg, justifyContent: "center", padding: 20 },
+  flex: { flex: 1, backgroundColor: colors.bg },
+  screen: { flex: 1, justifyContent: "center", padding: 20 },
   card: { backgroundColor: colors.card, borderRadius: 24, padding: 24, gap: 6 },
   logo: { fontSize: 28, fontWeight: "800", color: colors.goldDark, textAlign: "center" },
   subtitle: { fontSize: 14, color: colors.inkSoft, textAlign: "center", marginBottom: 18 },

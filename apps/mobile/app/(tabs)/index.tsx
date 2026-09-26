@@ -1,4 +1,5 @@
 import { ScrollView, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Link } from "expo-router";
 import { useAuth } from "../../lib/auth";
 import { colors } from "../../lib/theme";
@@ -8,24 +9,26 @@ export default function HomeScreen() {
   const email = session?.user?.email ?? "";
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <Text style={styles.greeting}>أهلًا بك في متقن</Text>
-      <Text style={styles.email}>{email}</Text>
+    <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.greeting}>أهلًا بك في متقن</Text>
+        <Text style={styles.email}>{email}</Text>
 
-      <Link href="/(tabs)/groups" asChild>
-        <TouchableOpacity style={styles.card}>
-          <Text style={styles.cardTitle}>حلقاتك الجماعية</Text>
-          <Text style={styles.cardDesc}>تابع حلقاتك وانضم إلى حصتك عند الموعد</Text>
-        </TouchableOpacity>
-      </Link>
+        <Link href="/(tabs)/groups" asChild>
+          <TouchableOpacity style={styles.card}>
+            <Text style={styles.cardTitle}>حلقاتك الجماعية</Text>
+            <Text style={styles.cardDesc}>تابع حلقاتك وانضم إلى حصتك عند الموعد</Text>
+          </TouchableOpacity>
+        </Link>
 
-      <Link href="/(tabs)/programs" asChild>
-        <TouchableOpacity style={styles.card}>
-          <Text style={styles.cardTitle}>استكشف البرامج</Text>
-          <Text style={styles.cardDesc}>الحفظ، التلاوة والتجويد، المراجعة، والإجازة بالسند</Text>
-        </TouchableOpacity>
-      </Link>
-    </ScrollView>
+        <Link href="/(tabs)/programs" asChild>
+          <TouchableOpacity style={styles.card}>
+            <Text style={styles.cardTitle}>استكشف البرامج</Text>
+            <Text style={styles.cardDesc}>الحفظ، التلاوة والتجويد، المراجعة، والإجازة بالسند</Text>
+          </TouchableOpacity>
+        </Link>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
