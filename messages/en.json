@@ -622,6 +622,8 @@
       "adminName": "Ust. Sultan Al-Qarni",
       "adminTitle": "Project Manager",
       "protectedRoomBadge": "Protected room — you must approve students to let them in",
+      "teacherAvailableNow": "Available now",
+      "liveNowBadge": "Live now",
       "leaveRoom": "Leave Room",
       "guest": "Guest",
       "defaultSessionSubject": "Motqen session",

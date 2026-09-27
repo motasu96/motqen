@@ -622,6 +622,8 @@
       "adminName": "أ. سلطان القرني",
       "adminTitle": "مدير المشروع",
       "protectedRoomBadge": "غرفة محمية — يلزم موافقتك لإدخال الطلاب",
+      "teacherAvailableNow": "متاح الآن",
+      "liveNowBadge": "مباشر الآن",
       "leaveRoom": "مغادرة الغرفة",
       "guest": "ضيف",
       "defaultSessionSubject": "حصة متقن",

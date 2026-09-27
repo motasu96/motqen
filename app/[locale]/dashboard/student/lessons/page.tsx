@@ -11,6 +11,8 @@ import { useUpcomingBookings } from "@/lib/supabase/useUpcomingBookings";
 import { createClient } from "@/lib/supabase/client";
 import { listStudentLessons, LessonWithTeacher } from "@/lib/supabase/lessons";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
+import PulseBadge from "@/components/dashboard/PulseBadge";
+import { useLiveRooms } from "@/lib/supabase/presence";
 import { IconClock } from "@/components/icons";
 
 export default function StudentLessonsPage() {
@@ -21,6 +23,7 @@ export default function StudentLessonsPage() {
   const tc = useTranslations("Dashboard.common");
   const tStatus = useTranslations("Dashboard.status");
   const { upcoming, ready: upcomingReady } = useUpcomingBookings();
+  const liveRooms = useLiveRooms();
 
   const [pastLessons, setPastLessons] = useState<LessonWithTeacher[]>([]);
   const [ready, setReady] = useState(false);
@@ -70,7 +73,10 @@ export default function StudentLessonsPage() {
                       <IconClock className="h-5 w-5 text-gold-dark" />
                     </span>
                     <div>
-                      <div className="text-sm font-extrabold text-ink">{b.date}</div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-sm font-extrabold text-ink">{b.date}</div>
+                        {liveRooms.get(b.id)?.teacherPresent && <PulseBadge color="red" label={tc("liveNowBadge")} />}
+                      </div>
                       <div className="text-xs text-ink-soft">{tc("at")} {b.time} · {tc("with")} {b.teacherName}</div>
                     </div>
                   </div>

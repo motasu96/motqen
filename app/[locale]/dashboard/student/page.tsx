@@ -7,6 +7,8 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import { useStudentNav } from "@/components/dashboard/studentNav";
 import MyUpcomingSessions from "@/components/dashboard/MyUpcomingSessions";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
+import PulseBadge from "@/components/dashboard/PulseBadge";
+import { isWithinAvailableWindow, useOnlineTeacherIds } from "@/lib/supabase/presence";
 import { useUpcomingBookings } from "@/lib/supabase/useUpcomingBookings";
 import { useStudentLogout } from "@/lib/supabase/useStudentLogout";
 import { createClient } from "@/lib/supabase/client";
@@ -38,7 +40,7 @@ type DashboardCache = {
   studentRow: StudentRow | null;
   latestLesson: LessonWithTeacher | null;
   recentHomework: HomeworkRow[];
-  primaryTeacher: { id: string; name: string } | null;
+  primaryTeacher: { id: string; name: string; availableTimes: string[] } | null;
 };
 
 const CACHE_KEY = "motqen_student_dashboard_cache";
@@ -106,7 +108,15 @@ export default function StudentDashboardPage() {
   const [studentRow, setStudentRow] = useState<StudentRow | null>(cached?.studentRow ?? null);
   const [latestLesson, setLatestLesson] = useState<LessonWithTeacher | null>(cached?.latestLesson ?? null);
   const [recentHomework, setRecentHomework] = useState<HomeworkRow[]>(cached?.recentHomework ?? []);
-  const [primaryTeacher, setPrimaryTeacher] = useState<{ id: string; name: string } | null>(cached?.primaryTeacher ?? null);
+  const [primaryTeacher, setPrimaryTeacher] = useState<{ id: string; name: string; availableTimes: string[] } | null>(
+    cached?.primaryTeacher ?? null
+  );
+  const onlineTeacherIds = useOnlineTeacherIds();
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(interval);
+  }, []);
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return;
     let cancelled = false;
@@ -257,9 +267,12 @@ export default function StudentDashboardPage() {
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gold-light">
                 <IconShield className="h-5 w-5 text-gold-dark" />
               </span>
-              <div>
+              <div className="flex flex-col gap-1.5">
                 <h3 className="text-base font-extrabold text-ink">{t("directTitle")}</h3>
                 <p className="text-sm text-ink-soft">{t("directDesc")}</p>
+                {onlineTeacherIds.has(primaryTeacher.id) && isWithinAvailableWindow(primaryTeacher.availableTimes, now) && (
+                  <PulseBadge color="emerald" label={tc("teacherAvailableNow")} />
+                )}
               </div>
             </div>
             <JoinMeetingButton

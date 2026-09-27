@@ -6,12 +6,14 @@ export type TeacherTranslation = {
 };
 
 export type Teacher = {
+  id: string;
   slug: string;
   name: string;
   title: string;
   bio: string;
   avatarUrl: string;
   gender: "male" | "female";
+  availableTimes: string[];
   stats: {
     students: number;
     yearsExperience: number;

@@ -12,6 +12,8 @@ import { useStudentProfile } from "@/lib/supabase/useStudentProfile";
 import { createClient } from "@/lib/supabase/client";
 import { GroupWithMembers, joinGroup, leaveGroup, listAllGroupsForStudents, listMyGroupEnrollmentIds } from "@/lib/supabase/groups";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
+import PulseBadge from "@/components/dashboard/PulseBadge";
+import { useLiveRooms } from "@/lib/supabase/presence";
 import { programs } from "@/data/programs";
 import { localize } from "@/lib/localize";
 import { useToast } from "@/components/Toast";
@@ -28,6 +30,7 @@ function StudentGroupsPageInner() {
   const dayLabels = tc.raw("weekDaysSaturdayFirst") as string[];
   const searchParams = useSearchParams();
   const teacherIdFilter = searchParams.get("teacherId");
+  const liveRooms = useLiveRooms();
 
   const [studentId, setStudentId] = useState<string | null>(null);
   const [groups, setGroups] = useState<GroupWithMembers[]>([]);
@@ -143,6 +146,7 @@ function StudentGroupsPageInner() {
                       {courseTitle && <span className="badge w-fit">{courseTitle}</span>}
                     </div>
                     <h3 className="text-base font-extrabold leading-snug text-ink">{title}</h3>
+                    {liveRooms.get(g.id)?.teacherPresent && <PulseBadge color="red" label={tc("liveNowBadge")} className="mt-1.5" />}
                   </div>
                 </div>
 

@@ -6,11 +6,13 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
+import PulseBadge from "@/components/dashboard/PulseBadge";
 import { useStudentNav } from "@/components/dashboard/studentNav";
 import { useStudentLogout } from "@/lib/supabase/useStudentLogout";
 import { useStudentProfile } from "@/lib/supabase/useStudentProfile";
 import { createClient } from "@/lib/supabase/client";
 import { getActiveTeachers } from "@/lib/supabase/teachers";
+import { isWithinAvailableWindow, useOnlineTeacherIds } from "@/lib/supabase/presence";
 import { Teacher } from "@/data/teachers";
 import { Rating } from "@/components/ui";
 import { IconTeacherBadge } from "@/components/icons";
@@ -22,10 +24,18 @@ export default function StudentTeachersPage() {
   const { name: studentName, title: studentTitle } = useStudentProfile();
   const locale = useLocale();
   const t = useTranslations("Dashboard.student");
+  const tc = useTranslations("Dashboard.common");
   const tTeachers = useTranslations("Teachers");
+  const onlineTeacherIds = useOnlineTeacherIds();
+  const [now, setNow] = useState(() => new Date());
 
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -71,6 +81,9 @@ export default function StudentTeachersPage() {
                   <h3 className="text-base font-extrabold text-ink">{te.name}</h3>
                   <p className="text-sm text-ink-soft">{te.title}</p>
                 </div>
+                {onlineTeacherIds.has(teacher.id) && isWithinAvailableWindow(teacher.availableTimes, now) && (
+                  <PulseBadge color="emerald" label={tc("teacherAvailableNow")} />
+                )}
                 <Rating value={teacher.stats.rating} />
                 <span className="text-xs text-ink-soft">
                   {teacher.stats.students}+ {tTeachers("studentsSuffix")} · {teacher.stats.yearsExperience}+ {tTeachers("yearsSuffix")}

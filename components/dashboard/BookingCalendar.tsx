@@ -5,6 +5,8 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useToast } from "@/components/Toast";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
+import PulseBadge from "@/components/dashboard/PulseBadge";
+import { useLiveRooms } from "@/lib/supabase/presence";
 import { createClient } from "@/lib/supabase/client";
 import { createBooking, getTakenSlots } from "@/lib/supabase/bookings";
 import { getTeacherAvailableTimes } from "@/lib/supabase/teachers";
@@ -62,6 +64,7 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
   const [takenSlots, setTakenSlots] = useState<Set<string>>(new Set());
   const [slotsReady, setSlotsReady] = useState(false);
   const { upcoming, ready, cancel, reload } = useUpcomingBookings();
+  const liveRooms = useLiveRooms();
 
   useEffect(() => {
     let cancelled = false;
@@ -354,7 +357,10 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
                     <IconCheck className="h-4 w-4 text-gold-dark" />
                   </span>
                   <div>
-                    <div className="text-sm font-bold text-ink">{b.date} — {b.time}</div>
+                    <div className="flex items-center gap-2">
+                      <div className="text-sm font-bold text-ink">{b.date} — {b.time}</div>
+                      {liveRooms.get(b.id)?.teacherPresent && <PulseBadge color="red" label={tc("liveNowBadge")} />}
+                    </div>
                     <div className="text-xs text-ink-soft">{tc("with")} {b.teacherName}</div>
                   </div>
                 </div>

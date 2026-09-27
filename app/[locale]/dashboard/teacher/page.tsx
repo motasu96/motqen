@@ -125,6 +125,7 @@ export default function TeacherDashboardPage() {
               subject={t("directSubject")}
               label={t("directCta")}
               lobby
+              role="teacher"
               className="shrink-0 justify-center"
             />
           </div>

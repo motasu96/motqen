@@ -12,6 +12,8 @@ import { getMyAvailableTimes, getMyTeacherId, updateMyAvailableTimes } from "@/l
 import { listTeacherBookings, TeacherBooking } from "@/lib/supabase/bookings";
 import { TIME_SLOT_OPTIONS, formatTimeSlot } from "@/lib/timeSlots";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
+import PulseBadge from "@/components/dashboard/PulseBadge";
+import { useLiveRooms } from "@/lib/supabase/presence";
 import { useToast } from "@/components/Toast";
 import { IconClock } from "@/components/icons";
 
@@ -23,6 +25,7 @@ export default function TeacherSchedulePage() {
   const t = useTranslations("Dashboard.teacher");
   const tc = useTranslations("Dashboard.common");
   const { showToast } = useToast();
+  const liveRooms = useLiveRooms();
 
   const [bookings, setBookings] = useState<TeacherBooking[]>([]);
   const [ready, setReady] = useState(false);
@@ -139,9 +142,12 @@ export default function TeacherSchedulePage() {
               <div className="flex flex-col gap-2">
                 {(byDate.get(date) ?? []).map((b) => (
                   <div key={b.id} className="rounded-2xl border border-line bg-bg p-3">
-                    <div className="mb-1 flex items-center gap-1.5 text-xs font-bold text-gold-dark">
-                      <IconClock className="h-3.5 w-3.5" />
-                      {b.time}
+                    <div className="mb-1 flex items-center justify-between gap-1.5">
+                      <span className="flex items-center gap-1.5 text-xs font-bold text-gold-dark">
+                        <IconClock className="h-3.5 w-3.5" />
+                        {b.time}
+                      </span>
+                      {(liveRooms.get(b.id)?.studentCount ?? 0) > 0 && <PulseBadge color="red" label={tc("liveNowBadge")} />}
                     </div>
                     <div className="mb-3 text-sm font-bold text-ink">{b.studentName || tc("dash")}</div>
                     <JoinMeetingButton
@@ -150,6 +156,8 @@ export default function TeacherSchedulePage() {
                       subject={b.studentName}
                       label={t("startSessionCta")}
                       className="w-full justify-center"
+                      lobby
+                      role="teacher"
                     />
                   </div>
                 ))}

@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import Script from "next/script";
 import { IconX } from "@/components/icons";
+import { useRoomPresence } from "@/lib/supabase/presence";
 
 declare global {
   interface Window {
@@ -32,6 +33,7 @@ export default function RoomClient({
   enableLobby,
   returnTo,
   openLogOnLeave,
+  role = "student",
 }: {
   room: string;
   displayName: string;
@@ -39,12 +41,15 @@ export default function RoomClient({
   enableLobby?: boolean;
   returnTo?: string;
   openLogOnLeave?: boolean;
+  role?: "teacher" | "student";
 }) {
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations("Dashboard.common");
   const containerRef = useRef<HTMLDivElement>(null);
   const apiRef = useRef<JitsiMeetAPI | null>(null);
+
+  useRoomPresence(room, { role, name: displayName });
 
   // router.back() depends on this tab's history actually having a prior
   // in-app entry (a direct link, refresh, or new-tab open leaves it stuck

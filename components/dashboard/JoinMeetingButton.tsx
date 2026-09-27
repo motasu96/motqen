@@ -13,6 +13,7 @@ export default function JoinMeetingButton({
   className = "",
   lobby = false,
   logOnLeave = false,
+  role = "student",
 }: {
   room: string;
   displayName: string;
@@ -24,12 +25,15 @@ export default function JoinMeetingButton({
   // so it can auto-open the matching "log this session" form. Only
   // meaningful for teacher-initiated joins of a real booking/group room.
   logOnLeave?: boolean;
+  // Who's joining, used to track "who's live in this room right now" —
+  // shown as a badge elsewhere via useLiveRooms().
+  role?: "teacher" | "student";
 }) {
   const { showToast } = useToast();
   const t = useTranslations("Dashboard.common");
   const pathname = usePathname();
 
-  const params = new URLSearchParams({ name: displayName, subject, return: pathname });
+  const params = new URLSearchParams({ name: displayName, subject, return: pathname, role });
   if (lobby) params.set("lobby", "1");
   if (logOnLeave) params.set("log", "1");
   const href = `/dashboard/room/${encodeURIComponent(room)}?${params.toString()}`;

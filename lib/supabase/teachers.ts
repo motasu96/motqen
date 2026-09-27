@@ -22,16 +22,19 @@ export type TeacherRow = {
   completed_sessions: number;
   rating: number;
   status: "active" | "suspended";
+  available_times: string[] | null;
 };
 
 export function mapTeacherRow(row: TeacherRow): Teacher {
   return {
+    id: row.id,
     slug: row.slug,
     name: row.name,
     title: row.title ?? "",
     bio: row.bio ?? "",
     avatarUrl: row.avatar_url ?? "/icon.png",
     gender: row.gender,
+    availableTimes: row.available_times ?? [],
     stats: {
       students: row.students_count,
       yearsExperience: row.years_experience,
@@ -86,19 +89,20 @@ export async function getTeacherAvailableTimes(supabase: SupabaseClient, teacher
 export async function getStudentPrimaryTeacher(
   supabase: SupabaseClient,
   studentId: string
-): Promise<{ id: string; name: string } | null> {
+): Promise<{ id: string; name: string; availableTimes: string[] } | null> {
   const { data } = await supabase
     .from("bookings")
-    .select("teachers(id, name)")
+    .select("teachers(id, name, available_times)")
     .eq("student_id", studentId)
     .eq("status", "confirmed")
     .order("session_date", { ascending: false })
     .limit(1)
     .maybeSingle();
   if (!data) return null;
-  const teacher = data.teachers as unknown as { id: string; name: string } | { id: string; name: string }[] | null;
+  type PrimaryTeacherRow = { id: string; name: string; available_times: string[] | null };
+  const teacher = data.teachers as unknown as PrimaryTeacherRow | PrimaryTeacherRow[] | null;
   const t = Array.isArray(teacher) ? teacher[0] : teacher;
-  return t ? { id: t.id, name: t.name } : null;
+  return t ? { id: t.id, name: t.name, availableTimes: t.available_times ?? [] } : null;
 }
 
 const ARABIC_TO_LATIN: Record<string, string> = {

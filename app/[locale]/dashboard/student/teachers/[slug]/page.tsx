@@ -6,11 +6,13 @@ import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import DashboardShell from "@/components/dashboard/DashboardShell";
+import PulseBadge from "@/components/dashboard/PulseBadge";
 import { useStudentNav } from "@/components/dashboard/studentNav";
 import { useStudentLogout } from "@/lib/supabase/useStudentLogout";
 import { useStudentProfile } from "@/lib/supabase/useStudentProfile";
 import { createClient } from "@/lib/supabase/client";
 import { getTeacherBookingInfo, getTeacherBySlugFromDb } from "@/lib/supabase/teachers";
+import { isWithinAvailableWindow, useOnlineTeacherIds } from "@/lib/supabase/presence";
 import { Teacher } from "@/data/teachers";
 import { Rating } from "@/components/ui";
 import { IconTeacherBadge } from "@/components/icons";
@@ -27,11 +29,19 @@ export default function StudentTeacherProfilePage() {
   const { name: studentName, title: studentTitle } = useStudentProfile();
   const locale = useLocale();
   const t = useTranslations("Dashboard.student");
+  const tc = useTranslations("Dashboard.common");
   const tTeachers = useTranslations("Teachers");
+  const onlineTeacherIds = useOnlineTeacherIds();
+  const [now, setNow] = useState(() => new Date());
 
   const [teacher, setTeacher] = useState<Teacher | null>(null);
   const [bookingInfo, setBookingInfo] = useState<{ id: string; name: string } | null>(null);
   const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -79,6 +89,9 @@ export default function StudentTeacherProfilePage() {
                 <h1 className="text-xl font-extrabold text-ink">{te.name}</h1>
                 <p className="mt-1 text-sm text-ink-soft">{te.title}</p>
               </div>
+              {onlineTeacherIds.has(teacher.id) && isWithinAvailableWindow(teacher.availableTimes, now) && (
+                <PulseBadge color="emerald" label={tc("teacherAvailableNow")} />
+              )}
               <Rating value={teacher.stats.rating} />
 
               <div className="grid w-full grid-cols-2 gap-4 border-t border-line pt-5 text-center">

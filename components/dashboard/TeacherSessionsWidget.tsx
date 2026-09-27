@@ -8,6 +8,8 @@ import { getMyTeacherId } from "@/lib/supabase/teacherStudents";
 import { listTeacherBookings, TeacherBooking } from "@/lib/supabase/bookings";
 import { LessonRow, createLesson, listTeacherLessonsByBooking, updateLesson } from "@/lib/supabase/lessons";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
+import PulseBadge from "@/components/dashboard/PulseBadge";
+import { useLiveRooms } from "@/lib/supabase/presence";
 import { useToast } from "@/components/Toast";
 import { IconCalendar, IconClock } from "@/components/icons";
 
@@ -185,6 +187,7 @@ function LoggedSessionRow({
 function TeacherSessionsWidgetInner({ displayName }: { displayName: string }) {
   const t = useTranslations("Dashboard.teacher");
   const tc = useTranslations("Dashboard.common");
+  const liveRooms = useLiveRooms();
   const searchParams = useSearchParams();
   const openLogId = searchParams.get("openLog");
   const [teacherId, setTeacherId] = useState<string | null>(null);
@@ -257,11 +260,14 @@ function TeacherSessionsWidgetInner({ displayName }: { displayName: string }) {
                     <IconClock className="h-4 w-4 text-gold-dark" />
                   </span>
                   <div>
-                    <div className="text-sm font-bold text-ink">{b.date} — {b.time}</div>
+                    <div className="flex items-center gap-2">
+                      <div className="text-sm font-bold text-ink">{b.date} — {b.time}</div>
+                      {(liveRooms.get(b.id)?.studentCount ?? 0) > 0 && <PulseBadge color="red" label={tc("liveNowBadge")} />}
+                    </div>
                     <div className="text-xs text-ink-soft">{tc("with")} {b.studentName}</div>
                   </div>
                 </div>
-                <JoinMeetingButton room={b.id} displayName={displayName} subject={t("sessionSubject")} label={t("startSessionCta")} logOnLeave />
+                <JoinMeetingButton room={b.id} displayName={displayName} subject={t("sessionSubject")} label={t("startSessionCta")} logOnLeave lobby role="teacher" />
               </li>
             ))}
           </ul>

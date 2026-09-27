@@ -18,6 +18,8 @@ import {
   StudentAttendance,
 } from "@/lib/supabase/groupAttendance";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
+import PulseBadge from "@/components/dashboard/PulseBadge";
+import { useLiveRooms } from "@/lib/supabase/presence";
 import { useToast } from "@/components/Toast";
 import { programs } from "@/data/programs";
 import { localize } from "@/lib/localize";
@@ -208,6 +210,7 @@ function TeacherGroupsPageInner() {
   const tc = useTranslations("Dashboard.common");
   const { showToast } = useToast();
   const dayLabels = tc.raw("weekDaysSaturdayFirst") as string[];
+  const liveRooms = useLiveRooms();
   const timeSlots = tc.raw("timeSlots") as string[];
   const searchParams = useSearchParams();
   const openLogId = searchParams.get("openLog");
@@ -339,6 +342,9 @@ function TeacherGroupsPageInner() {
                         {courseTitle && <span className="badge w-fit">{courseTitle}</span>}
                       </div>
                       <h3 className="text-base font-extrabold leading-snug text-ink">{title}</h3>
+                      {(liveRooms.get(g.id)?.studentCount ?? 0) > 0 && (
+                        <PulseBadge color="red" label={tc("liveNowBadge")} className="mt-1.5" />
+                      )}
                     </div>
                   </div>
                   <span className="shrink-0 rounded-pill bg-bg px-3 py-1 text-xs font-bold text-ink-soft">
@@ -380,6 +386,8 @@ function TeacherGroupsPageInner() {
                     label={t("startGroupSession")}
                     className="flex-1 justify-center"
                     logOnLeave
+                    lobby
+                    role="teacher"
                   />
                   <button
                     onClick={() => setOpenAttendanceGroupId(openAttendanceGroupId === g.id ? null : g.id)}

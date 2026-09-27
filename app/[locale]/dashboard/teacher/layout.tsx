@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { redirect } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
+import TeacherPresenceBeacon from "@/components/dashboard/TeacherPresenceBeacon";
 
 export default async function TeacherDashboardLayout({
   children,
@@ -27,5 +28,10 @@ export default async function TeacherDashboardLayout({
     redirect({ href: "/login", locale });
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <TeacherPresenceBeacon />
+      {children}
+    </>
+  );
 }

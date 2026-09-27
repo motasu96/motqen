@@ -4,6 +4,8 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useToast } from "@/components/Toast";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
+import PulseBadge from "@/components/dashboard/PulseBadge";
+import { useLiveRooms } from "@/lib/supabase/presence";
 import { UpcomingBooking } from "@/lib/supabase/bookings";
 import { IconCalendar, IconCheck } from "@/components/icons";
 
@@ -21,6 +23,7 @@ export default function MyUpcomingSessions({
   const { showToast } = useToast();
   const t = useTranslations("Dashboard.student");
   const tc = useTranslations("Dashboard.common");
+  const liveRooms = useLiveRooms();
 
   async function handleCancel(id: string) {
     onCancel(id);
@@ -55,7 +58,10 @@ export default function MyUpcomingSessions({
                   <IconCheck className="h-4 w-4 text-gold-dark" />
                 </span>
                 <div>
-                  <div className="text-sm font-bold text-ink">{b.date} — {b.time}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm font-bold text-ink">{b.date} — {b.time}</div>
+                    {liveRooms.get(b.id)?.teacherPresent && <PulseBadge color="red" label={tc("liveNowBadge")} />}
+                  </div>
                   <div className="text-xs text-ink-soft">{tc("with")} {b.teacherName}</div>
                 </div>
               </div>
