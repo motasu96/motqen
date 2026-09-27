@@ -853,6 +853,8 @@
       "attendanceFromPlaceholder": "من (مثال: البقرة 120)",
       "attendanceToPlaceholder": "إلى (مثال: البقرة 145)",
       "attendanceGradePlaceholder": "التقدير",
+      "studentHistoryTitle": "سجل الطلاب",
+      "noAttendanceHistoryForStudent": "لا يوجد سجل بعد",
       "noMembersForAttendance": "لا يوجد طلاب مسجَّلون في هذه الحلقة بعد.",
       "toastAttendanceSaved": "تم حفظ حضور الحلقة.",
       "errorAttendanceSave": "تعذّر حفظ الحضور، حاول مرة أخرى.",

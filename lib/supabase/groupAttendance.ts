@@ -66,6 +66,17 @@ export type StudentGroupAttendance = {
   teacherName: string;
 };
 
+// Every attendance row ever logged for a group, across all students and
+// dates — used to build the teacher's per-student history side panel.
+export async function listGroupAttendanceHistory(supabase: SupabaseClient, groupId: string): Promise<GroupAttendanceRow[]> {
+  const { data } = await supabase
+    .from("group_attendance")
+    .select("*")
+    .eq("group_id", groupId)
+    .order("session_date", { ascending: false });
+  return (data ?? []) as GroupAttendanceRow[];
+}
+
 // A student's own attendance history across every group circle they've
 // ever attended, most recent first — used to show group sessions
 // alongside 1:1 lessons in "My Lessons".

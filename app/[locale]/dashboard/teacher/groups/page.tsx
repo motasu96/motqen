@@ -13,7 +13,9 @@ import { getMyTeacherId } from "@/lib/supabase/teacherStudents";
 import { createGroup, deleteGroup, GroupWithMembers, listTeacherGroups } from "@/lib/supabase/groups";
 import {
   getGroupAttendanceForDate,
+  GroupAttendanceRow,
   listGroupAttendanceDates,
+  listGroupAttendanceHistory,
   saveGroupAttendance,
   StudentAttendance,
 } from "@/lib/supabase/groupAttendance";
@@ -23,7 +25,7 @@ import { useLiveRooms } from "@/lib/supabase/presence";
 import { useToast } from "@/components/Toast";
 import { programs } from "@/data/programs";
 import { localize } from "@/lib/localize";
-import { IconCalendar, IconClock, IconFamily, IconX } from "@/components/icons";
+import { IconCalendar, IconCheck, IconClock, IconFamily, IconPencil, IconX } from "@/components/icons";
 
 type FormState = {
   title: string;
@@ -56,8 +58,21 @@ function GroupAttendancePanel({ group, teacherId, onClose }: { group: GroupWithM
   const [sessionDate, setSessionDate] = useState(todayIso);
   const [records, setRecords] = useState<Map<string, StudentAttendance>>(new Map());
   const [loggedDates, setLoggedDates] = useState<string[]>([]);
+  const [history, setHistory] = useState<GroupAttendanceRow[]>([]);
   const [ready, setReady] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  async function refreshHistory() {
+    const rows = await listGroupAttendanceHistory(createClient(), group.id);
+    setHistory(rows);
+  }
+
+  const historyByStudent = new Map<string, GroupAttendanceRow[]>();
+  for (const row of history) {
+    const list = historyByStudent.get(row.student_id) ?? [];
+    list.push(row);
+    historyByStudent.set(row.student_id, list);
+  }
 
   async function loadForDate(date: string) {
     setReady(false);
@@ -73,7 +88,7 @@ function GroupAttendancePanel({ group, teacherId, onClose }: { group: GroupWithM
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const dates = await listGroupAttendanceDates(createClient(), group.id);
+      const [dates] = await Promise.all([listGroupAttendanceDates(createClient(), group.id), refreshHistory()]);
       if (cancelled) return;
       setLoggedDates(dates);
       await loadForDate(todayIso);
@@ -129,9 +144,11 @@ function GroupAttendancePanel({ group, teacherId, onClose }: { group: GroupWithM
     }
     showToast(t("toastAttendanceSaved"), "success");
     setLoggedDates((prev) => (prev.includes(sessionDate) ? prev : [...prev, sessionDate].sort().reverse()));
+    await refreshHistory();
   }
 
   return (
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_300px]">
     <div className="card animate-fade-up flex flex-col gap-4 p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h4 className="text-sm font-extrabold text-ink">{t("attendanceTitle")}</h4>
@@ -233,6 +250,63 @@ function GroupAttendancePanel({ group, teacherId, onClose }: { group: GroupWithM
           </div>
         </div>
       )}
+    </div>
+
+    <div className="card flex h-fit flex-col gap-4 p-5 lg:sticky lg:top-24">
+      <h4 className="text-sm font-extrabold text-ink">{t("studentHistoryTitle")}</h4>
+      {group.enrolledMembers.length === 0 ? (
+        <p className="text-xs text-ink-soft">{t("noMembersForAttendance")}</p>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {group.enrolledMembers.map((m) => {
+            const entries = historyByStudent.get(m.id) ?? [];
+            const attendedCount = entries.filter((e) => e.attended).length;
+            return (
+              <div key={m.id} className="flex flex-col gap-2 border-b border-line pb-4 last:border-b-0 last:pb-0">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-bold text-ink">{m.name}</span>
+                  {entries.length > 0 && (
+                    <span className="shrink-0 rounded-pill bg-gold-light px-2.5 py-0.5 text-[11px] font-bold text-gold-dark">
+                      {attendedCount}/{entries.length}
+                    </span>
+                  )}
+                </div>
+                {entries.length === 0 ? (
+                  <p className="text-xs text-ink-soft">{t("noAttendanceHistoryForStudent")}</p>
+                ) : (
+                  <div className="flex flex-col gap-1.5">
+                    {entries.map((entry) => (
+                      <button
+                        key={entry.id}
+                        onClick={() => selectDate(entry.session_date)}
+                        className={`flex items-center justify-between gap-2 rounded-xl border px-2.5 py-1.5 text-start text-xs transition-colors ${
+                          entry.session_date === sessionDate
+                            ? "border-gold bg-gold-light"
+                            : "border-line bg-bg hover:border-gold/60"
+                        }`}
+                      >
+                        <span className="flex items-center gap-1.5 font-bold text-ink">
+                          {entry.attended ? (
+                            <IconCheck className="h-3 w-3 shrink-0 text-emerald-600" aria-hidden="true" />
+                          ) : (
+                            <IconX className="h-3 w-3 shrink-0 text-red-500" aria-hidden="true" />
+                          )}
+                          {entry.session_date}
+                        </span>
+                        <span className="flex items-center gap-1.5 text-ink-soft">
+                          {entry.grade && <span className="font-bold text-gold-dark">{entry.grade}</span>}
+                          <IconPencil className="h-3 w-3 shrink-0" aria-hidden="true" />
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
     </div>
   );
 }
