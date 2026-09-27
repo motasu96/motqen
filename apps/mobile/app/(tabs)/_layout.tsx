@@ -31,20 +31,11 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="profile"
         options={{
-          title: "الرئيسية",
+          title: "حسابي",
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? "home" : "home-outline"} color={color} size={size} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="programs"
-        options={{
-          title: "البرامج",
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? "book" : "book-outline"} color={color} size={size} />
+            <Ionicons name={focused ? "person" : "person-outline"} color={color} size={size} />
           ),
         }}
       />
@@ -58,11 +49,20 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="programs"
         options={{
-          title: "حسابي",
+          title: "البرامج",
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? "person" : "person-outline"} color={color} size={size} />
+            <Ionicons name={focused ? "book" : "book-outline"} color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: "الرئيسية",
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons name={focused ? "home" : "home-outline"} color={color} size={size} />
           ),
         }}
       />
