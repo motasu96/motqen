@@ -243,7 +243,7 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
             <h4 className="text-sm font-extrabold text-ink">{t("bookingTypeGroupTitle")}</h4>
             <p className="text-sm text-ink-soft">{t("bookingTypeGroupDesc")}</p>
           </div>
-          <Link href="/dashboard/student/groups" className="btn-outline">
+          <Link href={`/dashboard/student/groups?teacherId=${teacherId}`} className="btn-outline">
             {t("bookingTypeGroupCta")}
           </Link>
         </div>

@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { useStudentNav } from "@/components/dashboard/studentNav";
@@ -15,7 +17,7 @@ import { localize } from "@/lib/localize";
 import { useToast } from "@/components/Toast";
 import { IconCalendar, IconCheck, IconClock, IconFamily } from "@/components/icons";
 
-export default function StudentGroupsPage() {
+function StudentGroupsPageInner() {
   const studentNav = useStudentNav();
   const handleLogout = useStudentLogout();
   const { name: studentName, title: studentTitle } = useStudentProfile();
@@ -24,6 +26,8 @@ export default function StudentGroupsPage() {
   const tc = useTranslations("Dashboard.common");
   const { showToast } = useToast();
   const dayLabels = tc.raw("weekDaysSaturdayFirst") as string[];
+  const searchParams = useSearchParams();
+  const teacherIdFilter = searchParams.get("teacherId");
 
   const [studentId, setStudentId] = useState<string | null>(null);
   const [groups, setGroups] = useState<GroupWithMembers[]>([]);
@@ -93,17 +97,29 @@ export default function StudentGroupsPage() {
     showToast(t("toastLeftGroup"), "info");
   }
 
+  const visibleGroups = teacherIdFilter ? groups.filter((g) => g.teacher_id === teacherIdFilter) : groups;
+  const filteredTeacherName = teacherIdFilter ? visibleGroups[0]?.teacherName : null;
+
   return (
     <DashboardShell navItems={studentNav} userName={studentName} userSubtitle={studentTitle} onLogout={handleLogout}>
-      <DashboardPageHeader title={t("groupsTitle")} subtitle={t("groupsSubtitle")} />
+      <DashboardPageHeader
+        title={t("groupsTitle")}
+        subtitle={filteredTeacherName ? t("groupsFilteredSubtitle", { teacher: filteredTeacherName }) : t("groupsSubtitle")}
+      />
 
-      {!ready ? null : groups.length === 0 ? (
+      {teacherIdFilter && (
+        <Link href="/dashboard/student/groups" className="mb-6 inline-block text-sm font-bold text-gold-dark hover:underline">
+          {t("groupsShowAll")}
+        </Link>
+      )}
+
+      {!ready ? null : visibleGroups.length === 0 ? (
         <div className="card p-6">
-          <p className="text-sm text-ink-soft">{t("noGroupsYetStudent")}</p>
+          <p className="text-sm text-ink-soft">{teacherIdFilter ? t("noGroupsForTeacher") : t("noGroupsYetStudent")}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {groups.map((g) => {
+          {visibleGroups.map((g) => {
             const program = programs.find((p) => p.slug === g.program_slug);
             const programTitle = program ? localize(program, locale).title : tc("dash");
             const course = program?.courses?.find((c) => c.slug === g.course_slug);
@@ -190,5 +206,16 @@ export default function StudentGroupsPage() {
         </div>
       )}
     </DashboardShell>
+  );
+}
+
+// useSearchParams() isn't known at build time, so Next.js requires a
+// Suspense boundary around it to keep this route statically prerenderable.
+// null is the same fallback the page already shows itself while !ready.
+export default function StudentGroupsPage() {
+  return (
+    <Suspense fallback={null}>
+      <StudentGroupsPageInner />
+    </Suspense>
   );
 }
