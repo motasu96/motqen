@@ -52,6 +52,53 @@ export async function getGroupAttendanceForDate(
   return byStudent;
 }
 
+export type StudentGroupAttendance = {
+  id: string;
+  groupId: string;
+  sessionDate: string;
+  attended: boolean;
+  recitationFrom: string | null;
+  recitationTo: string | null;
+  grade: string | null;
+  notes: string | null;
+  groupTitle: string;
+  groupTitleEn: string | null;
+  teacherName: string;
+};
+
+// A student's own attendance history across every group circle they've
+// ever attended, most recent first — used to show group sessions
+// alongside 1:1 lessons in "My Lessons".
+export async function listStudentGroupAttendance(supabase: SupabaseClient, studentId: string): Promise<StudentGroupAttendance[]> {
+  const { data } = await supabase
+    .from("group_attendance")
+    .select("id, group_id, session_date, attended, recitation_from, recitation_to, grade, notes, group_sessions(title, title_en, teachers(name))")
+    .eq("student_id", studentId)
+    .order("session_date", { ascending: false });
+
+  type GroupInfo = { title: string; title_en: string | null; teachers: { name: string } | { name: string }[] | null };
+
+  return (data ?? []).map((row) => {
+    const group = row.group_sessions as unknown as GroupInfo | GroupInfo[] | null;
+    const g = Array.isArray(group) ? group[0] : group;
+    const teacher = g?.teachers;
+    const teacherName = Array.isArray(teacher) ? teacher[0]?.name : teacher?.name;
+    return {
+      id: row.id as string,
+      groupId: row.group_id as string,
+      sessionDate: row.session_date as string,
+      attended: row.attended as boolean,
+      recitationFrom: (row.recitation_from as string | null) ?? null,
+      recitationTo: (row.recitation_to as string | null) ?? null,
+      grade: (row.grade as string | null) ?? null,
+      notes: (row.notes as string | null) ?? null,
+      groupTitle: g?.title ?? "",
+      groupTitleEn: g?.title_en ?? null,
+      teacherName: teacherName ?? "",
+    };
+  });
+}
+
 export async function saveGroupAttendance(
   supabase: SupabaseClient,
   params: {

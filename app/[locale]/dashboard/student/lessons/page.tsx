@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import { useStudentNav } from "@/components/dashboard/studentNav";
@@ -9,23 +9,36 @@ import { useStudentLogout } from "@/lib/supabase/useStudentLogout";
 import { useStudentProfile } from "@/lib/supabase/useStudentProfile";
 import { useUpcomingBookings } from "@/lib/supabase/useUpcomingBookings";
 import { createClient } from "@/lib/supabase/client";
-import { listStudentLessons, LessonWithTeacher } from "@/lib/supabase/lessons";
+import { listStudentLessons } from "@/lib/supabase/lessons";
+import { listStudentGroupAttendance } from "@/lib/supabase/groupAttendance";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
 import PulseBadge from "@/components/dashboard/PulseBadge";
 import { useLiveRooms } from "@/lib/supabase/presence";
 import { IconClock } from "@/components/icons";
 
+type HistoryItem = {
+  id: string;
+  date: string;
+  attended: boolean;
+  contextLabel: string;
+  from: string | null;
+  to: string | null;
+  grade: string | null;
+  notes: string | null;
+};
+
 export default function StudentLessonsPage() {
   const studentNav = useStudentNav();
   const handleLogout = useStudentLogout();
   const { name: studentName, title: studentTitle } = useStudentProfile();
+  const locale = useLocale();
   const t = useTranslations("Dashboard.student");
   const tc = useTranslations("Dashboard.common");
   const tStatus = useTranslations("Dashboard.status");
   const { upcoming, ready: upcomingReady } = useUpcomingBookings();
   const liveRooms = useLiveRooms();
 
-  const [pastLessons, setPastLessons] = useState<LessonWithTeacher[]>([]);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -43,15 +56,40 @@ export default function StudentLessonsPage() {
         setReady(true);
         return;
       }
-      const rows = await listStudentLessons(supabase, user.id);
+      const [lessons, groupAttendance] = await Promise.all([
+        listStudentLessons(supabase, user.id),
+        listStudentGroupAttendance(supabase, user.id),
+      ]);
       if (cancelled) return;
-      setPastLessons(rows);
+
+      const lessonItems: HistoryItem[] = lessons.map((l) => ({
+        id: `lesson-${l.id}`,
+        date: l.session_date,
+        attended: l.attended,
+        contextLabel: l.teacherName,
+        from: l.surah,
+        to: l.ayah_range,
+        grade: null,
+        notes: l.notes,
+      }));
+      const groupItems: HistoryItem[] = groupAttendance.map((g) => ({
+        id: `group-${g.id}`,
+        date: g.sessionDate,
+        attended: g.attended,
+        contextLabel: `${locale === "en" && g.groupTitleEn ? g.groupTitleEn : g.groupTitle} · ${g.teacherName}`,
+        from: g.recitationFrom,
+        to: g.recitationTo,
+        grade: g.grade,
+        notes: g.notes,
+      }));
+
+      setHistory([...lessonItems, ...groupItems].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0)));
       setReady(true);
     })();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [locale]);
 
   return (
     <DashboardShell navItems={studentNav} userName={studentName} userSubtitle={studentTitle} onLogout={handleLogout}>
@@ -94,27 +132,30 @@ export default function StudentLessonsPage() {
 
         <div>
           <h3 className="mb-3 text-sm font-extrabold text-ink">{t("lessonsHistoryTitle")}</h3>
-          {!ready ? null : pastLessons.length === 0 ? (
+          {!ready ? null : history.length === 0 ? (
             <div className="card p-5">
               <p className="text-sm text-ink-soft">{t("noLessonsHistory")}</p>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              {pastLessons.map((l) => (
-                <div key={l.id} className="card flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+              {history.map((h) => (
+                <div key={h.id} className="card flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-4">
                     <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold-light">
                       <IconClock className="h-5 w-5 text-gold-dark" />
                     </span>
                     <div>
-                      <div className="text-sm font-extrabold text-ink">
-                        {l.attended ? `${l.surah} — ${l.ayah_range}` : t("lessonAbsentLabel")}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-extrabold text-ink">
+                          {h.attended ? [h.from, h.to].filter(Boolean).join(" — ") || tc("dash") : t("lessonAbsentLabel")}
+                        </span>
+                        {h.grade && <span className="badge w-fit">{h.grade}</span>}
                       </div>
-                      <div className="text-xs text-ink-soft">{l.session_date} · {tc("with")} {l.teacherName}</div>
-                      {l.notes && <div className="mt-1 text-xs text-ink-soft">{l.notes}</div>}
+                      <div className="text-xs text-ink-soft">{h.date} · {tc("with")} {h.contextLabel}</div>
+                      {h.notes && <div className="mt-1 text-xs text-ink-soft">{h.notes}</div>}
                     </div>
                   </div>
-                  {l.attended ? (
+                  {h.attended ? (
                     <span className="w-fit rounded-pill bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400">
                       {tStatus("lessonCompleted")}
                     </span>
