@@ -49,106 +49,35 @@ function emptyForm(defaultTime: string): FormState {
   };
 }
 
-function GroupAttendancePanel({ group, teacherId, onClose }: { group: GroupWithMembers; teacherId: string; onClose: () => void }) {
+function GroupAttendancePanel({
+  group,
+  sessionDate,
+  records,
+  ready,
+  saving,
+  loggedDates,
+  onSelectDate,
+  onToggle,
+  onUpdateField,
+  onSave,
+  onClose,
+}: {
+  group: GroupWithMembers;
+  sessionDate: string;
+  records: Map<string, StudentAttendance>;
+  ready: boolean;
+  saving: boolean;
+  loggedDates: string[];
+  onSelectDate: (date: string) => void;
+  onToggle: (studentId: string, attended: boolean) => void;
+  onUpdateField: (studentId: string, field: "recitationFrom" | "recitationTo" | "grade", value: string) => void;
+  onSave: () => void;
+  onClose: () => void;
+}) {
   const t = useTranslations("Dashboard.teacher");
   const tc = useTranslations("Dashboard.common");
-  const { showToast } = useToast();
-  const todayIso = new Date().toISOString().slice(0, 10);
-
-  const [sessionDate, setSessionDate] = useState(todayIso);
-  const [records, setRecords] = useState<Map<string, StudentAttendance>>(new Map());
-  const [loggedDates, setLoggedDates] = useState<string[]>([]);
-  const [history, setHistory] = useState<GroupAttendanceRow[]>([]);
-  const [ready, setReady] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  async function refreshHistory() {
-    const rows = await listGroupAttendanceHistory(createClient(), group.id);
-    setHistory(rows);
-  }
-
-  const historyByStudent = new Map<string, GroupAttendanceRow[]>();
-  for (const row of history) {
-    const list = historyByStudent.get(row.student_id) ?? [];
-    list.push(row);
-    historyByStudent.set(row.student_id, list);
-  }
-
-  async function loadForDate(date: string) {
-    setReady(false);
-    const existing = await getGroupAttendanceForDate(createClient(), group.id, date);
-    const merged = new Map<string, StudentAttendance>();
-    for (const m of group.enrolledMembers) {
-      merged.set(m.id, existing.get(m.id) ?? { attended: true, recitationFrom: "", recitationTo: "", grade: "", notes: "" });
-    }
-    setRecords(merged);
-    setReady(true);
-  }
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const [dates] = await Promise.all([listGroupAttendanceDates(createClient(), group.id), refreshHistory()]);
-      if (cancelled) return;
-      setLoggedDates(dates);
-      await loadForDate(todayIso);
-    })();
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [group.id]);
-
-  async function selectDate(date: string) {
-    setSessionDate(date);
-    await loadForDate(date);
-  }
-
-  function toggle(studentId: string, attended: boolean) {
-    setRecords((prev) => {
-      const next = new Map(prev);
-      const cur = next.get(studentId) ?? { attended: true, recitationFrom: "", recitationTo: "", grade: "", notes: "" };
-      next.set(studentId, { ...cur, attended });
-      return next;
-    });
-  }
-
-  function updateField(studentId: string, field: "recitationFrom" | "recitationTo" | "grade", value: string) {
-    setRecords((prev) => {
-      const next = new Map(prev);
-      const cur = next.get(studentId) ?? { attended: true, recitationFrom: "", recitationTo: "", grade: "", notes: "" };
-      next.set(studentId, { ...cur, [field]: value });
-      return next;
-    });
-  }
-
-  async function handleSave() {
-    setSaving(true);
-    const ok = await saveGroupAttendance(createClient(), {
-      groupId: group.id,
-      teacherId,
-      sessionDate,
-      records: group.enrolledMembers.map((m) => ({
-        studentId: m.id,
-        attended: records.get(m.id)?.attended ?? true,
-        recitationFrom: records.get(m.id)?.recitationFrom ?? "",
-        recitationTo: records.get(m.id)?.recitationTo ?? "",
-        grade: records.get(m.id)?.grade ?? "",
-        notes: records.get(m.id)?.notes ?? "",
-      })),
-    });
-    setSaving(false);
-    if (!ok) {
-      showToast(t("errorAttendanceSave"), "error");
-      return;
-    }
-    showToast(t("toastAttendanceSaved"), "success");
-    setLoggedDates((prev) => (prev.includes(sessionDate) ? prev : [...prev, sessionDate].sort().reverse()));
-    await refreshHistory();
-  }
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_300px]">
     <div className="card animate-fade-up flex flex-col gap-4 p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h4 className="text-sm font-extrabold text-ink">{t("attendanceTitle")}</h4>
@@ -162,7 +91,7 @@ function GroupAttendancePanel({ group, teacherId, onClose }: { group: GroupWithM
         <input
           type="date"
           value={sessionDate}
-          onChange={(e) => selectDate(e.target.value)}
+          onChange={(e) => onSelectDate(e.target.value)}
           className="input w-48 py-2 text-xs"
         />
       </div>
@@ -180,7 +109,7 @@ function GroupAttendancePanel({ group, teacherId, onClose }: { group: GroupWithM
                   <div className="grid grid-cols-2 gap-2 rounded-pill border border-line bg-card p-1">
                     <button
                       type="button"
-                      onClick={() => toggle(m.id, true)}
+                      onClick={() => onToggle(m.id, true)}
                       aria-pressed={rec.attended}
                       className={`rounded-pill px-3 py-1 text-xs font-bold transition-colors ${rec.attended ? "bg-gold-gradient text-white" : "text-ink-soft"}`}
                     >
@@ -188,7 +117,7 @@ function GroupAttendancePanel({ group, teacherId, onClose }: { group: GroupWithM
                     </button>
                     <button
                       type="button"
-                      onClick={() => toggle(m.id, false)}
+                      onClick={() => onToggle(m.id, false)}
                       aria-pressed={!rec.attended}
                       className={`rounded-pill px-3 py-1 text-xs font-bold transition-colors ${!rec.attended ? "bg-red-500 text-white" : "text-ink-soft"}`}
                     >
@@ -200,19 +129,19 @@ function GroupAttendancePanel({ group, teacherId, onClose }: { group: GroupWithM
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                     <input
                       value={rec.recitationFrom}
-                      onChange={(e) => updateField(m.id, "recitationFrom", e.target.value)}
+                      onChange={(e) => onUpdateField(m.id, "recitationFrom", e.target.value)}
                       placeholder={t("attendanceFromPlaceholder")}
                       className="input py-2 text-xs"
                     />
                     <input
                       value={rec.recitationTo}
-                      onChange={(e) => updateField(m.id, "recitationTo", e.target.value)}
+                      onChange={(e) => onUpdateField(m.id, "recitationTo", e.target.value)}
                       placeholder={t("attendanceToPlaceholder")}
                       className="input py-2 text-xs"
                     />
                     <input
                       value={rec.grade}
-                      onChange={(e) => updateField(m.id, "grade", e.target.value)}
+                      onChange={(e) => onUpdateField(m.id, "grade", e.target.value)}
                       placeholder={t("attendanceGradePlaceholder")}
                       className="input py-2 text-xs"
                     />
@@ -224,11 +153,7 @@ function GroupAttendancePanel({ group, teacherId, onClose }: { group: GroupWithM
         </div>
       )}
 
-      <button
-        onClick={handleSave}
-        disabled={saving || group.enrolledMembers.length === 0}
-        className="btn-primary w-fit disabled:opacity-70"
-      >
+      <button onClick={onSave} disabled={saving || group.enrolledMembers.length === 0} className="btn-primary w-fit disabled:opacity-70">
         {saving ? t("saving") : t("attendanceSaveCta")}
       </button>
 
@@ -239,7 +164,7 @@ function GroupAttendancePanel({ group, teacherId, onClose }: { group: GroupWithM
             {loggedDates.map((d) => (
               <button
                 key={d}
-                onClick={() => selectDate(d)}
+                onClick={() => onSelectDate(d)}
                 className={`rounded-pill px-3 py-1 text-xs font-bold transition-colors ${
                   d === sessionDate ? "bg-gold-gradient text-white" : "border border-line text-ink-soft hover:text-gold-dark"
                 }`}
@@ -251,8 +176,35 @@ function GroupAttendancePanel({ group, teacherId, onClose }: { group: GroupWithM
         </div>
       )}
     </div>
+  );
+}
 
-    <div className="card flex h-fit flex-col gap-4 p-5 lg:sticky lg:top-24">
+// Independent side list (rendered via DashboardShell's rightPanel, its own
+// column on the right of the page, not inline with the attendance form)
+// showing every enrolled student's attendance rate and clickable history —
+// clicking an entry jumps the attendance form above to that date.
+function StudentHistorySidePanel({
+  group,
+  history,
+  selectedDate,
+  onSelectDate,
+}: {
+  group: GroupWithMembers;
+  history: GroupAttendanceRow[];
+  selectedDate: string;
+  onSelectDate: (date: string) => void;
+}) {
+  const t = useTranslations("Dashboard.teacher");
+
+  const historyByStudent = new Map<string, GroupAttendanceRow[]>();
+  for (const row of history) {
+    const list = historyByStudent.get(row.student_id) ?? [];
+    list.push(row);
+    historyByStudent.set(row.student_id, list);
+  }
+
+  return (
+    <div className="card flex max-h-[calc(100vh-8rem)] flex-col gap-4 overflow-y-auto p-5">
       <h4 className="text-sm font-extrabold text-ink">{t("studentHistoryTitle")}</h4>
       {group.enrolledMembers.length === 0 ? (
         <p className="text-xs text-ink-soft">{t("noMembersForAttendance")}</p>
@@ -278,11 +230,9 @@ function GroupAttendancePanel({ group, teacherId, onClose }: { group: GroupWithM
                     {entries.map((entry) => (
                       <button
                         key={entry.id}
-                        onClick={() => selectDate(entry.session_date)}
+                        onClick={() => onSelectDate(entry.session_date)}
                         className={`flex items-center justify-between gap-2 rounded-xl border px-2.5 py-1.5 text-start text-xs transition-colors ${
-                          entry.session_date === sessionDate
-                            ? "border-gold bg-gold-light"
-                            : "border-line bg-bg hover:border-gold/60"
+                          entry.session_date === selectedDate ? "border-gold bg-gold-light" : "border-line bg-bg hover:border-gold/60"
                         }`}
                       >
                         <span className="flex items-center gap-1.5 font-bold text-ink">
@@ -307,7 +257,6 @@ function GroupAttendancePanel({ group, teacherId, onClose }: { group: GroupWithM
         </div>
       )}
     </div>
-    </div>
   );
 }
 
@@ -331,9 +280,109 @@ function TeacherGroupsPageInner() {
   const [actingOn, setActingOn] = useState<string | null>(null);
   const [openAttendanceGroupId, setOpenAttendanceGroupId] = useState<string | null>(openLogId);
 
+  const [attendanceSessionDate, setAttendanceSessionDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [attendanceRecords, setAttendanceRecords] = useState<Map<string, StudentAttendance>>(new Map());
+  const [attendanceLoggedDates, setAttendanceLoggedDates] = useState<string[]>([]);
+  const [attendanceHistory, setAttendanceHistory] = useState<GroupAttendanceRow[]>([]);
+  const [attendanceReady, setAttendanceReady] = useState(false);
+  const [attendanceSaving, setAttendanceSaving] = useState(false);
+
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState<FormState>(emptyForm(timeSlots[0] ?? ""));
   const [saving, setSaving] = useState(false);
+
+  const openGroup = groups.find((g) => g.id === openAttendanceGroupId) ?? null;
+
+  async function loadAttendanceForDate(group: GroupWithMembers, date: string) {
+    setAttendanceReady(false);
+    const existing = await getGroupAttendanceForDate(createClient(), group.id, date);
+    const merged = new Map<string, StudentAttendance>();
+    for (const m of group.enrolledMembers) {
+      merged.set(m.id, existing.get(m.id) ?? { attended: true, recitationFrom: "", recitationTo: "", grade: "", notes: "" });
+    }
+    setAttendanceRecords(merged);
+    setAttendanceReady(true);
+  }
+
+  async function refreshAttendanceHistory(groupId: string) {
+    const rows = await listGroupAttendanceHistory(createClient(), groupId);
+    setAttendanceHistory(rows);
+  }
+
+  useEffect(() => {
+    if (!openGroup) return;
+    let cancelled = false;
+    (async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const [dates] = await Promise.all([
+        listGroupAttendanceDates(createClient(), openGroup.id),
+        refreshAttendanceHistory(openGroup.id),
+      ]);
+      if (cancelled) return;
+      setAttendanceLoggedDates(dates);
+      setAttendanceSessionDate(today);
+      await loadAttendanceForDate(openGroup, today);
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // groups is included so this also fires once groups finishes loading
+    // when the panel is auto-opened from the ?openLog= query param on
+    // mount (before the groups list has arrived yet).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openAttendanceGroupId, groups]);
+
+  async function selectAttendanceDate(date: string) {
+    if (!openGroup) return;
+    setAttendanceSessionDate(date);
+    await loadAttendanceForDate(openGroup, date);
+  }
+
+  function toggleAttendance(studentId: string, attended: boolean) {
+    setAttendanceRecords((prev) => {
+      const next = new Map(prev);
+      const cur = next.get(studentId) ?? { attended: true, recitationFrom: "", recitationTo: "", grade: "", notes: "" };
+      next.set(studentId, { ...cur, attended });
+      return next;
+    });
+  }
+
+  function updateAttendanceField(studentId: string, field: "recitationFrom" | "recitationTo" | "grade", value: string) {
+    setAttendanceRecords((prev) => {
+      const next = new Map(prev);
+      const cur = next.get(studentId) ?? { attended: true, recitationFrom: "", recitationTo: "", grade: "", notes: "" };
+      next.set(studentId, { ...cur, [field]: value });
+      return next;
+    });
+  }
+
+  async function handleSaveAttendance() {
+    if (!openGroup || !teacherId) return;
+    setAttendanceSaving(true);
+    const ok = await saveGroupAttendance(createClient(), {
+      groupId: openGroup.id,
+      teacherId,
+      sessionDate: attendanceSessionDate,
+      records: openGroup.enrolledMembers.map((m) => ({
+        studentId: m.id,
+        attended: attendanceRecords.get(m.id)?.attended ?? true,
+        recitationFrom: attendanceRecords.get(m.id)?.recitationFrom ?? "",
+        recitationTo: attendanceRecords.get(m.id)?.recitationTo ?? "",
+        grade: attendanceRecords.get(m.id)?.grade ?? "",
+        notes: attendanceRecords.get(m.id)?.notes ?? "",
+      })),
+    });
+    setAttendanceSaving(false);
+    if (!ok) {
+      showToast(t("errorAttendanceSave"), "error");
+      return;
+    }
+    showToast(t("toastAttendanceSaved"), "success");
+    setAttendanceLoggedDates((prev) =>
+      prev.includes(attendanceSessionDate) ? prev : [...prev, attendanceSessionDate].sort().reverse()
+    );
+    await refreshAttendanceHistory(openGroup.id);
+  }
 
   async function loadGroups(tId: string) {
     const supabase = createClient();
@@ -415,7 +464,22 @@ function TeacherGroupsPageInner() {
   }
 
   return (
-    <DashboardShell navItems={teacherNav} userName={teacherName} userSubtitle={teacherTitle} onLogout={handleLogout}>
+    <DashboardShell
+      navItems={teacherNav}
+      userName={teacherName}
+      userSubtitle={teacherTitle}
+      onLogout={handleLogout}
+      rightPanel={
+        openGroup ? (
+          <StudentHistorySidePanel
+            group={openGroup}
+            history={attendanceHistory}
+            selectedDate={attendanceSessionDate}
+            onSelectDate={selectAttendanceDate}
+          />
+        ) : undefined
+      }
+    >
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <DashboardPageHeader title={t("groupsTitle")} subtitle={t("groupsSubtitle")} />
         {teacherId && (
@@ -515,7 +579,19 @@ function TeacherGroupsPageInner() {
                 </div>
 
                 {openAttendanceGroupId === g.id && teacherId && (
-                  <GroupAttendancePanel group={g} teacherId={teacherId} onClose={() => setOpenAttendanceGroupId(null)} />
+                  <GroupAttendancePanel
+                    group={g}
+                    sessionDate={attendanceSessionDate}
+                    records={attendanceRecords}
+                    ready={attendanceReady}
+                    saving={attendanceSaving}
+                    loggedDates={attendanceLoggedDates}
+                    onSelectDate={selectAttendanceDate}
+                    onToggle={toggleAttendance}
+                    onUpdateField={updateAttendanceField}
+                    onSave={handleSaveAttendance}
+                    onClose={() => setOpenAttendanceGroupId(null)}
+                  />
                 )}
               </div>
             );
