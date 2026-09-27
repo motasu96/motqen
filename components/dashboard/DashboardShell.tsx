@@ -21,7 +21,6 @@ export default function DashboardShell({
   userSubtitle,
   onLogout,
   onEditName,
-  rightPanel,
   children,
 }: {
   navItems: DashboardNavItem[];
@@ -29,11 +28,6 @@ export default function DashboardShell({
   userSubtitle: string;
   onLogout?: () => void;
   onEditName?: (newName: string) => Promise<boolean>;
-  // An optional independent panel shown in its own column on the right
-  // side of the page (next to the account nav), separate from the main
-  // content — e.g. a live side list that stays put while the page's main
-  // content changes, rather than appearing inline within it.
-  rightPanel?: ReactNode;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -176,12 +170,6 @@ export default function DashboardShell({
       <aside className="hidden w-72 shrink-0 lg:block">
         <div className="card sticky top-24">{renderNav(false)}</div>
       </aside>
-
-      {rightPanel && (
-        <aside className="hidden w-80 shrink-0 xl:block">
-          <div className="sticky top-24">{rightPanel}</div>
-        </aside>
-      )}
 
       <div className="min-w-0 flex-1">
         <div className="mb-4 flex items-center justify-between lg:hidden">
