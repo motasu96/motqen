@@ -64,7 +64,7 @@ function GroupAttendancePanel({ group, teacherId, onClose }: { group: GroupWithM
     const existing = await getGroupAttendanceForDate(createClient(), group.id, date);
     const merged = new Map<string, StudentAttendance>();
     for (const m of group.enrolledMembers) {
-      merged.set(m.id, existing.get(m.id) ?? { attended: true, notes: "" });
+      merged.set(m.id, existing.get(m.id) ?? { attended: true, recitationFrom: "", recitationTo: "", grade: "", notes: "" });
     }
     setRecords(merged);
     setReady(true);
@@ -92,8 +92,17 @@ function GroupAttendancePanel({ group, teacherId, onClose }: { group: GroupWithM
   function toggle(studentId: string, attended: boolean) {
     setRecords((prev) => {
       const next = new Map(prev);
-      const cur = next.get(studentId) ?? { attended: true, notes: "" };
+      const cur = next.get(studentId) ?? { attended: true, recitationFrom: "", recitationTo: "", grade: "", notes: "" };
       next.set(studentId, { ...cur, attended });
+      return next;
+    });
+  }
+
+  function updateField(studentId: string, field: "recitationFrom" | "recitationTo" | "grade", value: string) {
+    setRecords((prev) => {
+      const next = new Map(prev);
+      const cur = next.get(studentId) ?? { attended: true, recitationFrom: "", recitationTo: "", grade: "", notes: "" };
+      next.set(studentId, { ...cur, [field]: value });
       return next;
     });
   }
@@ -107,6 +116,9 @@ function GroupAttendancePanel({ group, teacherId, onClose }: { group: GroupWithM
       records: group.enrolledMembers.map((m) => ({
         studentId: m.id,
         attended: records.get(m.id)?.attended ?? true,
+        recitationFrom: records.get(m.id)?.recitationFrom ?? "",
+        recitationTo: records.get(m.id)?.recitationTo ?? "",
+        grade: records.get(m.id)?.grade ?? "",
         notes: records.get(m.id)?.notes ?? "",
       })),
     });
@@ -143,28 +155,52 @@ function GroupAttendancePanel({ group, teacherId, onClose }: { group: GroupWithM
       ) : !ready ? null : (
         <div className="flex flex-col gap-2">
           {group.enrolledMembers.map((m) => {
-            const rec = records.get(m.id) ?? { attended: true, notes: "" };
+            const rec = records.get(m.id) ?? { attended: true, recitationFrom: "", recitationTo: "", grade: "", notes: "" };
             return (
-              <div key={m.id} className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-bg px-4 py-2.5">
-                <span className="text-sm font-bold text-ink">{m.name}</span>
-                <div className="grid grid-cols-2 gap-2 rounded-pill border border-line bg-card p-1">
-                  <button
-                    type="button"
-                    onClick={() => toggle(m.id, true)}
-                    aria-pressed={rec.attended}
-                    className={`rounded-pill px-3 py-1 text-xs font-bold transition-colors ${rec.attended ? "bg-gold-gradient text-white" : "text-ink-soft"}`}
-                  >
-                    {t("attendedCta")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => toggle(m.id, false)}
-                    aria-pressed={!rec.attended}
-                    className={`rounded-pill px-3 py-1 text-xs font-bold transition-colors ${!rec.attended ? "bg-red-500 text-white" : "text-ink-soft"}`}
-                  >
-                    {t("absentCta")}
-                  </button>
+              <div key={m.id} className="flex flex-col gap-3 rounded-2xl border border-line bg-bg px-4 py-3">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm font-bold text-ink">{m.name}</span>
+                  <div className="grid grid-cols-2 gap-2 rounded-pill border border-line bg-card p-1">
+                    <button
+                      type="button"
+                      onClick={() => toggle(m.id, true)}
+                      aria-pressed={rec.attended}
+                      className={`rounded-pill px-3 py-1 text-xs font-bold transition-colors ${rec.attended ? "bg-gold-gradient text-white" : "text-ink-soft"}`}
+                    >
+                      {t("attendedCta")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => toggle(m.id, false)}
+                      aria-pressed={!rec.attended}
+                      className={`rounded-pill px-3 py-1 text-xs font-bold transition-colors ${!rec.attended ? "bg-red-500 text-white" : "text-ink-soft"}`}
+                    >
+                      {t("absentCta")}
+                    </button>
+                  </div>
                 </div>
+                {rec.attended && (
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    <input
+                      value={rec.recitationFrom}
+                      onChange={(e) => updateField(m.id, "recitationFrom", e.target.value)}
+                      placeholder={t("attendanceFromPlaceholder")}
+                      className="input py-2 text-xs"
+                    />
+                    <input
+                      value={rec.recitationTo}
+                      onChange={(e) => updateField(m.id, "recitationTo", e.target.value)}
+                      placeholder={t("attendanceToPlaceholder")}
+                      className="input py-2 text-xs"
+                    />
+                    <input
+                      value={rec.grade}
+                      onChange={(e) => updateField(m.id, "grade", e.target.value)}
+                      placeholder={t("attendanceGradePlaceholder")}
+                      className="input py-2 text-xs"
+                    />
+                  </div>
+                )}
               </div>
             );
           })}
