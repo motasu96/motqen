@@ -42,7 +42,7 @@ function SignupFlow() {
   const [age, setAge] = useState<number | null>(null);
   const [programSlug, setProgramSlug] = useState(preselectedProgram);
   const [countryIso, setCountryIso] = useState("SA");
-  const [form, setForm] = useState({ name: "", phone: "", email: "", password: "", confirmPassword: "" });
+  const [form, setForm] = useState({ name: "", city: "", phone: "", email: "", password: "", confirmPassword: "" });
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
@@ -171,7 +171,9 @@ function SignupFlow() {
       const { data, error } = await supabase.auth.signUp({
         email: form.email.trim(),
         password: form.password.trim(),
-        options: { data: { role: "student", full_name: form.name.trim(), phone: fullPhone, country: selectedCountry.iso } },
+        options: {
+          data: { role: "student", full_name: form.name.trim(), phone: fullPhone, country: selectedCountry.iso, city: form.city.trim() },
+        },
       });
       if (error) {
         setSubmitting(false);
@@ -324,27 +326,38 @@ function SignupFlow() {
                   placeholder={t("namePlaceholder")}
                 />
               </div>
-              <div className="flex flex-col gap-2">
-                <label htmlFor="signup-country" className="text-sm font-bold text-ink">{t("countryLabel")}</label>
-                <select
-                  id="signup-country"
-                  className="input"
-                  value={countryIso}
-                  onChange={(e) => setCountryIso(e.target.value)}
-                >
-                  {COUNTRIES.map((c) => (
-                    <option key={c.iso} value={c.iso}>
-                      {locale === "en" ? c.nameEn : c.name}
-                    </option>
-                  ))}
-                </select>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="signup-country" className="text-sm font-bold text-ink">{t("countryLabel")}</label>
+                  <select
+                    id="signup-country"
+                    className="input"
+                    value={countryIso}
+                    onChange={(e) => setCountryIso(e.target.value)}
+                  >
+                    {COUNTRIES.map((c) => (
+                      <option key={c.iso} value={c.iso}>
+                        {locale === "en" ? c.nameEn : c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="signup-city" className="text-sm font-bold text-ink">{t("cityLabel")}</label>
+                  <input
+                    id="signup-city"
+                    className="input"
+                    value={form.city}
+                    onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
+                    placeholder={t("cityPlaceholder")}
+                  />
+                </div>
               </div>
               <div className="grid gap-5 sm:grid-cols-2">
                 <div className="flex flex-col gap-2">
                   <label htmlFor="signup-phone" className="text-sm font-bold text-ink">{t("phoneLabel")}</label>
-                  <div className="flex gap-2">
+                  <div dir="ltr" className="flex gap-2">
                     <select
-                      dir="ltr"
                       aria-label={t("phoneCountryCodeLabel")}
                       className="input w-28 shrink-0 px-2"
                       value={countryIso}
@@ -358,7 +371,6 @@ function SignupFlow() {
                     </select>
                     <input
                       id="signup-phone"
-                      dir="ltr"
                       className="input flex-1"
                       value={form.phone}
                       onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
@@ -601,6 +613,7 @@ function SignupFlow() {
                 )}
                 <SummaryRow label={t("summaryName")} value={form.name || t("dash")} />
                 <SummaryRow label={t("summaryCountry")} value={locale === "en" ? selectedCountry.nameEn : selectedCountry.name} />
+                <SummaryRow label={t("summaryCity")} value={form.city || t("dash")} />
                 <SummaryRow label={t("summaryPhone")} value={fullPhone || t("dash")} />
                 <SummaryRow label={t("summaryDays")} value={selectedDays.join("، ") || t("dash")} />
                 <SummaryRow label={t("summaryTime")} value={selectedTime || t("dash")} />
