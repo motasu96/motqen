@@ -7,6 +7,7 @@ import { Link, useRouter } from "@/i18n/navigation";
 import Logo from "@/components/Logo";
 import PasswordInput from "@/components/PasswordInput";
 import { programs } from "@/data/programs";
+import { COUNTRIES, countryFlagEmoji, getCountryByIso } from "@/data/countries";
 import { IconCheck } from "@/components/icons";
 import { useToast } from "@/components/Toast";
 import { localize } from "@/lib/localize";
@@ -40,6 +41,7 @@ function SignupFlow() {
   const [studentType, setStudentType] = useState<StudentType | null>(null);
   const [age, setAge] = useState<number | null>(null);
   const [programSlug, setProgramSlug] = useState(preselectedProgram);
+  const [countryIso, setCountryIso] = useState("SA");
   const [form, setForm] = useState({ name: "", phone: "", email: "", password: "", confirmPassword: "" });
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [selectedTime, setSelectedTime] = useState<string>("");
@@ -51,6 +53,8 @@ function SignupFlow() {
   const [direction, setDirection] = useState<PlanDirection>("fromEnd");
 
   const isHifzProgram = programSlug === HIFZ_PROGRAM_SLUG;
+  const selectedCountry = getCountryByIso(countryIso) ?? COUNTRIES[0];
+  const fullPhone = form.phone.trim() ? `${selectedCountry.dialCode}${form.phone.trim().replace(/^0+/, "")}` : "";
 
   const steps = useMemo<StepKind[]>(() => {
     const arr: StepKind[] = ["type", "info"];
@@ -141,7 +145,8 @@ function SignupFlow() {
           age,
           ageGroup,
           programSlug,
-          form,
+          form: { ...form, phone: fullPhone },
+          country: countryIso,
           selectedDays,
           selectedTime,
           confirmedAt: new Date().toISOString(),
@@ -166,7 +171,7 @@ function SignupFlow() {
       const { data, error } = await supabase.auth.signUp({
         email: form.email.trim(),
         password: form.password.trim(),
-        options: { data: { role: "student", full_name: form.name.trim(), phone: form.phone.trim() } },
+        options: { data: { role: "student", full_name: form.name.trim(), phone: fullPhone, country: selectedCountry.iso } },
       });
       if (error) {
         setSubmitting(false);
@@ -319,17 +324,47 @@ function SignupFlow() {
                   placeholder={t("namePlaceholder")}
                 />
               </div>
+              <div className="flex flex-col gap-2">
+                <label htmlFor="signup-country" className="text-sm font-bold text-ink">{t("countryLabel")}</label>
+                <select
+                  id="signup-country"
+                  className="input"
+                  value={countryIso}
+                  onChange={(e) => setCountryIso(e.target.value)}
+                >
+                  {COUNTRIES.map((c) => (
+                    <option key={c.iso} value={c.iso}>
+                      {locale === "en" ? c.nameEn : c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="grid gap-5 sm:grid-cols-2">
                 <div className="flex flex-col gap-2">
                   <label htmlFor="signup-phone" className="text-sm font-bold text-ink">{t("phoneLabel")}</label>
-                  <input
-                    id="signup-phone"
-                    dir="ltr"
-                    className="input"
-                    value={form.phone}
-                    onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                    placeholder={t("phonePlaceholder")}
-                  />
+                  <div className="flex gap-2">
+                    <select
+                      dir="ltr"
+                      aria-label={t("phoneCountryCodeLabel")}
+                      className="input w-28 shrink-0 px-2"
+                      value={countryIso}
+                      onChange={(e) => setCountryIso(e.target.value)}
+                    >
+                      {COUNTRIES.map((c) => (
+                        <option key={c.iso} value={c.iso}>
+                          {countryFlagEmoji(c.iso)} {c.dialCode}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      id="signup-phone"
+                      dir="ltr"
+                      className="input flex-1"
+                      value={form.phone}
+                      onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                      placeholder={t("phonePlaceholder")}
+                    />
+                  </div>
                 </div>
                 <div className="flex flex-col gap-2">
                   <label htmlFor="signup-email" className="text-sm font-bold text-ink">{t("emailLabel")}</label>
@@ -565,7 +600,8 @@ function SignupFlow() {
                   <SummaryRow label={t("summaryPlan")} value={DURATION_LABELS[planDurationMonths]} />
                 )}
                 <SummaryRow label={t("summaryName")} value={form.name || t("dash")} />
-                <SummaryRow label={t("summaryPhone")} value={form.phone || t("dash")} />
+                <SummaryRow label={t("summaryCountry")} value={locale === "en" ? selectedCountry.nameEn : selectedCountry.name} />
+                <SummaryRow label={t("summaryPhone")} value={fullPhone || t("dash")} />
                 <SummaryRow label={t("summaryDays")} value={selectedDays.join("، ") || t("dash")} />
                 <SummaryRow label={t("summaryTime")} value={selectedTime || t("dash")} />
               </div>
