@@ -22,6 +22,7 @@ function Row({ label, value }: { label: string; value: string | null | undefined
 export default function StudentFileModal({ studentId, onClose }: { studentId: string; onClose: () => void }) {
   const locale = useLocale();
   const t = useTranslations("Dashboard.common");
+  const dayLabels = t.raw("weekDaysSaturdayFirst") as string[];
   const [profile, setProfile] = useState<StudentFileProfile | null>(null);
   const [ready, setReady] = useState(false);
 
@@ -43,6 +44,12 @@ export default function StudentFileModal({ studentId, onClose }: { studentId: st
   const country = student?.country ? getCountryByIso(student.country) : undefined;
   const program = student?.program_slug ? programs.find((p) => p.slug === student.program_slug) : undefined;
   const programTitle = program ? localize(program, locale).title : null;
+  const preferredDaysLabel = (student?.preferred_days ?? [])
+    .map((d) => {
+      const i = Number(d);
+      return Number.isInteger(i) && i >= 0 && i < dayLabels.length ? dayLabels[i] : d;
+    })
+    .join("، ");
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
@@ -78,8 +85,9 @@ export default function StudentFileModal({ studentId, onClose }: { studentId: st
             <Row label={t("studentFilePhone")} value={profile?.phone} />
             <Row label={t("studentFileEmail")} value={student.email} />
             <Row label={t("studentFileProgram")} value={programTitle} />
-            <Row label={t("studentFilePreferredDays")} value={student.preferred_days.join("، ") || null} />
+            <Row label={t("studentFilePreferredDays")} value={preferredDaysLabel || null} />
             <Row label={t("studentFilePreferredTime")} value={student.preferred_time} />
+            <Row label={t("studentFilePreferredTeacher")} value={profile?.preferredTeacherName} />
             {student.plan_duration_months && (
               <>
                 <Row

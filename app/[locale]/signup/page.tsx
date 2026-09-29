@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -8,15 +8,17 @@ import Logo from "@/components/Logo";
 import PasswordInput from "@/components/PasswordInput";
 import { programs } from "@/data/programs";
 import { COUNTRIES, countryFlagEmoji, getCountryByIso } from "@/data/countries";
-import { IconCheck } from "@/components/icons";
+import { IconCheck, IconFamily, IconStar, IconUsers } from "@/components/icons";
 import { useToast } from "@/components/Toast";
 import { localize } from "@/lib/localize";
 import { buildPlan, PLAN_DURATIONS, SurahPosition, PlanDirection } from "@/lib/quranPlan";
 import { getSurahByNumber } from "@/data/quranSurahs";
 import { createClient } from "@/lib/supabase/client";
+import { findMatchingGroups, findMatchingTeachers, MatchedGroup, MatchedTeacher } from "@/lib/supabase/teacherMatching";
 
 type StudentType = "male" | "female";
-type StepKind = "type" | "info" | "plan" | "time" | "confirm";
+type StepKind = "type" | "info" | "plan" | "time" | "teacher" | "confirm";
+type SelectedMatch = { kind: "group"; id: string; label: string } | { kind: "teacher"; id: string; label: string } | null;
 const HIFZ_PROGRAM_SLUG = "hifz-mutqan";
 const CHILD_MAX_AGE = 12;
 
@@ -43,9 +45,14 @@ function SignupFlow() {
   const [programSlug, setProgramSlug] = useState(preselectedProgram);
   const [countryIso, setCountryIso] = useState("SA");
   const [form, setForm] = useState({ name: "", city: "", phone: "", email: "", password: "", confirmPassword: "" });
-  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
+
+  const [matchedGroups, setMatchedGroups] = useState<MatchedGroup[]>([]);
+  const [matchedTeachers, setMatchedTeachers] = useState<MatchedTeacher[]>([]);
+  const [matchLoading, setMatchLoading] = useState(false);
+  const [selectedMatch, setSelectedMatch] = useState<SelectedMatch>(null);
 
   const [planDurationMonths, setPlanDurationMonths] = useState<number | null>(null);
   const [alreadyMemorizedJuz, setAlreadyMemorizedJuz] = useState(0);
@@ -59,7 +66,7 @@ function SignupFlow() {
   const steps = useMemo<StepKind[]>(() => {
     const arr: StepKind[] = ["type", "info"];
     if (isHifzProgram) arr.push("plan");
-    arr.push("time", "confirm");
+    arr.push("time", "teacher", "confirm");
     return arr;
   }, [isHifzProgram]);
 
@@ -68,6 +75,7 @@ function SignupFlow() {
     info: t("step2"),
     plan: t("step2b"),
     time: t("step3"),
+    teacher: t("step3b"),
     confirm: t("step4"),
   };
   const stepKind = steps[Math.min(step, steps.length - 1)];
@@ -102,9 +110,31 @@ function SignupFlow() {
 
   const ageGroup: "child" | "adult" | null = age === null ? null : age <= CHILD_MAX_AGE ? "child" : "adult";
 
-  function toggleDay(day: string) {
-    setSelectedDays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]));
+  function toggleDay(dayIndex: number) {
+    setSelectedDays((prev) => (prev.includes(dayIndex) ? prev.filter((d) => d !== dayIndex) : [...prev, dayIndex]));
   }
+
+  useEffect(() => {
+    if (stepKind !== "teacher" || !process.env.NEXT_PUBLIC_SUPABASE_URL) return;
+    let cancelled = false;
+    setSelectedMatch(null);
+    (async () => {
+      setMatchLoading(true);
+      const supabase = createClient();
+      const [groups, teachers] = await Promise.all([
+        findMatchingGroups(supabase, { days: selectedDays, programSlug }),
+        findMatchingTeachers(supabase, { days: selectedDays, programSlug }),
+      ]);
+      if (cancelled) return;
+      setMatchedGroups(groups.filter((g) => g.enrolledCount < g.capacity));
+      setMatchedTeachers(teachers);
+      setMatchLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stepKind]);
 
   function validateStep(): string | null {
     if (stepKind === "type" && !studentType) return t("errorStudentType");
@@ -198,6 +228,8 @@ function SignupFlow() {
             country: selectedCountry.iso,
             city: form.city.trim(),
             email: form.email.trim(),
+            groupId: selectedMatch?.kind === "group" ? selectedMatch.id : null,
+            preferredTeacherId: selectedMatch?.kind === "teacher" ? selectedMatch.id : null,
           }),
         }).catch(() => {});
       }
@@ -566,13 +598,13 @@ function SignupFlow() {
               <fieldset>
                 <legend className="mb-3 text-sm font-bold text-ink">{t("sessionDays")}</legend>
                 <div className="flex flex-wrap gap-2">
-                  {WEEK_DAYS.map((day) => (
+                  {WEEK_DAYS.map((day, i) => (
                     <button
                       key={day}
-                      onClick={() => toggleDay(day)}
-                      aria-pressed={selectedDays.includes(day)}
+                      onClick={() => toggleDay(i)}
+                      aria-pressed={selectedDays.includes(i)}
                       className={`rounded-pill px-4 py-2 text-sm font-bold transition-colors ${
-                        selectedDays.includes(day)
+                        selectedDays.includes(i)
                           ? "bg-gold-gradient text-white shadow-soft"
                           : "border border-line bg-bg text-ink-soft hover:text-gold-dark"
                       }`}
@@ -604,6 +636,102 @@ function SignupFlow() {
             </div>
           )}
 
+          {stepKind === "teacher" && (
+            <div className="flex flex-col gap-6">
+              <div>
+                <h2 className="text-lg font-extrabold text-ink">{t("teacherMatchTitle")}</h2>
+                <p className="mt-1 text-sm text-ink-soft">{t("teacherMatchSubtitle")}</p>
+              </div>
+
+              {matchLoading ? (
+                <p className="text-sm text-ink-soft">{t("teacherMatchLoading")}</p>
+              ) : matchedGroups.length === 0 && matchedTeachers.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-line p-5 text-center">
+                  <p className="text-sm text-ink-soft">{t("teacherMatchEmpty")}</p>
+                </div>
+              ) : (
+                <>
+                  {matchedGroups.length > 0 && (
+                    <fieldset className="flex flex-col gap-3">
+                      <legend className="mb-1 text-sm font-bold text-ink">{t("teacherMatchGroupsTitle")}</legend>
+                      {matchedGroups.map((g) => {
+                        const title = locale === "en" && g.titleEn ? g.titleEn : g.title;
+                        const selected = selectedMatch?.kind === "group" && selectedMatch.id === g.id;
+                        return (
+                          <button
+                            key={g.id}
+                            type="button"
+                            onClick={() => setSelectedMatch({ kind: "group", id: g.id, label: `${title} — ${g.teacherName}` })}
+                            aria-pressed={selected}
+                            className={`flex items-center justify-between gap-3 rounded-2xl border p-4 text-start transition-colors ${
+                              selected ? "border-gold bg-gold-light" : "border-line bg-bg hover:border-gold/60"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-card">
+                                <IconUsers className="h-5 w-5 text-gold-dark" aria-hidden="true" />
+                              </span>
+                              <div>
+                                <div className="font-extrabold text-ink">{title}</div>
+                                <div className="text-xs text-ink-soft">
+                                  {g.teacherName} · {WEEK_DAYS[g.dayOfWeek]} · {g.sessionTime}
+                                </div>
+                              </div>
+                            </div>
+                            <span className="shrink-0 rounded-pill bg-card px-3 py-1 text-xs font-bold text-ink-soft">
+                              {g.enrolledCount}/{g.capacity}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </fieldset>
+                  )}
+
+                  {matchedTeachers.length > 0 && (
+                    <fieldset className="flex flex-col gap-3">
+                      <legend className="mb-1 text-sm font-bold text-ink">{t("teacherMatchPrivateTitle")}</legend>
+                      {matchedTeachers.map((mt) => {
+                        const selected = selectedMatch?.kind === "teacher" && selectedMatch.id === mt.id;
+                        return (
+                          <button
+                            key={mt.id}
+                            type="button"
+                            onClick={() => setSelectedMatch({ kind: "teacher", id: mt.id, label: mt.name })}
+                            aria-pressed={selected}
+                            className={`flex items-center gap-3 rounded-2xl border p-4 text-start transition-colors ${
+                              selected ? "border-gold bg-gold-light" : "border-line bg-bg hover:border-gold/60"
+                            }`}
+                          >
+                            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-card">
+                              <IconFamily className="h-5 w-5 text-gold-dark" aria-hidden="true" />
+                            </span>
+                            <div>
+                              <div className="font-extrabold text-ink">{mt.name}</div>
+                              <div className="flex items-center gap-1 text-xs text-ink-soft">
+                                <IconStar className="h-3.5 w-3.5 text-gold" aria-hidden="true" />
+                                {mt.rating}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </fieldset>
+                  )}
+                </>
+              )}
+
+              {selectedMatch && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedMatch(null)}
+                  className="self-start text-xs font-bold text-ink-soft hover:text-gold-dark"
+                >
+                  {t("teacherMatchClearSelection")}
+                </button>
+              )}
+            </div>
+          )}
+
           {stepKind === "confirm" && (
             <div className="flex flex-col gap-5">
               <h2 className="text-lg font-extrabold text-ink">{t("confirmSubscription")}</h2>
@@ -618,8 +746,17 @@ function SignupFlow() {
                 <SummaryRow label={t("summaryCountry")} value={locale === "en" ? selectedCountry.nameEn : selectedCountry.name} />
                 <SummaryRow label={t("summaryCity")} value={form.city || t("dash")} />
                 <SummaryRow label={t("summaryPhone")} value={fullPhone || t("dash")} />
-                <SummaryRow label={t("summaryDays")} value={selectedDays.join("، ") || t("dash")} />
+                <SummaryRow
+                  label={t("summaryDays")}
+                  value={selectedDays.map((i) => WEEK_DAYS[i]).join("، ") || t("dash")}
+                />
                 <SummaryRow label={t("summaryTime")} value={selectedTime || t("dash")} />
+                {selectedMatch && (
+                  <SummaryRow
+                    label={selectedMatch.kind === "group" ? t("summaryGroup") : t("summaryPreferredTeacher")}
+                    value={selectedMatch.label}
+                  />
+                )}
               </div>
               <p className="text-xs leading-relaxed text-ink-soft">{t("termsNotice")}</p>
             </div>

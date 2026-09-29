@@ -21,6 +21,19 @@ export async function updateMyAvailableTimes(
   return !error;
 }
 
+// Which days of the week (0=Saturday..6=Friday, matching
+// group_sessions.day_of_week) a teacher generally offers private 1:1
+// lessons on — used to match students with compatible teachers at signup.
+export async function getMyAvailableDays(supabase: SupabaseClient, teacherId: string): Promise<number[]> {
+  const { data } = await supabase.from("teachers").select("available_days").eq("id", teacherId).single();
+  return (data?.available_days as number[] | null) ?? [];
+}
+
+export async function updateMyAvailableDays(supabase: SupabaseClient, teacherId: string, days: number[]): Promise<boolean> {
+  const { error } = await supabase.from("teachers").update({ available_days: days }).eq("id", teacherId);
+  return !error;
+}
+
 // The real students a teacher has actually taught (anyone who booked a
 // session with them), used to populate "assign homework to" pickers.
 export async function listTeacherStudents(supabase: SupabaseClient, teacherId: string): Promise<TeacherStudentOption[]> {

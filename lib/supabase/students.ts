@@ -14,6 +14,7 @@ export type StudentRow = {
   country: string | null;
   city: string | null;
   email: string | null;
+  preferred_teacher_id: string | null;
   created_at: string;
 };
 
@@ -37,6 +38,7 @@ export type StudentFileProfile = {
   fullName: string | null;
   phone: string | null;
   student: StudentRow | null;
+  preferredTeacherName: string | null;
 };
 
 // The full registration record for an arbitrary student — used by the
@@ -48,9 +50,16 @@ export async function getStudentFileProfile(supabase: SupabaseClient, studentId:
     supabase.from("profiles").select("full_name, phone").eq("id", studentId).maybeSingle(),
     supabase.from("students").select("*").eq("id", studentId).maybeSingle(),
   ]);
+  const row = (student as StudentRow | null) ?? null;
+  let preferredTeacherName: string | null = null;
+  if (row?.preferred_teacher_id) {
+    const { data: teacher } = await supabase.from("teachers").select("name").eq("id", row.preferred_teacher_id).maybeSingle();
+    preferredTeacherName = (teacher?.name as string | null) ?? null;
+  }
   return {
     fullName: (profile?.full_name as string | null) ?? null,
     phone: (profile?.phone as string | null) ?? null,
-    student: (student as StudentRow | null) ?? null,
+    student: row,
+    preferredTeacherName,
   };
 }

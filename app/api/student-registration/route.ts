@@ -23,6 +23,8 @@ export async function POST(req: NextRequest) {
     country?: unknown;
     city?: unknown;
     email?: unknown;
+    groupId?: unknown;
+    preferredTeacherId?: unknown;
   };
   try {
     payload = await req.json();
@@ -35,7 +37,10 @@ export async function POST(req: NextRequest) {
   const age = typeof payload.age === "number" && Number.isFinite(payload.age) ? Math.round(payload.age) : null;
   const programSlug = typeof payload.programSlug === "string" ? payload.programSlug.slice(0, 100) : null;
   const preferredDays = Array.isArray(payload.preferredDays)
-    ? payload.preferredDays.filter((d): d is string => typeof d === "string").slice(0, 7)
+    ? payload.preferredDays
+        .filter((d): d is number | string => typeof d === "number" || typeof d === "string")
+        .map((d) => String(d))
+        .slice(0, 7)
     : [];
   const preferredTime = typeof payload.preferredTime === "string" ? payload.preferredTime.slice(0, 50) : null;
   const planDurationMonths =
@@ -54,6 +59,11 @@ export async function POST(req: NextRequest) {
   const country = typeof payload.country === "string" ? payload.country.slice(0, 10) : null;
   const city = typeof payload.city === "string" ? payload.city.slice(0, 100) : null;
   const email = typeof payload.email === "string" ? payload.email.slice(0, 200) : null;
+  const groupId = typeof payload.groupId === "string" && UUID_RE.test(payload.groupId) ? payload.groupId : null;
+  const preferredTeacherId =
+    typeof payload.preferredTeacherId === "string" && UUID_RE.test(payload.preferredTeacherId)
+      ? payload.preferredTeacherId
+      : null;
 
   if (!userId || !UUID_RE.test(userId) || !gender) {
     return NextResponse.json({ error: "Required fields are missing" }, { status: 400 });
@@ -74,10 +84,18 @@ export async function POST(req: NextRequest) {
     country,
     city,
     email,
+    preferred_teacher_id: preferredTeacherId,
   });
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 502 });
+  }
+
+  if (groupId) {
+    await supabase.from("group_enrollments").upsert(
+      { group_id: groupId, student_id: userId },
+      { onConflict: "group_id,student_id" }
+    );
   }
 
   return NextResponse.json({ ok: true });

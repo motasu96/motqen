@@ -8,7 +8,13 @@ import { useTeacherNav } from "@/components/dashboard/teacherNav";
 import { useTeacherLogout } from "@/lib/supabase/useTeacherLogout";
 import { useTeacherProfile } from "@/lib/supabase/useTeacherProfile";
 import { createClient } from "@/lib/supabase/client";
-import { getMyAvailableTimes, getMyTeacherId, updateMyAvailableTimes } from "@/lib/supabase/teacherStudents";
+import {
+  getMyAvailableDays,
+  getMyAvailableTimes,
+  getMyTeacherId,
+  updateMyAvailableDays,
+  updateMyAvailableTimes,
+} from "@/lib/supabase/teacherStudents";
 import { listTeacherBookings, TeacherBooking } from "@/lib/supabase/bookings";
 import { TIME_SLOT_OPTIONS, formatTimeSlot } from "@/lib/timeSlots";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
@@ -31,7 +37,9 @@ export default function TeacherSchedulePage() {
   const [ready, setReady] = useState(false);
   const [teacherId, setTeacherId] = useState<string | null>(null);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [availableDays, setAvailableDays] = useState<number[]>([]);
   const [savingTimes, setSavingTimes] = useState(false);
+  const dayLabels = tc.raw("weekDaysSaturdayFirst") as string[];
 
   useEffect(() => {
     let cancelled = false;
@@ -54,13 +62,15 @@ export default function TeacherSchedulePage() {
         return;
       }
       setTeacherId(tId);
-      const [rows, times] = await Promise.all([
+      const [rows, times, days] = await Promise.all([
         listTeacherBookings(supabase, tId),
         getMyAvailableTimes(supabase, tId),
+        getMyAvailableDays(supabase, tId),
       ]);
       if (cancelled) return;
       setBookings(rows);
       setAvailableTimes(times);
+      setAvailableDays(days);
       setReady(true);
     })();
     return () => {
@@ -74,11 +84,22 @@ export default function TeacherSchedulePage() {
     );
   }
 
+  function toggleDay(dayIndex: number) {
+    setAvailableDays((prev) =>
+      prev.includes(dayIndex) ? prev.filter((d) => d !== dayIndex) : [...prev, dayIndex].sort()
+    );
+  }
+
   async function handleSaveTimes() {
     if (!teacherId) return;
     setSavingTimes(true);
-    const ok = await updateMyAvailableTimes(createClient(), teacherId, availableTimes);
+    const supabase = createClient();
+    const [okTimes, okDays] = await Promise.all([
+      updateMyAvailableTimes(supabase, teacherId, availableTimes),
+      updateMyAvailableDays(supabase, teacherId, availableDays),
+    ]);
     setSavingTimes(false);
+    const ok = okTimes && okDays;
     showToast(ok ? t("toastAvailabilitySaved") : t("errorAvailabilitySaved"), ok ? "success" : "error");
   }
 
@@ -103,6 +124,30 @@ export default function TeacherSchedulePage() {
             <h3 className="text-sm font-extrabold text-ink">{t("availabilityTitle")}</h3>
             <p className="mt-1 text-xs text-ink-soft">{t("availabilitySubtitle")}</p>
           </div>
+
+          <div className="flex flex-col gap-2">
+            <span className="text-xs font-bold text-ink-soft">{t("availableDaysLabel")}</span>
+            <div className="flex flex-wrap gap-2">
+              {dayLabels.map((label, i) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => toggleDay(i)}
+                  aria-pressed={availableDays.includes(i)}
+                  className={`rounded-pill px-4 py-2 text-sm font-bold transition-colors ${
+                    availableDays.includes(i)
+                      ? "bg-gold-gradient text-white shadow-soft"
+                      : "border border-line bg-bg text-ink-soft hover:text-gold-dark"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <span className="text-xs font-bold text-ink-soft">{t("availableTimesLabel")}</span>
           <div className="flex flex-wrap gap-2">
             {TIME_SLOT_OPTIONS.map((hhmm) => (
               <button
@@ -119,6 +164,7 @@ export default function TeacherSchedulePage() {
                 {formatTimeSlot(hhmm, locale)}
               </button>
             ))}
+            </div>
           </div>
           <button
             onClick={handleSaveTimes}
