@@ -12,7 +12,8 @@ import { getMyTeacherId, listTeacherStudents, TeacherStudentOption } from "@/lib
 import { createExam, ExamRow, listStudentExams, recordExamScore } from "@/lib/supabase/exams";
 import { confirmMemorization } from "@/lib/supabase/memorization";
 import { useToast } from "@/components/Toast";
-import { IconExam, IconFolder } from "@/components/icons";
+import StudentFileModal from "@/components/dashboard/StudentFileModal";
+import { IconExam, IconEye, IconFolder } from "@/components/icons";
 
 function ExamScoreForm({
   exam,
@@ -73,6 +74,7 @@ function StudentActionsRow({ student, teacherId }: { student: TeacherStudentOpti
   const [openPanel, setOpenPanel] = useState<"exam" | "memorization" | null>(null);
   const [studentExams, setStudentExams] = useState<ExamRow[]>([]);
   const [editingExamId, setEditingExamId] = useState<string | null>(null);
+  const [showFile, setShowFile] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -162,6 +164,10 @@ function StudentActionsRow({ student, teacherId }: { student: TeacherStudentOpti
           <div className="text-sm font-extrabold text-ink">{student.name}</div>
         </div>
         <div className="flex items-center gap-2">
+          <button onClick={() => setShowFile(true)} className="btn-outline flex items-center gap-2 px-4 py-2 text-xs">
+            <IconEye className="h-4 w-4" />
+            {tc("studentFileCta")}
+          </button>
           <button
             onClick={() => setOpenPanel(openPanel === "exam" ? null : "exam")}
             className="btn-outline flex items-center gap-2 px-4 py-2 text-xs"
@@ -248,6 +254,8 @@ function StudentActionsRow({ student, teacherId }: { student: TeacherStudentOpti
           ))}
         </div>
       )}
+
+      {showFile && <StudentFileModal studentId={student.id} onClose={() => setShowFile(false)} />}
     </div>
   );
 }

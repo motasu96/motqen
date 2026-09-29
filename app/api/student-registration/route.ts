@@ -20,6 +20,9 @@ export async function POST(req: NextRequest) {
     alreadyMemorizedJuz?: unknown;
     reviewDaysPerWeek?: unknown;
     planDirection?: unknown;
+    country?: unknown;
+    city?: unknown;
+    email?: unknown;
   };
   try {
     payload = await req.json();
@@ -48,6 +51,9 @@ export async function POST(req: NextRequest) {
       ? Math.round(payload.reviewDaysPerWeek)
       : null;
   const planDirection = typeof payload.planDirection === "string" ? payload.planDirection.slice(0, 20) : null;
+  const country = typeof payload.country === "string" ? payload.country.slice(0, 10) : null;
+  const city = typeof payload.city === "string" ? payload.city.slice(0, 100) : null;
+  const email = typeof payload.email === "string" ? payload.email.slice(0, 200) : null;
 
   if (!userId || !UUID_RE.test(userId) || !gender) {
     return NextResponse.json({ error: "Required fields are missing" }, { status: 400 });
@@ -65,6 +71,9 @@ export async function POST(req: NextRequest) {
     already_memorized_juz: alreadyMemorizedJuz,
     review_days_per_week: reviewDaysPerWeek,
     plan_direction: planDirection,
+    country,
+    city,
+    email,
   });
 
   if (error) {

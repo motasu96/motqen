@@ -11,6 +11,8 @@ import { createClient } from "@/lib/supabase/client";
 import { programs } from "@/data/programs";
 import { localize } from "@/lib/localize";
 import { AdminRecentStudent, listAllStudents } from "@/lib/supabase/adminOverview";
+import StudentFileModal from "@/components/dashboard/StudentFileModal";
+import { IconEye } from "@/components/icons";
 
 const STATUS_KEYS: Record<AdminRecentStudent["status"], "personRegular" | "personLate" | "personStruggling" | "personNew"> = {
   regular: "personRegular",
@@ -37,6 +39,7 @@ export default function AdminStudentsPage() {
 
   const [students, setStudents] = useState<AdminRecentStudent[]>([]);
   const [ready, setReady] = useState(false);
+  const [fileStudentId, setFileStudentId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -84,7 +87,18 @@ export default function AdminStudentsPage() {
                   const programTitle = program ? localize(program, locale).title : tc("dash");
                   return (
                     <tr key={s.id} className="border-b border-line last:border-0">
-                      <td className="px-6 py-4 font-bold text-ink">{s.name || tc("dash")}</td>
+                      <td className="px-6 py-4 font-bold text-ink">
+                        <div className="flex items-center gap-2">
+                          <span>{s.name || tc("dash")}</span>
+                          <button
+                            onClick={() => setFileStudentId(s.id)}
+                            aria-label={tc("studentFileCta")}
+                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-ink-soft transition-colors hover:text-gold-dark"
+                          >
+                            <IconEye className="h-4 w-4" aria-hidden="true" />
+                          </button>
+                        </div>
+                      </td>
                       <td className="px-6 py-4 text-ink-soft">{programTitle}</td>
                       <td className="px-6 py-4 text-ink-soft">{s.teacherName || tc("dash")}</td>
                       <td className="px-6 py-4">
@@ -113,6 +127,8 @@ export default function AdminStudentsPage() {
           </div>
         </div>
       )}
+
+      {fileStudentId && <StudentFileModal studentId={fileStudentId} onClose={() => setFileStudentId(null)} />}
     </DashboardShell>
   );
 }

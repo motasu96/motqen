@@ -195,6 +195,9 @@ function SignupFlow() {
             alreadyMemorizedJuz: isHifzProgram ? alreadyMemorizedJuz : 0,
             reviewDaysPerWeek: isHifzProgram ? reviewDaysPerWeek : null,
             planDirection: isHifzProgram ? direction : null,
+            country: selectedCountry.iso,
+            city: form.city.trim(),
+            email: form.email.trim(),
           }),
         }).catch(() => {});
       }

@@ -11,6 +11,9 @@ export type StudentRow = {
   already_memorized_juz: number;
   review_days_per_week: number | null;
   plan_direction: string | null;
+  country: string | null;
+  city: string | null;
+  email: string | null;
   created_at: string;
 };
 
@@ -26,6 +29,28 @@ export async function getMyStudentProfile(supabase: SupabaseClient, userId: stri
   ]);
   return {
     fullName: (profile?.full_name as string | null) ?? null,
+    student: (student as StudentRow | null) ?? null,
+  };
+}
+
+export type StudentFileProfile = {
+  fullName: string | null;
+  phone: string | null;
+  student: StudentRow | null;
+};
+
+// The full registration record for an arbitrary student — used by the
+// teacher/admin "student file" view. Relies on existing RLS (teachers can
+// read profiles/students rows for students who booked with them or joined
+// their groups; admins can read all) rather than any new policy.
+export async function getStudentFileProfile(supabase: SupabaseClient, studentId: string): Promise<StudentFileProfile> {
+  const [{ data: profile }, { data: student }] = await Promise.all([
+    supabase.from("profiles").select("full_name, phone").eq("id", studentId).maybeSingle(),
+    supabase.from("students").select("*").eq("id", studentId).maybeSingle(),
+  ]);
+  return {
+    fullName: (profile?.full_name as string | null) ?? null,
+    phone: (profile?.phone as string | null) ?? null,
     student: (student as StudentRow | null) ?? null,
   };
 }
