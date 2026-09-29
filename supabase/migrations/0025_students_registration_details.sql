@@ -8,6 +8,6 @@
 -- Run this in the Supabase SQL Editor after 0001-0024.
 
 alter table public.students
-  add column country text,
-  add column city text,
-  add column email text;
+  add column if not exists country text,
+  add column if not exists city text,
+  add column if not exists email text;
