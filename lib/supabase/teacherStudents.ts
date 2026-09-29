@@ -52,3 +52,20 @@ export async function listTeacherStudents(supabase: SupabaseClient, teacherId: s
   }
   return Array.from(byId.entries()).map(([id, name]) => ({ id, name }));
 }
+
+// Students who picked this teacher privately at signup (students.preferred_teacher_id)
+// but haven't booked a session yet — surfaced so the teacher can reach out.
+// Callers should exclude ids already covered by listTeacherStudents to avoid
+// showing the same student in both "my students" and "chose you" sections.
+export async function listStudentsWhoPreferredMe(supabase: SupabaseClient, teacherId: string): Promise<TeacherStudentOption[]> {
+  const { data } = await supabase
+    .from("students")
+    .select("id, profiles(full_name)")
+    .eq("preferred_teacher_id", teacherId);
+
+  return (data ?? []).map((row) => {
+    const profile = row.profiles as unknown as { full_name: string | null } | { full_name: string | null }[] | null;
+    const name = Array.isArray(profile) ? profile[0]?.full_name : profile?.full_name;
+    return { id: row.id as string, name: name || "" };
+  });
+}

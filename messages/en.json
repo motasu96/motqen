@@ -799,6 +799,8 @@
       "studentsTitle": "Students",
       "studentsSubtitle": "All your students and their progress status in their programs",
       "noStudentsYet": "No students have booked a session with you yet.",
+      "preferredStudentsTitle": "Students who chose you at signup",
+      "preferredStudentBadge": "Hasn't booked yet",
       "newExamCta": "New Exam",
       "confirmMemorizationCta": "Confirm Memorization",
       "examTitlePlaceholder": "Exam title",

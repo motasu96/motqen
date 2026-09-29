@@ -799,6 +799,8 @@
       "studentsTitle": "الطلاب",
       "studentsSubtitle": "جميع طلابك وحالة تقدمهم في برامجهم",
       "noStudentsYet": "لا يوجد طلاب حجزوا معك حصصًا بعد.",
+      "preferredStudentsTitle": "طلاب اختاروك عند التسجيل",
+      "preferredStudentBadge": "لم يحجز بعد",
       "newExamCta": "اختبار جديد",
       "confirmMemorizationCta": "تأكيد حفظ",
       "examTitlePlaceholder": "عنوان الاختبار",

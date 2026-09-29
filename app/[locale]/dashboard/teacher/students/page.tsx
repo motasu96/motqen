@@ -8,7 +8,12 @@ import { useTeacherNav } from "@/components/dashboard/teacherNav";
 import { useTeacherLogout } from "@/lib/supabase/useTeacherLogout";
 import { useTeacherProfile } from "@/lib/supabase/useTeacherProfile";
 import { createClient } from "@/lib/supabase/client";
-import { getMyTeacherId, listTeacherStudents, TeacherStudentOption } from "@/lib/supabase/teacherStudents";
+import {
+  getMyTeacherId,
+  listStudentsWhoPreferredMe,
+  listTeacherStudents,
+  TeacherStudentOption,
+} from "@/lib/supabase/teacherStudents";
 import { createExam, ExamRow, listStudentExams, recordExamScore } from "@/lib/supabase/exams";
 import { confirmMemorization } from "@/lib/supabase/memorization";
 import { useToast } from "@/components/Toast";
@@ -260,6 +265,34 @@ function StudentActionsRow({ student, teacherId }: { student: TeacherStudentOpti
   );
 }
 
+function PreferredStudentCard({ student }: { student: TeacherStudentOption }) {
+  const tc = useTranslations("Dashboard.common");
+  const t = useTranslations("Dashboard.teacher");
+  const [showFile, setShowFile] = useState(false);
+
+  return (
+    <div className="card flex items-center justify-between gap-3 p-5">
+      <div className="flex items-center gap-4">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold-light text-sm font-extrabold text-gold-dark">
+          {student.name ? student.name[0] : "?"}
+        </span>
+        <div>
+          <div className="text-sm font-extrabold text-ink">{student.name}</div>
+          <span className="rounded-pill bg-gold-light px-2.5 py-0.5 text-[11px] font-bold text-gold-dark">
+            {t("preferredStudentBadge")}
+          </span>
+        </div>
+      </div>
+      <button onClick={() => setShowFile(true)} className="btn-outline flex shrink-0 items-center gap-2 px-4 py-2 text-xs">
+        <IconEye className="h-4 w-4" />
+        {tc("studentFileCta")}
+      </button>
+
+      {showFile && <StudentFileModal studentId={student.id} onClose={() => setShowFile(false)} />}
+    </div>
+  );
+}
+
 export default function TeacherStudentsPage() {
   const teacherNav = useTeacherNav();
   const handleLogout = useTeacherLogout();
@@ -268,6 +301,7 @@ export default function TeacherStudentsPage() {
 
   const [teacherId, setTeacherId] = useState<string | null>(null);
   const [students, setStudents] = useState<TeacherStudentOption[]>([]);
+  const [preferredStudents, setPreferredStudents] = useState<TeacherStudentOption[]>([]);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -290,10 +324,15 @@ export default function TeacherStudentsPage() {
         setReady(true);
         return;
       }
-      const rows = await listTeacherStudents(supabase, tId);
+      const [rows, preferredRows] = await Promise.all([
+        listTeacherStudents(supabase, tId),
+        listStudentsWhoPreferredMe(supabase, tId),
+      ]);
       if (cancelled) return;
+      const existingIds = new Set(rows.map((r) => r.id));
       setTeacherId(tId);
       setStudents(rows);
+      setPreferredStudents(preferredRows.filter((r) => !existingIds.has(r.id)));
       setReady(true);
     })();
     return () => {
@@ -304,6 +343,15 @@ export default function TeacherStudentsPage() {
   return (
     <DashboardShell navItems={teacherNav} userName={teacherName} userSubtitle={teacherTitle} onLogout={handleLogout}>
       <DashboardPageHeader title={t("studentsTitle")} subtitle={t("studentsSubtitle")} />
+
+      {ready && preferredStudents.length > 0 && (
+        <div className="mb-6 flex flex-col gap-4">
+          <h3 className="text-sm font-extrabold text-ink">{t("preferredStudentsTitle")}</h3>
+          {preferredStudents.map((s) => (
+            <PreferredStudentCard key={s.id} student={s} />
+          ))}
+        </div>
+      )}
 
       {!ready ? null : students.length === 0 || !teacherId ? (
         <div className="card p-6">
