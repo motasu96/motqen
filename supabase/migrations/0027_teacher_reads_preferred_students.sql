@@ -8,6 +8,7 @@
 --
 -- Run this in the Supabase SQL Editor after 0001-0026.
 
+drop policy if exists "profiles: teachers read students who chose them" on public.profiles;
 create policy "profiles: teachers read students who chose them" on public.profiles
   for select using (
     exists (
@@ -17,6 +18,7 @@ create policy "profiles: teachers read students who chose them" on public.profil
     )
   );
 
+drop policy if exists "students: teachers read students who chose them" on public.students;
 create policy "students: teachers read students who chose them" on public.students
   for select using (
     exists (
