@@ -21,5 +21,6 @@ alter table public.students
 -- account exists yet, so matching them by day/program can't require
 -- authentication anymore. Mirrors how public.teachers is already public.
 drop policy if exists "group_sessions: authenticated read" on public.group_sessions;
+drop policy if exists "group_sessions: public read" on public.group_sessions;
 create policy "group_sessions: public read" on public.group_sessions
   for select using (true);
