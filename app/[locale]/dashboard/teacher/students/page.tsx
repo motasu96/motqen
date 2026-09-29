@@ -214,7 +214,7 @@ function StudentActionsRow({ student, teacherId }: { student: TeacherStudentOpti
             value={memTitle}
             onChange={(e) => setMemTitle(e.target.value)}
             placeholder={t("memorizationTitlePlaceholder")}
-            className="input flex-1 py-2 text-xs"
+            className="input min-w-0 flex-[2] py-2 text-xs"
           />
           <input
             type="number"
@@ -222,10 +222,19 @@ function StudentActionsRow({ student, teacherId }: { student: TeacherStudentOpti
             value={memPages}
             onChange={(e) => setMemPages(e.target.value)}
             placeholder={t("memorizationPagesPlaceholder")}
-            className="input w-24 py-2 text-xs"
+            className="input w-20 shrink-0 py-2 text-xs"
           />
-          <input type="date" value={memDate} onChange={(e) => setMemDate(e.target.value)} className="input py-2 text-xs" />
-          <button type="submit" disabled={savingMem} className="btn-primary px-4 py-2 text-xs disabled:opacity-70">
+          <input
+            type="date"
+            value={memDate}
+            onChange={(e) => setMemDate(e.target.value)}
+            className="input w-36 shrink-0 py-2 text-xs"
+          />
+          <button
+            type="submit"
+            disabled={savingMem}
+            className="btn-primary shrink-0 px-4 py-2 text-xs disabled:opacity-70"
+          >
             {savingMem ? t("saving") : t("confirmCta")}
           </button>
         </form>
