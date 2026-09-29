@@ -85,7 +85,7 @@ export default function ChatWidget() {
           role="dialog"
           aria-modal="false"
           aria-labelledby="chat-widget-title"
-          className="animate-toast-in card fixed bottom-24 end-6 z-[90] flex h-[min(70vh,32rem)] w-[min(92vw,24rem)] flex-col overflow-hidden p-0"
+          className="animate-toast-in card fixed bottom-44 end-6 z-[90] flex h-[min(70vh,32rem)] w-[min(92vw,24rem)] flex-col overflow-hidden p-0"
         >
           <div className="flex items-center gap-3 border-b border-line bg-bg px-5 py-4">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-light">
