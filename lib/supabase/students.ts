@@ -11,6 +11,7 @@ export type StudentRow = {
   already_memorized_juz: number;
   review_days_per_week: number | null;
   plan_direction: string | null;
+  plan_started_at: string | null;
   country: string | null;
   city: string | null;
   email: string | null;
@@ -62,4 +63,46 @@ export async function getStudentFileProfile(supabase: SupabaseClient, studentId:
     student: row,
     preferredTeacherName,
   };
+}
+
+export type StudentPlanInput = {
+  durationMonths: number;
+  alreadyMemorizedJuz: number;
+  reviewDaysPerWeek: 1 | 2;
+  direction: "fromStart" | "fromEnd";
+};
+
+// A teacher assesses the student's real level and sets/updates their
+// memorization plan (see migration 0029 for the RLS letting a teacher
+// write these specific columns). plan_started_at is reset to now so the
+// weekly-progress calculation paces from when the plan was actually set,
+// not the student's signup date.
+export async function updateStudentPlan(supabase: SupabaseClient, studentId: string, input: StudentPlanInput): Promise<boolean> {
+  const { error } = await supabase
+    .from("students")
+    .update({
+      plan_duration_months: input.durationMonths,
+      already_memorized_juz: input.alreadyMemorizedJuz,
+      review_days_per_week: input.reviewDaysPerWeek,
+      plan_direction: input.direction,
+      plan_started_at: new Date().toISOString(),
+    })
+    .eq("id", studentId);
+  return !error;
+}
+
+export type StudentPlanFields = {
+  plan_duration_months: number | null;
+  already_memorized_juz: number;
+  review_days_per_week: number | null;
+  plan_direction: string | null;
+};
+
+export async function getStudentPlan(supabase: SupabaseClient, studentId: string): Promise<StudentPlanFields | null> {
+  const { data } = await supabase
+    .from("students")
+    .select("plan_duration_months, already_memorized_juz, review_days_per_week, plan_direction")
+    .eq("id", studentId)
+    .maybeSingle();
+  return (data as StudentPlanFields | null) ?? null;
 }

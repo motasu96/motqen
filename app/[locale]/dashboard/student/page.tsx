@@ -158,7 +158,7 @@ export default function StudentDashboardPage() {
       reviewDaysPerWeek: (studentRow.review_days_per_week === 2 ? 2 : 1) as 1 | 2,
       direction: studentRow.plan_direction === "fromStart" ? "fromStart" : ("fromEnd" as PlanDirection),
     });
-    const weekIndex = weekIndexForDate(plan, new Date(studentRow.created_at), new Date());
+    const weekIndex = weekIndexForDate(plan, new Date(studentRow.plan_started_at ?? studentRow.created_at), new Date());
     const currentWeek = weekIndex ? getWeekPlan(plan, weekIndex) : undefined;
     const percent = overallProgressPercent(plan, weekIndex);
     return { plan, weekIndex, currentWeek, percent };

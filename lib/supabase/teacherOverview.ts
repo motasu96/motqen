@@ -153,7 +153,7 @@ export async function getTeacherReportsData(
   if (studentIds.length > 0) {
     const { data: studentRows } = await supabase
       .from("students")
-      .select("id, created_at, already_memorized_juz, plan_duration_months, review_days_per_week, plan_direction")
+      .select("id, created_at, already_memorized_juz, plan_duration_months, review_days_per_week, plan_direction, plan_started_at")
       .in("id", studentIds);
     const percents: number[] = [];
     for (const s of studentRows ?? []) {
@@ -164,7 +164,7 @@ export async function getTeacherReportsData(
         reviewDaysPerWeek: (s.review_days_per_week === 2 ? 2 : 1) as 1 | 2,
         direction: s.plan_direction === "fromStart" ? "fromStart" : "fromEnd",
       });
-      const weekIndex = weekIndexForDate(plan, new Date(s.created_at as string), new Date());
+      const weekIndex = weekIndexForDate(plan, new Date((s.plan_started_at as string | null) ?? (s.created_at as string)), new Date());
       percents.push(overallProgressPercent(plan, weekIndex));
     }
     avgStudentProgress = percents.length > 0 ? Math.round(percents.reduce((a, b) => a + b, 0) / percents.length) : null;

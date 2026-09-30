@@ -97,7 +97,7 @@ export default function HomeScreen() {
       reviewDaysPerWeek: (student.review_days_per_week === 2 ? 2 : 1) as 1 | 2,
       direction: student.plan_direction === "fromStart" ? "fromStart" : "fromEnd",
     });
-    const weekIndex = weekIndexForDate(plan, new Date(student.created_at), new Date());
+    const weekIndex = weekIndexForDate(plan, new Date(student.plan_started_at ?? student.created_at), new Date());
     const currentWeek = weekIndex ? getWeekPlan(plan, weekIndex) : undefined;
     const percent = overallProgressPercent(plan, weekIndex);
     return { plan, weekIndex, currentWeek, percent };

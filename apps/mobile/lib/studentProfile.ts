@@ -7,6 +7,7 @@ export type StudentRow = {
   already_memorized_juz: number;
   review_days_per_week: number | null;
   plan_direction: string | null;
+  plan_started_at: string | null;
   created_at: string;
 };
 

@@ -16,9 +16,17 @@ import {
 } from "@/lib/supabase/teacherStudents";
 import { createExam, ExamRow, listStudentExams, recordExamScore } from "@/lib/supabase/exams";
 import { confirmMemorization } from "@/lib/supabase/memorization";
+import { getStudentPlan, updateStudentPlan } from "@/lib/supabase/students";
 import { useToast } from "@/components/Toast";
 import StudentFileModal from "@/components/dashboard/StudentFileModal";
-import { IconExam, IconEye, IconFolder } from "@/components/icons";
+import { IconExam, IconEye, IconFolder, IconTarget } from "@/components/icons";
+
+const PLAN_DURATIONS: { months: number; labelKey: "planDuration6" | "planDuration12" | "planDuration24" | "planDuration36" }[] = [
+  { months: 6, labelKey: "planDuration6" },
+  { months: 12, labelKey: "planDuration12" },
+  { months: 24, labelKey: "planDuration24" },
+  { months: 36, labelKey: "planDuration36" },
+];
 
 function ExamScoreForm({
   exam,
@@ -71,12 +79,149 @@ function ExamScoreForm({
   );
 }
 
+function StudentPlanPanel({ studentId, onSaved }: { studentId: string; onSaved: () => void }) {
+  const t = useTranslations("Dashboard.teacher");
+  const { showToast } = useToast();
+  const [durationMonths, setDurationMonths] = useState<number | null>(null);
+  const [alreadyMemorizedJuz, setAlreadyMemorizedJuz] = useState(0);
+  const [reviewDaysPerWeek, setReviewDaysPerWeek] = useState<1 | 2>(1);
+  const [direction, setDirection] = useState<"fromStart" | "fromEnd">("fromEnd");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const current = await getStudentPlan(createClient(), studentId);
+      if (cancelled || !current) return;
+      setDurationMonths(current.plan_duration_months);
+      setAlreadyMemorizedJuz(current.already_memorized_juz ?? 0);
+      setReviewDaysPerWeek(current.review_days_per_week === 2 ? 2 : 1);
+      setDirection(current.plan_direction === "fromStart" ? "fromStart" : "fromEnd");
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [studentId]);
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!durationMonths) {
+      showToast(t("errorPlanFields"), "error");
+      return;
+    }
+    setSaving(true);
+    const ok = await updateStudentPlan(createClient(), studentId, {
+      durationMonths,
+      alreadyMemorizedJuz,
+      reviewDaysPerWeek,
+      direction,
+    });
+    setSaving(false);
+    if (!ok) {
+      showToast(t("errorPlanSave"), "error");
+      return;
+    }
+    showToast(t("toastPlanSaved"), "success");
+    onSaved();
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-2xl border border-line bg-bg p-4">
+      <div className="flex flex-col gap-2">
+        <span className="text-xs font-bold text-ink">{t("planDurationLabel")}</span>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {PLAN_DURATIONS.map((d) => (
+            <button
+              key={d.months}
+              type="button"
+              onClick={() => setDurationMonths(d.months)}
+              aria-pressed={durationMonths === d.months}
+              className={`rounded-pill px-3 py-2 text-xs font-bold transition-colors ${
+                durationMonths === d.months
+                  ? "bg-gold-gradient text-white shadow-soft"
+                  : "border border-line bg-card text-ink-soft hover:text-gold-dark"
+              }`}
+            >
+              {t(d.labelKey)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="flex flex-col gap-2">
+          <label htmlFor={`plan-already-${studentId}`} className="text-xs font-bold text-ink">
+            {t("planAlreadyMemorizedLabel")}
+          </label>
+          <input
+            id={`plan-already-${studentId}`}
+            type="number"
+            min={0}
+            max={29}
+            dir="ltr"
+            className="input py-2 text-xs"
+            value={alreadyMemorizedJuz}
+            onChange={(e) => setAlreadyMemorizedJuz(Math.max(0, Math.min(29, Number(e.target.value) || 0)))}
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <span className="text-xs font-bold text-ink">{t("planReviewDaysLabel")}</span>
+          <div className="grid grid-cols-2 gap-2 rounded-pill border border-line bg-card p-1">
+            {([1, 2] as const).map((d) => (
+              <button
+                key={d}
+                type="button"
+                onClick={() => setReviewDaysPerWeek(d)}
+                aria-pressed={reviewDaysPerWeek === d}
+                className={`rounded-pill py-1.5 text-xs font-bold transition-colors ${
+                  reviewDaysPerWeek === d ? "bg-gold-gradient text-white shadow-soft" : "text-ink-soft"
+                }`}
+              >
+                {d === 1 ? t("planReviewDays1") : t("planReviewDays2")}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <span className="text-xs font-bold text-ink">{t("planDirectionLabel")}</span>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {(
+            [
+              { key: "fromEnd" as const, label: t("planDirectionFromEnd") },
+              { key: "fromStart" as const, label: t("planDirectionFromStart") },
+            ]
+          ).map((d) => (
+            <button
+              key={d.key}
+              type="button"
+              onClick={() => setDirection(d.key)}
+              aria-pressed={direction === d.key}
+              className={`rounded-2xl border px-3 py-2 text-xs font-bold transition-colors ${
+                direction === d.key ? "border-gold bg-gold-light text-ink" : "border-line text-ink-soft hover:border-gold/60"
+              }`}
+            >
+              {d.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <button type="submit" disabled={saving} className="btn-primary self-start px-4 py-2 text-xs disabled:opacity-70">
+        {saving ? t("saving") : t("confirmCta")}
+      </button>
+    </form>
+  );
+}
+
 function StudentActionsRow({ student, teacherId }: { student: TeacherStudentOption; teacherId: string }) {
   const t = useTranslations("Dashboard.teacher");
   const tc = useTranslations("Dashboard.common");
   const tStatus = useTranslations("Dashboard.status");
   const { showToast } = useToast();
-  const [openPanel, setOpenPanel] = useState<"exam" | "memorization" | null>(null);
+  const [openPanel, setOpenPanel] = useState<"exam" | "memorization" | "plan" | null>(null);
   const [studentExams, setStudentExams] = useState<ExamRow[]>([]);
   const [editingExamId, setEditingExamId] = useState<string | null>(null);
   const [showFile, setShowFile] = useState(false);
@@ -187,6 +332,13 @@ function StudentActionsRow({ student, teacherId }: { student: TeacherStudentOpti
             <IconFolder className="h-4 w-4" />
             {t("confirmMemorizationCta")}
           </button>
+          <button
+            onClick={() => setOpenPanel(openPanel === "plan" ? null : "plan")}
+            className="btn-outline flex items-center gap-2 px-4 py-2 text-xs"
+          >
+            <IconTarget className="h-4 w-4" />
+            {t("setPlanCta")}
+          </button>
         </div>
       </div>
 
@@ -240,6 +392,8 @@ function StudentActionsRow({ student, teacherId }: { student: TeacherStudentOpti
         </form>
       )}
 
+      {openPanel === "plan" && <StudentPlanPanel studentId={student.id} onSaved={() => setOpenPanel(null)} />}
+
       {studentExams.length > 0 && (
         <div className="flex flex-col gap-2 border-t border-line pt-3">
           {studentExams.map((exam) => (
@@ -278,24 +432,35 @@ function PreferredStudentCard({ student }: { student: TeacherStudentOption }) {
   const tc = useTranslations("Dashboard.common");
   const t = useTranslations("Dashboard.teacher");
   const [showFile, setShowFile] = useState(false);
+  const [showPlan, setShowPlan] = useState(false);
 
   return (
-    <div className="card flex items-center justify-between gap-3 p-5">
-      <div className="flex items-center gap-4">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold-light text-sm font-extrabold text-gold-dark">
-          {student.name ? student.name[0] : "?"}
-        </span>
-        <div>
-          <div className="text-sm font-extrabold text-ink">{student.name}</div>
-          <span className="rounded-pill bg-gold-light px-2.5 py-0.5 text-[11px] font-bold text-gold-dark">
-            {t("preferredStudentBadge")}
+    <div className="card flex flex-col gap-4 p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-4">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold-light text-sm font-extrabold text-gold-dark">
+            {student.name ? student.name[0] : "?"}
           </span>
+          <div>
+            <div className="text-sm font-extrabold text-ink">{student.name}</div>
+            <span className="rounded-pill bg-gold-light px-2.5 py-0.5 text-[11px] font-bold text-gold-dark">
+              {t("preferredStudentBadge")}
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowFile(true)} className="btn-outline flex shrink-0 items-center gap-2 px-4 py-2 text-xs">
+            <IconEye className="h-4 w-4" />
+            {tc("studentFileCta")}
+          </button>
+          <button onClick={() => setShowPlan((v) => !v)} className="btn-outline flex shrink-0 items-center gap-2 px-4 py-2 text-xs">
+            <IconTarget className="h-4 w-4" />
+            {t("setPlanCta")}
+          </button>
         </div>
       </div>
-      <button onClick={() => setShowFile(true)} className="btn-outline flex shrink-0 items-center gap-2 px-4 py-2 text-xs">
-        <IconEye className="h-4 w-4" />
-        {tc("studentFileCta")}
-      </button>
+
+      {showPlan && <StudentPlanPanel studentId={student.id} onSaved={() => setShowPlan(false)} />}
 
       {showFile && <StudentFileModal studentId={student.id} onClose={() => setShowFile(false)} />}
     </div>

@@ -157,7 +157,9 @@ const NEW_STUDENT_GRACE_DAYS = 14;
 async function fetchAdminStudents(supabase: SupabaseClient, limit?: number): Promise<AdminRecentStudent[]> {
   let query = supabase
     .from("students")
-    .select("id, program_slug, created_at, already_memorized_juz, plan_duration_months, review_days_per_week, plan_direction, profiles(full_name)")
+    .select(
+      "id, program_slug, created_at, already_memorized_juz, plan_duration_months, review_days_per_week, plan_direction, plan_started_at, profiles(full_name)"
+    )
     .order("created_at", { ascending: false });
   if (limit) query = query.limit(limit);
   const { data: students } = await query;
@@ -219,7 +221,7 @@ async function fetchAdminStudents(supabase: SupabaseClient, limit?: number): Pro
         reviewDaysPerWeek: (s.review_days_per_week === 2 ? 2 : 1) as 1 | 2,
         direction: s.plan_direction === "fromStart" ? "fromStart" : "fromEnd",
       });
-      const weekIndex = weekIndexForDate(plan, new Date(s.created_at as string), new Date());
+      const weekIndex = weekIndexForDate(plan, new Date((s.plan_started_at as string | null) ?? (s.created_at as string)), new Date());
       progressPercent = overallProgressPercent(plan, weekIndex);
     }
 
