@@ -24,20 +24,19 @@ export type MatchedGroup = {
   teacherName: string;
 };
 
-// Group circles whose day matches one of the student's preferred days and
-// whose program matches what the student chose. Readable while signed out
-// (see migration 0026) since this runs during signup, before the
-// student's account exists yet.
+// All group circles for the program the student chose — the student picks
+// whichever fixed day/time suits them, instead of the app pre-filtering by
+// a day preference. Readable while signed out (see migration 0026) since
+// this runs during signup, before the student's account exists yet.
 export async function findMatchingGroups(
   supabase: SupabaseClient,
-  params: { days: number[]; programSlug: string }
+  params: { programSlug: string }
 ): Promise<MatchedGroup[]> {
-  if (params.days.length === 0 || !params.programSlug) return [];
+  if (!params.programSlug) return [];
   const { data } = await supabase
     .from("group_sessions")
     .select("id, title, title_en, day_of_week, session_time, capacity, teachers(id, name), group_enrollments(count)")
-    .eq("program_slug", params.programSlug)
-    .in("day_of_week", params.days);
+    .eq("program_slug", params.programSlug);
 
   return (data ?? []).map((row) => {
     const teacher = row.teachers as unknown as { id: string; name: string } | { id: string; name: string }[] | null;
@@ -65,16 +64,18 @@ export type MatchedTeacher = {
   rating: number;
   availableDays: number[];
   availableTimes: string[];
+  specialties: string[];
 };
 
-// Active teachers whose declared available days overlap the student's
-// preferred days and whose specialties cover the chosen program (and, for
-// the women's program, who are female).
+// Active teachers whose specialties cover the chosen program (and, for the
+// women's program, who are female). Each teacher's own available days and
+// times are returned so the student picks whoever fits their schedule,
+// instead of the app pre-filtering by a day the student picked first.
 export async function findMatchingTeachers(
   supabase: SupabaseClient,
-  params: { days: number[]; programSlug: string }
+  params: { programSlug: string }
 ): Promise<MatchedTeacher[]> {
-  if (params.days.length === 0 || !params.programSlug) return [];
+  if (!params.programSlug) return [];
   const specialties = PROGRAM_SPECIALTY_MAP[params.programSlug] ?? [];
   if (specialties.length === 0) return [];
 
@@ -82,8 +83,7 @@ export async function findMatchingTeachers(
     .from("teachers")
     .select("id, slug, name, avatar_url, rating, available_days, available_times, specialties, gender")
     .eq("status", "active")
-    .overlaps("specialties", specialties)
-    .overlaps("available_days", params.days);
+    .overlaps("specialties", specialties);
 
   type Row = {
     id: string;
@@ -93,6 +93,7 @@ export async function findMatchingTeachers(
     rating: number;
     available_days: number[] | null;
     available_times: string[] | null;
+    specialties: string[] | null;
     gender: "male" | "female";
   };
   let rows = (data ?? []) as Row[];
@@ -106,5 +107,6 @@ export async function findMatchingTeachers(
     rating: r.rating,
     availableDays: r.available_days ?? [],
     availableTimes: r.available_times ?? [],
+    specialties: r.specialties ?? [],
   }));
 }

@@ -11,16 +11,13 @@ import { COUNTRIES, countryFlagEmoji, getCountryByIso } from "@/data/countries";
 import { IconCheck, IconFamily, IconStar, IconUsers } from "@/components/icons";
 import { useToast } from "@/components/Toast";
 import { localize } from "@/lib/localize";
-import { buildPlan, PLAN_DURATIONS, SurahPosition, PlanDirection } from "@/lib/quranPlan";
-import { getSurahByNumber } from "@/data/quranSurahs";
 import { createClient } from "@/lib/supabase/client";
 import { findMatchingGroups, findMatchingTeachers, MatchedGroup, MatchedTeacher } from "@/lib/supabase/teacherMatching";
 import { formatTimeSlot } from "@/lib/timeSlots";
 
 type StudentType = "male" | "female";
-type StepKind = "type" | "info" | "plan" | "time" | "teacher" | "confirm";
+type StepKind = "type" | "info" | "teacher" | "confirm";
 type SelectedMatch = { kind: "group"; id: string; label: string } | { kind: "teacher"; id: string; label: string } | null;
-const HIFZ_PROGRAM_SLUG = "hifz-mutqan";
 const CHILD_MAX_AGE = 12;
 
 function SignupFlow() {
@@ -56,12 +53,6 @@ function SignupFlow() {
   const [matchLoading, setMatchLoading] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<SelectedMatch>(null);
 
-  const [planDurationMonths, setPlanDurationMonths] = useState<number | null>(null);
-  const [alreadyMemorizedJuz, setAlreadyMemorizedJuz] = useState(0);
-  const [reviewDaysPerWeek, setReviewDaysPerWeek] = useState<1 | 2>(1);
-  const [direction, setDirection] = useState<PlanDirection>("fromEnd");
-
-  const isHifzProgram = programSlug === HIFZ_PROGRAM_SLUG;
   const selectedCountry = getCountryByIso(countryIso) ?? COUNTRIES[0];
   const selectedPhoneCountry = getCountryByIso(phoneCountryIso) ?? COUNTRIES[0];
   const fullPhone = form.phone.trim() ? `${selectedPhoneCountry.dialCode}${form.phone.trim().replace(/^0+/, "")}` : "";
@@ -95,18 +86,11 @@ function SignupFlow() {
     }
   }, [availablePrograms, programSlug]);
 
-  const steps = useMemo<StepKind[]>(() => {
-    const arr: StepKind[] = ["type", "info"];
-    if (isHifzProgram) arr.push("plan");
-    arr.push("time", "teacher", "confirm");
-    return arr;
-  }, [isHifzProgram]);
+  const steps: StepKind[] = ["type", "info", "teacher", "confirm"];
 
   const STEP_LABELS: Record<StepKind, string> = {
     type: t("step1"),
     info: t("step2"),
-    plan: t("step2b"),
-    time: t("step3"),
     teacher: t("step3b"),
     confirm: t("step4"),
   };
@@ -117,44 +101,18 @@ function SignupFlow() {
     return p ? localize(p, locale) : undefined;
   }, [programSlug, locale]);
 
-  const DURATION_LABELS: Record<number, string> = {
-    6: t("planMonths6"),
-    12: t("planYear1"),
-    24: t("planYears2"),
-    36: t("planYears3"),
-  };
-
-  const planPreviews = useMemo(
-    () =>
-      PLAN_DURATIONS.map((d) => {
-        const result = buildPlan({ durationMonths: d.months, alreadyMemorizedJuz, reviewDaysPerWeek, direction });
-        return { months: d.months, ayahsPerWeek: result.ayahsPerWeek, result };
-      }),
-    [alreadyMemorizedJuz, reviewDaysPerWeek, direction]
-  );
-  const selectedPlanPreview = planPreviews.find((p) => p.months === planDurationMonths);
-
-  function formatPosition(pos: SurahPosition) {
-    const surah = getSurahByNumber(pos.surahNumber);
-    const surahName = surah ? (locale === "en" ? surah.nameEn : surah.nameAr) : "";
-    return `${surahName} — ${t("planAyahLabel", { n: pos.ayahInSurah })}`;
-  }
-
-  function toggleDay(dayIndex: number) {
-    setSelectedDays((prev) => (prev.includes(dayIndex) ? prev.filter((d) => d !== dayIndex) : [...prev, dayIndex]));
-  }
-
   useEffect(() => {
     if (stepKind !== "teacher" || !process.env.NEXT_PUBLIC_SUPABASE_URL) return;
     let cancelled = false;
     setSelectedMatch(null);
+    setSelectedDays([]);
     setSelectedTime("");
     (async () => {
       setMatchLoading(true);
       const supabase = createClient();
       const [groups, teachers] = await Promise.all([
-        findMatchingGroups(supabase, { days: selectedDays, programSlug }),
-        findMatchingTeachers(supabase, { days: selectedDays, programSlug }),
+        findMatchingGroups(supabase, { programSlug }),
+        findMatchingTeachers(supabase, { programSlug }),
       ]);
       if (cancelled) return;
       setMatchedGroups(groups.filter((g) => g.enrolledCount < g.capacity));
@@ -165,13 +123,13 @@ function SignupFlow() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stepKind]);
+  }, [stepKind, programSlug]);
 
-  // The specific times available from the currently selected private
-  // teacher — group circles have a single fixed session time instead, set
+  // The days/times the currently selected private teacher declared as
+  // available — a group circle has a single fixed day + time instead, set
   // directly when the group is picked.
-  const selectedTeacherTimes =
-    selectedMatch?.kind === "teacher" ? matchedTeachers.find((mt) => mt.id === selectedMatch.id)?.availableTimes ?? [] : [];
+  const selectedTeacherMatch = selectedMatch?.kind === "teacher" ? matchedTeachers.find((mt) => mt.id === selectedMatch.id) : undefined;
+  const selectedTeacherTimes = selectedTeacherMatch?.availableTimes ?? [];
 
   function validateStep(): string | null {
     if (stepKind === "type" && !studentType) return t("errorStudentType");
@@ -183,9 +141,7 @@ function SignupFlow() {
       if (form.password.trim() !== form.confirmPassword.trim()) return t("errorPasswordMatch");
       if (!programSlug) return t("errorProgram");
     }
-    if (stepKind === "plan" && !planDurationMonths) return t("errorPlan");
-    if (stepKind === "time" && selectedDays.length === 0) return t("errorTime");
-    if (stepKind === "teacher" && selectedMatch?.kind === "teacher" && !selectedTime) {
+    if (stepKind === "teacher" && selectedMatch?.kind === "teacher" && selectedTeacherTimes.length > 0 && !selectedTime) {
       return t("errorMatchTime");
     }
     return null;
@@ -220,18 +176,6 @@ function SignupFlow() {
           confirmedAt: new Date().toISOString(),
         })
       );
-      if (isHifzProgram && planDurationMonths) {
-        localStorage.setItem(
-          "motqen_memorization_plan",
-          JSON.stringify({
-            durationMonths: planDurationMonths,
-            alreadyMemorizedJuz,
-            reviewDaysPerWeek,
-            direction,
-            startedAt: new Date().toISOString(),
-          })
-        );
-      }
     } catch {}
 
     if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -259,10 +203,6 @@ function SignupFlow() {
             programSlug,
             preferredDays: selectedDays,
             preferredTime: selectedTime,
-            planDurationMonths: isHifzProgram ? planDurationMonths : null,
-            alreadyMemorizedJuz: isHifzProgram ? alreadyMemorizedJuz : 0,
-            reviewDaysPerWeek: isHifzProgram ? reviewDaysPerWeek : null,
-            planDirection: isHifzProgram ? direction : null,
             country: selectedCountry.iso,
             city: form.city.trim(),
             email: form.email.trim(),
@@ -518,149 +458,6 @@ function SignupFlow() {
             </div>
           )}
 
-          {stepKind === "plan" && (
-            <div className="flex flex-col gap-6">
-              <div>
-                <h2 className="text-lg font-extrabold text-ink">{t("planTitle")}</h2>
-                <p className="mt-1 text-sm text-ink-soft">{t("planSubtitle")}</p>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {planPreviews.map((p) => (
-                  <button
-                    key={p.months}
-                    type="button"
-                    onClick={() => setPlanDurationMonths(p.months)}
-                    aria-pressed={planDurationMonths === p.months}
-                    className={`flex flex-col items-start gap-2 rounded-2xl border p-5 text-start transition-colors ${
-                      planDurationMonths === p.months ? "border-gold bg-gold-light" : "border-line bg-bg hover:border-gold/60"
-                    }`}
-                  >
-                    <span className="text-base font-extrabold text-ink">{DURATION_LABELS[p.months]}</span>
-                    <span className="text-sm text-ink-soft">{t("planPaceFormat", { ayahs: Math.round(p.ayahsPerWeek) })}</span>
-                  </button>
-                ))}
-              </div>
-
-              <div className="grid gap-5 sm:grid-cols-2">
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="plan-already" className="text-sm font-bold text-ink">
-                    {t("planAlreadyMemorizedLabel")}
-                  </label>
-                  <input
-                    id="plan-already"
-                    type="number"
-                    min={0}
-                    max={29}
-                    dir="ltr"
-                    className="input"
-                    value={alreadyMemorizedJuz}
-                    onChange={(e) => setAlreadyMemorizedJuz(Math.max(0, Math.min(29, Number(e.target.value) || 0)))}
-                  />
-                  <span className="text-xs text-ink-soft">{t("planAlreadyMemorizedHint")}</span>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <span className="text-sm font-bold text-ink">{t("planReviewDaysLabel")}</span>
-                  <div className="grid grid-cols-2 gap-2 rounded-pill border border-line bg-bg p-1">
-                    {([1, 2] as const).map((d) => (
-                      <button
-                        key={d}
-                        type="button"
-                        onClick={() => setReviewDaysPerWeek(d)}
-                        aria-pressed={reviewDaysPerWeek === d}
-                        className={`rounded-pill py-2 text-sm font-bold transition-colors ${
-                          reviewDaysPerWeek === d ? "bg-gold-gradient text-white shadow-soft" : "text-ink-soft"
-                        }`}
-                      >
-                        {d === 1 ? t("planReviewDays1") : t("planReviewDays2")}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <span className="text-sm font-bold text-ink">{t("planDirectionLabel")}</span>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {(
-                    [
-                      { key: "fromEnd" as const, label: t("planDirectionFromEnd") },
-                      { key: "fromStart" as const, label: t("planDirectionFromStart") },
-                    ]
-                  ).map((d) => (
-                    <button
-                      key={d.key}
-                      type="button"
-                      onClick={() => setDirection(d.key)}
-                      aria-pressed={direction === d.key}
-                      className={`rounded-2xl border px-4 py-3 text-sm font-bold transition-colors ${
-                        direction === d.key ? "border-gold bg-gold-light text-ink" : "border-line text-ink-soft hover:border-gold/60"
-                      }`}
-                    >
-                      {d.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {selectedPlanPreview && (
-                <div className="rounded-2xl border border-line bg-bg p-5">
-                  <h3 className="mb-3 text-sm font-extrabold text-ink">{t("planSummaryTitle")}</h3>
-                  <div className="flex flex-col gap-2 text-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="text-ink-soft">{t("planSummaryWeeks")}</span>
-                      <span className="font-bold text-ink">{selectedPlanPreview.result.totalWeeks}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-ink-soft">{t("planSummaryPace")}</span>
-                      <span className="font-bold text-ink">
-                        {t("planPaceFormat", { ayahs: Math.round(selectedPlanPreview.ayahsPerWeek) })}
-                      </span>
-                    </div>
-                    {selectedPlanPreview.result.weeks[0] && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-ink-soft">{t("planSummaryFirstWeek")}</span>
-                        <span className="font-bold text-ink">
-                          {formatPosition(selectedPlanPreview.result.weeks[0].fromPosition)} {t("planRangeSeparator")}{" "}
-                          {formatPosition(selectedPlanPreview.result.weeks[0].toPosition)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {stepKind === "time" && (
-            <div className="flex flex-col gap-6">
-              <div>
-                <h2 className="text-lg font-extrabold text-ink">{t("chooseTime")}</h2>
-                <p className="mt-1 text-sm text-ink-soft">{t("chooseTimeHint")}</p>
-              </div>
-              <fieldset>
-                <legend className="mb-3 text-sm font-bold text-ink">{t("sessionDays")}</legend>
-                <div className="flex flex-wrap gap-2">
-                  {WEEK_DAYS.map((day, i) => (
-                    <button
-                      key={day}
-                      onClick={() => toggleDay(i)}
-                      aria-pressed={selectedDays.includes(i)}
-                      className={`rounded-pill px-4 py-2 text-sm font-bold transition-colors ${
-                        selectedDays.includes(i)
-                          ? "bg-gold-gradient text-white shadow-soft"
-                          : "border border-line bg-bg text-ink-soft hover:text-gold-dark"
-                      }`}
-                    >
-                      {day}
-                    </button>
-                  ))}
-                </div>
-              </fieldset>
-            </div>
-          )}
-
           {stepKind === "teacher" && (
             <div className="flex flex-col gap-6">
               <div>
@@ -720,27 +517,58 @@ function SignupFlow() {
                       <legend className="mb-1 text-sm font-bold text-ink">{t("teacherMatchPrivateTitle")}</legend>
                       {matchedTeachers.map((mt) => {
                         const selected = selectedMatch?.kind === "teacher" && selectedMatch.id === mt.id;
+                        const sortedDays = [...mt.availableDays].sort((a, b) => a - b);
                         return (
                           <button
                             key={mt.id}
                             type="button"
                             onClick={() => {
                               setSelectedMatch({ kind: "teacher", id: mt.id, label: mt.name });
+                              setSelectedDays(mt.availableDays);
                               setSelectedTime("");
                             }}
                             aria-pressed={selected}
-                            className={`flex items-center gap-3 rounded-2xl border p-4 text-start transition-colors ${
+                            className={`flex flex-col gap-3 rounded-2xl border p-4 text-start transition-colors ${
                               selected ? "border-gold bg-gold-light" : "border-line bg-bg hover:border-gold/60"
                             }`}
                           >
-                            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-card">
-                              <IconFamily className="h-5 w-5 text-gold-dark" aria-hidden="true" />
-                            </span>
-                            <div>
-                              <div className="font-extrabold text-ink">{mt.name}</div>
-                              <div className="flex items-center gap-1 text-xs text-ink-soft">
-                                <IconStar className="h-3.5 w-3.5 text-gold" aria-hidden="true" />
-                                {mt.rating}
+                            <div className="flex items-center gap-3">
+                              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-card">
+                                <IconFamily className="h-5 w-5 text-gold-dark" aria-hidden="true" />
+                              </span>
+                              <div>
+                                <div className="font-extrabold text-ink">{mt.name}</div>
+                                <div className="flex items-center gap-1 text-xs text-ink-soft">
+                                  <IconStar className="h-3.5 w-3.5 text-gold" aria-hidden="true" />
+                                  {mt.rating}
+                                  {mt.specialties.length > 0 && <span>· {mt.specialties.join("، ")}</span>}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex flex-col gap-1.5 text-xs text-ink-soft">
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <span className="font-bold text-ink">{t("teacherMatchDaysLabel")}:</span>
+                                {sortedDays.length > 0 ? (
+                                  sortedDays.map((d) => (
+                                    <span key={d} className="rounded-pill bg-card px-2 py-0.5">
+                                      {WEEK_DAYS[d]}
+                                    </span>
+                                  ))
+                                ) : (
+                                  <span>{t("dash")}</span>
+                                )}
+                              </div>
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <span className="font-bold text-ink">{t("teacherMatchTimesLabel")}:</span>
+                                {mt.availableTimes.length > 0 ? (
+                                  mt.availableTimes.map((time) => (
+                                    <span key={time} className="rounded-pill bg-card px-2 py-0.5">
+                                      {formatTimeSlot(time, locale)}
+                                    </span>
+                                  ))
+                                ) : (
+                                  <span>{t("dash")}</span>
+                                )}
                               </div>
                             </div>
                           </button>
@@ -786,6 +614,7 @@ function SignupFlow() {
                   type="button"
                   onClick={() => {
                     setSelectedMatch(null);
+                    setSelectedDays([]);
                     setSelectedTime("");
                   }}
                   className="self-start text-xs font-bold text-ink-soft hover:text-gold-dark"
@@ -803,9 +632,6 @@ function SignupFlow() {
                 <SummaryRow label={t("summaryType")} value={STUDENT_TYPES.find((tp) => tp.key === studentType)?.title ?? t("dash")} />
                 <SummaryRow label={t("summaryAge")} value={age ? String(age) : t("dash")} />
                 <SummaryRow label={t("summaryProgram")} value={selectedProgram?.title ?? t("dash")} />
-                {isHifzProgram && planDurationMonths && (
-                  <SummaryRow label={t("summaryPlan")} value={DURATION_LABELS[planDurationMonths]} />
-                )}
                 <SummaryRow label={t("summaryName")} value={form.name || t("dash")} />
                 <SummaryRow label={t("summaryCountry")} value={locale === "en" ? selectedCountry.nameEn : selectedCountry.name} />
                 <SummaryRow label={t("summaryCity")} value={form.city || t("dash")} />
