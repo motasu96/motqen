@@ -33,12 +33,17 @@ export const GRADE_LABEL_TEXT: Record<string, string> = {
 
 export type CertScope = "parts" | "khatm";
 
+export type Gender = "male" | "female";
+
 export type CertificateRow = {
   id: string;
   certificate_number: string;
   student_id: string;
   student_name: string;
+  student_gender: Gender;
   teacher_name: string;
+  teacher_gender: Gender;
+  issued_by_name: string;
   scope: CertScope;
   program_slug: string | null;
   narration: string;
