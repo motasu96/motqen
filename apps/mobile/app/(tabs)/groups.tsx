@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { ActivityIndicator, Alert, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useAuth } from "../../lib/auth";
 import { GroupWithTeacher, joinGroup, leaveGroup, listAllGroupsForStudents, listMyGroupEnrollmentIds } from "../../lib/groups";
 import { getProgramBySlug } from "../../lib/programs";
@@ -18,6 +18,7 @@ export default function GroupsScreen() {
   const styles = getStyles(colors);
   const router = useRouter();
   const studentId = session?.user?.id;
+  const { teacherId: teacherIdFilter } = useLocalSearchParams<{ teacherId?: string }>();
 
   const [groups, setGroups] = useState<GroupWithTeacher[]>([]);
   const [enrolledIds, setEnrolledIds] = useState<Set<string>>(new Set());
@@ -93,17 +94,28 @@ export default function GroupsScreen() {
     );
   }
 
+  const visibleGroups = teacherIdFilter ? groups.filter((g) => g.teacher_id === teacherIdFilter) : groups;
+
   return (
     <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
       <FlatList
         contentContainerStyle={styles.content}
-        data={groups}
+        data={visibleGroups}
         keyExtractor={(g) => g.id}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.gold} />}
+        ListHeaderComponent={
+          teacherIdFilter ? (
+            <TouchableOpacity onPress={() => router.setParams({ teacherId: undefined })} style={{ marginBottom: 12 }}>
+              <Text style={styles.showAllLink}>عرض كل الحلقات</Text>
+            </TouchableOpacity>
+          ) : null
+        }
         ListEmptyComponent={
           <View style={styles.emptyWrap}>
             <Ionicons name="people-outline" size={40} color={colors.line} />
-            <Text style={styles.empty}>لا توجد حلقات جماعية متاحة حاليًا</Text>
+            <Text style={styles.empty}>
+              {teacherIdFilter ? "لا توجد حلقات جماعية متاحة لهذا المعلم حاليًا" : "لا توجد حلقات جماعية متاحة حاليًا"}
+            </Text>
           </View>
         }
         renderItem={({ item: g }) => {
@@ -186,6 +198,7 @@ export default function GroupsScreen() {
 function getStyles(colors: Palette) {
   return StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
+  showAllLink: { fontFamily: fonts.bold, fontSize: 12, color: colors.goldDark, textAlign: "right" },
   center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg },
   content: { padding: 20, gap: 14 },
   emptyWrap: { alignItems: "center", marginTop: 60, gap: 10 },

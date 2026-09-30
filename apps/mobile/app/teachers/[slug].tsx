@@ -5,6 +5,7 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import { getTeacherBySlug, Teacher } from "../../lib/teachers";
 import { isWithinAvailableWindow, useOnlineTeacherIds } from "../../lib/presence";
 import PulseBadge from "../../components/PulseBadge";
+import BookingCalendar from "../../components/BookingCalendar";
 import { fonts, Palette, radius, shadow, useTheme } from "../../lib/theme";
 
 function Stars({ value, color }: { value: number; color: string }) {
@@ -115,6 +116,8 @@ export default function TeacherDetailScreen() {
             </View>
           </View>
         )}
+
+        <BookingCalendar teacherId={teacher.id} teacherName={teacher.name} />
       </ScrollView>
     </>
   );

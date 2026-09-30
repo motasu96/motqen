@@ -55,6 +55,11 @@ function mapTeacherRow(row: TeacherRow): Teacher {
   };
 }
 
+export async function getTeacherAvailableTimes(teacherId: string): Promise<string[]> {
+  const { data } = await supabase.from("teachers").select("available_times").eq("id", teacherId).maybeSingle();
+  return (data?.available_times as string[] | null) ?? [];
+}
+
 export async function getActiveTeachers(): Promise<Teacher[]> {
   const { data } = await supabase.from("teachers").select("*").eq("status", "active").order("created_at");
   return (data ?? []).map((row) => mapTeacherRow(row as TeacherRow));
