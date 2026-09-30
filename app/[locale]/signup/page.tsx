@@ -15,6 +15,7 @@ import { buildPlan, PLAN_DURATIONS, SurahPosition, PlanDirection } from "@/lib/q
 import { getSurahByNumber } from "@/data/quranSurahs";
 import { createClient } from "@/lib/supabase/client";
 import { findMatchingGroups, findMatchingTeachers, MatchedGroup, MatchedTeacher } from "@/lib/supabase/teacherMatching";
+import { formatTimeSlot } from "@/lib/timeSlots";
 
 type StudentType = "male" | "female";
 type StepKind = "type" | "info" | "plan" | "time" | "teacher" | "confirm";
@@ -36,7 +37,6 @@ function SignupFlow() {
     { key: "female", title: t("typeFemaleTitle"), desc: t("typeFemaleDesc") },
   ];
 
-  const TIME_SLOTS = t.raw("timeSlots") as string[];
   const WEEK_DAYS = t.raw("weekDays") as string[];
 
   const [step, setStep] = useState(0);
@@ -44,6 +44,8 @@ function SignupFlow() {
   const [age, setAge] = useState<number | null>(null);
   const [programSlug, setProgramSlug] = useState(preselectedProgram);
   const [countryIso, setCountryIso] = useState("SA");
+  const [phoneCountryIso, setPhoneCountryIso] = useState("SA");
+  const [phoneCountryTouched, setPhoneCountryTouched] = useState(false);
   const [form, setForm] = useState({ name: "", city: "", phone: "", email: "", password: "", confirmPassword: "" });
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [selectedTime, setSelectedTime] = useState<string>("");
@@ -61,7 +63,37 @@ function SignupFlow() {
 
   const isHifzProgram = programSlug === HIFZ_PROGRAM_SLUG;
   const selectedCountry = getCountryByIso(countryIso) ?? COUNTRIES[0];
-  const fullPhone = form.phone.trim() ? `${selectedCountry.dialCode}${form.phone.trim().replace(/^0+/, "")}` : "";
+  const selectedPhoneCountry = getCountryByIso(phoneCountryIso) ?? COUNTRIES[0];
+  const fullPhone = form.phone.trim() ? `${selectedPhoneCountry.dialCode}${form.phone.trim().replace(/^0+/, "")}` : "";
+  const ageGroup: "child" | "adult" | null = age === null ? null : age <= CHILD_MAX_AGE ? "child" : "adult";
+
+  // Residence country picks the phone dial code by default; once the
+  // student changes the dial code on its own, it stops following.
+  useEffect(() => {
+    if (!phoneCountryTouched) setPhoneCountryIso(countryIso);
+  }, [countryIso, phoneCountryTouched]);
+
+  // Only the programs that fit the student type + age chosen in step 1
+  // (e.g. hide the women's program from a male signup, hide the
+  // children's program from an adult) — applied once that step is
+  // actually completed, so a program preselected via ?program= on the
+  // very first step isn't wiped out before the student has answered.
+  const availablePrograms = useMemo(() => {
+    if (!studentType) return programs;
+    return programs.filter((p) => {
+      if (p.category === "women") return studentType === "female";
+      if (p.category === "children") return ageGroup === "child";
+      if (p.category === "adults") return ageGroup === "adult";
+      return true;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studentType, ageGroup]);
+
+  useEffect(() => {
+    if (programSlug && !availablePrograms.some((p) => p.slug === programSlug)) {
+      setProgramSlug("");
+    }
+  }, [availablePrograms, programSlug]);
 
   const steps = useMemo<StepKind[]>(() => {
     const arr: StepKind[] = ["type", "info"];
@@ -108,8 +140,6 @@ function SignupFlow() {
     return `${surahName} — ${t("planAyahLabel", { n: pos.ayahInSurah })}`;
   }
 
-  const ageGroup: "child" | "adult" | null = age === null ? null : age <= CHILD_MAX_AGE ? "child" : "adult";
-
   function toggleDay(dayIndex: number) {
     setSelectedDays((prev) => (prev.includes(dayIndex) ? prev.filter((d) => d !== dayIndex) : [...prev, dayIndex]));
   }
@@ -118,6 +148,7 @@ function SignupFlow() {
     if (stepKind !== "teacher" || !process.env.NEXT_PUBLIC_SUPABASE_URL) return;
     let cancelled = false;
     setSelectedMatch(null);
+    setSelectedTime("");
     (async () => {
       setMatchLoading(true);
       const supabase = createClient();
@@ -136,6 +167,12 @@ function SignupFlow() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stepKind]);
 
+  // The specific times available from the currently selected private
+  // teacher — group circles have a single fixed session time instead, set
+  // directly when the group is picked.
+  const selectedTeacherTimes =
+    selectedMatch?.kind === "teacher" ? matchedTeachers.find((mt) => mt.id === selectedMatch.id)?.availableTimes ?? [] : [];
+
   function validateStep(): string | null {
     if (stepKind === "type" && !studentType) return t("errorStudentType");
     if (stepKind === "type" && studentType && !age) return t("errorAge");
@@ -147,8 +184,9 @@ function SignupFlow() {
       if (!programSlug) return t("errorProgram");
     }
     if (stepKind === "plan" && !planDurationMonths) return t("errorPlan");
-    if (stepKind === "time" && (selectedDays.length === 0 || !selectedTime)) {
-      return t("errorTime");
+    if (stepKind === "time" && selectedDays.length === 0) return t("errorTime");
+    if (stepKind === "teacher" && selectedMatch?.kind === "teacher" && !selectedTime) {
+      return t("errorMatchTime");
     }
     return null;
   }
@@ -395,8 +433,11 @@ function SignupFlow() {
                     <select
                       aria-label={t("phoneCountryCodeLabel")}
                       className="input w-28 shrink-0 px-2"
-                      value={countryIso}
-                      onChange={(e) => setCountryIso(e.target.value)}
+                      value={phoneCountryIso}
+                      onChange={(e) => {
+                        setPhoneCountryIso(e.target.value);
+                        setPhoneCountryTouched(true);
+                      }}
                     >
                       {COUNTRIES.map((c) => (
                         <option key={c.iso} value={c.iso}>
@@ -464,7 +505,7 @@ function SignupFlow() {
                   onChange={(e) => setProgramSlug(e.target.value)}
                 >
                   <option value="">{t("programPlaceholder")}</option>
-                  {programs.map((p) => {
+                  {availablePrograms.map((p) => {
                     const lp = localize(p, locale);
                     return (
                       <option key={p.slug} value={p.slug}>
@@ -594,7 +635,10 @@ function SignupFlow() {
 
           {stepKind === "time" && (
             <div className="flex flex-col gap-6">
-              <h2 className="text-lg font-extrabold text-ink">{t("chooseTime")}</h2>
+              <div>
+                <h2 className="text-lg font-extrabold text-ink">{t("chooseTime")}</h2>
+                <p className="mt-1 text-sm text-ink-soft">{t("chooseTimeHint")}</p>
+              </div>
               <fieldset>
                 <legend className="mb-3 text-sm font-bold text-ink">{t("sessionDays")}</legend>
                 <div className="flex flex-wrap gap-2">
@@ -610,25 +654,6 @@ function SignupFlow() {
                       }`}
                     >
                       {day}
-                    </button>
-                  ))}
-                </div>
-              </fieldset>
-              <fieldset>
-                <legend className="mb-3 text-sm font-bold text-ink">{t("suitableTime")}</legend>
-                <div className="flex flex-wrap gap-2">
-                  {TIME_SLOTS.map((slot) => (
-                    <button
-                      key={slot}
-                      onClick={() => setSelectedTime(slot)}
-                      aria-pressed={selectedTime === slot}
-                      className={`rounded-pill px-4 py-2 text-sm font-bold transition-colors ${
-                        selectedTime === slot
-                          ? "bg-gold-gradient text-white shadow-soft"
-                          : "border border-line bg-bg text-ink-soft hover:text-gold-dark"
-                      }`}
-                    >
-                      {slot}
                     </button>
                   ))}
                 </div>
@@ -661,7 +686,10 @@ function SignupFlow() {
                           <button
                             key={g.id}
                             type="button"
-                            onClick={() => setSelectedMatch({ kind: "group", id: g.id, label: `${title} — ${g.teacherName}` })}
+                            onClick={() => {
+                              setSelectedMatch({ kind: "group", id: g.id, label: `${title} — ${g.teacherName}` });
+                              setSelectedTime(g.sessionTime);
+                            }}
                             aria-pressed={selected}
                             className={`flex items-center justify-between gap-3 rounded-2xl border p-4 text-start transition-colors ${
                               selected ? "border-gold bg-gold-light" : "border-line bg-bg hover:border-gold/60"
@@ -696,7 +724,10 @@ function SignupFlow() {
                           <button
                             key={mt.id}
                             type="button"
-                            onClick={() => setSelectedMatch({ kind: "teacher", id: mt.id, label: mt.name })}
+                            onClick={() => {
+                              setSelectedMatch({ kind: "teacher", id: mt.id, label: mt.name });
+                              setSelectedTime("");
+                            }}
                             aria-pressed={selected}
                             className={`flex items-center gap-3 rounded-2xl border p-4 text-start transition-colors ${
                               selected ? "border-gold bg-gold-light" : "border-line bg-bg hover:border-gold/60"
@@ -720,10 +751,43 @@ function SignupFlow() {
                 </>
               )}
 
+              {selectedMatch?.kind === "teacher" && (
+                <fieldset className="flex flex-col gap-3 rounded-2xl border border-line bg-bg p-4">
+                  <legend className="mb-1 text-sm font-bold text-ink">{t("teacherMatchTimeTitle")}</legend>
+                  {selectedTeacherTimes.length === 0 ? (
+                    <p className="text-xs text-ink-soft">{t("teacherMatchTimeEmpty")}</p>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {selectedTeacherTimes.map((time) => {
+                        const label = formatTimeSlot(time, locale);
+                        return (
+                          <button
+                            key={time}
+                            type="button"
+                            onClick={() => setSelectedTime(label)}
+                            aria-pressed={selectedTime === label}
+                            className={`rounded-pill px-4 py-2 text-sm font-bold transition-colors ${
+                              selectedTime === label
+                                ? "bg-gold-gradient text-white shadow-soft"
+                                : "border border-line bg-card text-ink-soft hover:text-gold-dark"
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </fieldset>
+              )}
+
               {selectedMatch && (
                 <button
                   type="button"
-                  onClick={() => setSelectedMatch(null)}
+                  onClick={() => {
+                    setSelectedMatch(null);
+                    setSelectedTime("");
+                  }}
                   className="self-start text-xs font-bold text-ink-soft hover:text-gold-dark"
                 >
                   {t("teacherMatchClearSelection")}

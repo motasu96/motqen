@@ -64,6 +64,7 @@ export type MatchedTeacher = {
   avatarUrl: string | null;
   rating: number;
   availableDays: number[];
+  availableTimes: string[];
 };
 
 // Active teachers whose declared available days overlap the student's
@@ -79,7 +80,7 @@ export async function findMatchingTeachers(
 
   const { data } = await supabase
     .from("teachers")
-    .select("id, slug, name, avatar_url, rating, available_days, specialties, gender")
+    .select("id, slug, name, avatar_url, rating, available_days, available_times, specialties, gender")
     .eq("status", "active")
     .overlaps("specialties", specialties)
     .overlaps("available_days", params.days);
@@ -91,6 +92,7 @@ export async function findMatchingTeachers(
     avatar_url: string | null;
     rating: number;
     available_days: number[] | null;
+    available_times: string[] | null;
     gender: "male" | "female";
   };
   let rows = (data ?? []) as Row[];
@@ -103,5 +105,6 @@ export async function findMatchingTeachers(
     avatarUrl: r.avatar_url,
     rating: r.rating,
     availableDays: r.available_days ?? [],
+    availableTimes: r.available_times ?? [],
   }));
 }
