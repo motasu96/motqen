@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Stack } from "expo-router";
+import { Stack, useFocusEffect } from "expo-router";
 import { useAuth } from "../lib/auth";
 import { HomeworkRow, listStudentHomework, markHomeworkSubmitted } from "../lib/homework";
 import { fonts, Palette, radius, shadow, useTheme } from "../lib/theme";
@@ -30,9 +30,11 @@ export default function HomeworkScreen() {
     setReady(true);
   }, [userId]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
 
   async function handleSubmit(id: string) {
     setBusyId(id);

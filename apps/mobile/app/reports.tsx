@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Stack } from "expo-router";
+import { Stack, useFocusEffect } from "expo-router";
 import { useAuth } from "../lib/auth";
 import { getAttendanceStats } from "../lib/lessons";
 import { listStudentHomework } from "../lib/homework";
@@ -34,53 +34,55 @@ export default function ReportsScreen() {
   const [memorizationPercent, setMemorizationPercent] = useState(0);
   const [weeklyPages, setWeeklyPages] = useState<number[]>([0, 0, 0, 0]);
 
-  useEffect(() => {
-    if (!userId) return;
-    let cancelled = false;
-    (async () => {
-      const [attendance, homework, records, { student }] = await Promise.all([
-        getAttendanceStats(userId),
-        listStudentHomework(userId),
-        listStudentMemorization(userId),
-        getMyStudentProfile(userId),
-      ]);
-      if (cancelled) return;
+  useFocusEffect(
+    useCallback(() => {
+      if (!userId) return;
+      let cancelled = false;
+      (async () => {
+        const [attendance, homework, records, { student }] = await Promise.all([
+          getAttendanceStats(userId),
+          listStudentHomework(userId),
+          listStudentMemorization(userId),
+          getMyStudentProfile(userId),
+        ]);
+        if (cancelled) return;
 
-      setAttendancePercent(attendance.percent);
+        setAttendancePercent(attendance.percent);
 
-      const doneHomework = homework.filter((h) => h.status !== "pending");
-      setHomeworkPercent(homework.length > 0 ? Math.round((doneHomework.length / homework.length) * 100) : 0);
+        const doneHomework = homework.filter((h) => h.status !== "pending");
+        setHomeworkPercent(homework.length > 0 ? Math.round((doneHomework.length / homework.length) * 100) : 0);
 
-      const grades = homework
-        .map((h) => (h.grade ? h.grade.match(GRADE_RE) : null))
-        .filter((m): m is RegExpMatchArray => Boolean(m))
-        .map((m) => (Number(m[1]) / Number(m[2])) * 100);
-      setAvgGrade(grades.length > 0 ? Math.round(grades.reduce((a, b) => a + b, 0) / grades.length) : null);
+        const grades = homework
+          .map((h) => (h.grade ? h.grade.match(GRADE_RE) : null))
+          .filter((m): m is RegExpMatchArray => Boolean(m))
+          .map((m) => (Number(m[1]) / Number(m[2])) * 100);
+        setAvgGrade(grades.length > 0 ? Math.round(grades.reduce((a, b) => a + b, 0) / grades.length) : null);
 
-      if (student?.plan_duration_months) {
-        const plan = buildPlan({
-          durationMonths: student.plan_duration_months,
-          alreadyMemorizedJuz: student.already_memorized_juz,
-          reviewDaysPerWeek: (student.review_days_per_week === 2 ? 2 : 1) as 1 | 2,
-          direction: student.plan_direction === "fromStart" ? "fromStart" : "fromEnd",
-        });
-        const weekIndex = weekIndexForDate(plan, new Date(student.plan_started_at ?? student.created_at), new Date());
-        setMemorizationPercent(overallProgressPercent(plan, weekIndex));
-      }
+        if (student?.plan_duration_months) {
+          const plan = buildPlan({
+            durationMonths: student.plan_duration_months,
+            alreadyMemorizedJuz: student.already_memorized_juz,
+            reviewDaysPerWeek: (student.review_days_per_week === 2 ? 2 : 1) as 1 | 2,
+            direction: student.plan_direction === "fromStart" ? "fromStart" : "fromEnd",
+          });
+          const weekIndex = weekIndexForDate(plan, new Date(student.plan_started_at ?? student.created_at), new Date());
+          setMemorizationPercent(overallProgressPercent(plan, weekIndex));
+        }
 
-      const buckets = [0, 0, 0, 0];
-      for (const r of records) {
-        const b = weeksAgoBucket(r.completed_date);
-        if (b >= 0) buckets[b] += r.pages;
-      }
-      setWeeklyPages(buckets);
+        const buckets = [0, 0, 0, 0];
+        for (const r of records) {
+          const b = weeksAgoBucket(r.completed_date);
+          if (b >= 0) buckets[b] += r.pages;
+        }
+        setWeeklyPages(buckets);
 
-      setReady(true);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [userId]);
+        setReady(true);
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, [userId])
+  );
 
   const STATS = [
     { label: "نسبة الحضور", value: attendancePercent, hasValue: true, icon: "checkmark-done-outline" as const },

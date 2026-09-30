@@ -38,14 +38,28 @@ export default function LoginScreen() {
     }
     setSubmitting(true);
     setError(null);
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email: email.trim(),
       password,
     });
-    setSubmitting(false);
-    if (signInError) {
+    if (signInError || !data.user) {
+      setSubmitting(false);
       setError("بيانات الدخول غير صحيحة، حاول مرة أخرى.");
+      return;
     }
+
+    // This app is student-only — a teacher/admin account can authenticate
+    // fine but has no student data, so it would land on a blank/broken
+    // home screen with no explanation. Reject it here instead.
+    const { data: profile } = await supabase.from("profiles").select("role").eq("id", data.user.id).single();
+    if (profile?.role !== "student") {
+      await supabase.auth.signOut();
+      setSubmitting(false);
+      setError("هذا التطبيق مخصص لحسابات الطلاب فقط.");
+      return;
+    }
+
+    setSubmitting(false);
   }
 
   return (

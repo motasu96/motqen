@@ -37,6 +37,7 @@ export type CertificateRow = {
   id: string;
   certificate_number: string;
   student_id: string;
+  student_name: string;
   teacher_name: string;
   scope: CertScope;
   program_slug: string | null;

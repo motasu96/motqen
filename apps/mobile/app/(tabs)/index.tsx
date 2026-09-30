@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useCallback, useState } from "react";
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { Link, useRouter } from "expo-router";
+import { Link, useFocusEffect, useRouter } from "expo-router";
 import { useAuth } from "../../lib/auth";
 import {
   cancelBooking,
@@ -74,15 +74,28 @@ export default function HomeScreen() {
     setReady(true);
   }, [userId]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  // Refetches every time the home tab comes into focus, so a graded
+  // homework or newly logged lesson shows up without a manual app restart.
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
 
-  async function handleCancel(id: string) {
-    setCancellingId(id);
-    const ok = await cancelBooking(id);
-    setCancellingId(null);
-    if (ok) setUpcoming((prev) => prev.filter((b) => b.id !== id));
+  function handleCancel(id: string) {
+    Alert.alert("إلغاء الحصة", "هل أنت متأكد من إلغاء هذه الحصة المحجوزة؟", [
+      { text: "تراجع", style: "cancel" },
+      {
+        text: "إلغاء الحصة",
+        style: "destructive",
+        onPress: async () => {
+          setCancellingId(id);
+          const ok = await cancelBooking(id);
+          setCancellingId(null);
+          if (ok) setUpcoming((prev) => prev.filter((b) => b.id !== id));
+        },
+      },
+    ]);
   }
 
   const program = student?.program_slug ? getProgramBySlug(student.program_slug) : undefined;

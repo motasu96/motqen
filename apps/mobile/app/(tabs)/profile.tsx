@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Linking, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "expo-router";
 import Constants from "expo-constants";
 import { useAuth } from "../../lib/auth";
 import { supabase } from "../../lib/supabase";
@@ -17,19 +18,21 @@ export default function ProfileScreen() {
   const [fullName, setFullName] = useState<string | null>(null);
   const [programSlug, setProgramSlug] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!userId) return;
-    let cancelled = false;
-    (async () => {
-      const { fullName: name, student } = await getMyStudentProfile(userId);
-      if (cancelled) return;
-      setFullName(name);
-      setProgramSlug(student?.program_slug ?? null);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [userId]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!userId) return;
+      let cancelled = false;
+      (async () => {
+        const { fullName: name, student } = await getMyStudentProfile(userId);
+        if (cancelled) return;
+        setFullName(name);
+        setProgramSlug(student?.program_slug ?? null);
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, [userId])
+  );
 
   const program = programSlug ? getProgramBySlug(programSlug) : undefined;
   const displayName = fullName || "طالب متقن";

@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Stack } from "expo-router";
+import { Stack, useFocusEffect } from "expo-router";
 import { listNoticesForStudents, NoticeRow } from "../lib/notices";
 import { fonts, Palette, radius, shadow, useTheme } from "../lib/theme";
 
@@ -11,18 +11,20 @@ export default function NoticesScreen() {
   const [items, setItems] = useState<NoticeRow[]>([]);
   const [ready, setReady] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const rows = await listNoticesForStudents();
-      if (cancelled) return;
-      setItems(rows);
-      setReady(true);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      (async () => {
+        const rows = await listNoticesForStudents();
+        if (cancelled) return;
+        setItems(rows);
+        setReady(true);
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, [])
+  );
 
   return (
     <>

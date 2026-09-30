@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Stack } from "expo-router";
+import { Stack, useFocusEffect } from "expo-router";
 import { useAuth } from "../lib/auth";
 import { listStudentMemorization, MemorizationRecordRow } from "../lib/memorization";
 import { fonts, Palette, radius, shadow, useTheme } from "../lib/theme";
@@ -14,19 +14,21 @@ export default function ArchiveScreen() {
   const [records, setRecords] = useState<MemorizationRecordRow[]>([]);
   const [ready, setReady] = useState(false);
 
-  useEffect(() => {
-    if (!userId) return;
-    let cancelled = false;
-    (async () => {
-      const rows = await listStudentMemorization(userId);
-      if (cancelled) return;
-      setRecords(rows);
-      setReady(true);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [userId]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!userId) return;
+      let cancelled = false;
+      (async () => {
+        const rows = await listStudentMemorization(userId);
+        if (cancelled) return;
+        setRecords(rows);
+        setReady(true);
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, [userId])
+  );
 
   const totalPages = records.reduce((sum, r) => sum + r.pages, 0);
 

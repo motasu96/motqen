@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useCallback, useState } from "react";
+import { ActivityIndicator, Alert, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { useAuth } from "../../lib/auth";
 import { GroupWithTeacher, joinGroup, leaveGroup, listAllGroupsForStudents, listMyGroupEnrollmentIds } from "../../lib/groups";
 import { getProgramBySlug } from "../../lib/programs";
@@ -33,10 +33,13 @@ export default function GroupsScreen() {
     setEnrolledIds(myEnrollments);
   }, [studentId]);
 
-  useEffect(() => {
-    setLoading(true);
-    load().finally(() => setLoading(false));
-  }, [load]);
+  // Refetches whenever this tab regains focus (silently, without flashing
+  // the full-screen spinner again — that only shows on the very first load).
+  useFocusEffect(
+    useCallback(() => {
+      load().finally(() => setLoading(false));
+    }, [load])
+  );
 
   async function onRefresh() {
     setRefreshing(true);
@@ -55,19 +58,28 @@ export default function GroupsScreen() {
     }
   }
 
-  async function handleLeave(groupId: string) {
-    if (!studentId) return;
-    setActingOn(groupId);
-    const ok = await leaveGroup(groupId, studentId);
-    setActingOn(null);
-    if (ok) {
-      setEnrolledIds((prev) => {
-        const next = new Set(prev);
-        next.delete(groupId);
-        return next;
-      });
-      setGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, enrolledCount: Math.max(0, g.enrolledCount - 1) } : g)));
-    }
+  function handleLeave(groupId: string) {
+    Alert.alert("إلغاء الانضمام", "هل أنت متأكد من إلغاء انضمامك لهذه الحلقة؟", [
+      { text: "تراجع", style: "cancel" },
+      {
+        text: "إلغاء الانضمام",
+        style: "destructive",
+        onPress: async () => {
+          if (!studentId) return;
+          setActingOn(groupId);
+          const ok = await leaveGroup(groupId, studentId);
+          setActingOn(null);
+          if (ok) {
+            setEnrolledIds((prev) => {
+              const next = new Set(prev);
+              next.delete(groupId);
+              return next;
+            });
+            setGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, enrolledCount: Math.max(0, g.enrolledCount - 1) } : g)));
+          }
+        },
+      },
+    ]);
   }
 
   if (loading) {

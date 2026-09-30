@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Stack } from "expo-router";
+import { Stack, useFocusEffect } from "expo-router";
 import { useAuth } from "../lib/auth";
 import { ExamRow, listStudentExams } from "../lib/examsCertificates";
 import { fonts, Palette, radius, shadow, useTheme } from "../lib/theme";
@@ -16,19 +16,21 @@ export default function ExamsScreen() {
   const [exams, setExams] = useState<ExamRow[]>([]);
   const [ready, setReady] = useState(false);
 
-  useEffect(() => {
-    if (!userId) return;
-    let cancelled = false;
-    (async () => {
-      const rows = await listStudentExams(userId);
-      if (cancelled) return;
-      setExams(rows);
-      setReady(true);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [userId]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!userId) return;
+      let cancelled = false;
+      (async () => {
+        const rows = await listStudentExams(userId);
+        if (cancelled) return;
+        setExams(rows);
+        setReady(true);
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, [userId])
+  );
 
   return (
     <>

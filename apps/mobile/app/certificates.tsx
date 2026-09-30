@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Stack } from "expo-router";
+import { Stack, useFocusEffect } from "expo-router";
 import { useAuth } from "../lib/auth";
 import {
   amountShort,
@@ -21,19 +21,21 @@ export default function CertificatesScreen() {
   const [ready, setReady] = useState(false);
   const [viewing, setViewing] = useState<CertificateRow | null>(null);
 
-  useEffect(() => {
-    if (!userId) return;
-    let cancelled = false;
-    (async () => {
-      const rows = await listMyCertificates(userId);
-      if (cancelled) return;
-      setCertificates(rows);
-      setReady(true);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [userId]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!userId) return;
+      let cancelled = false;
+      (async () => {
+        const rows = await listMyCertificates(userId);
+        if (cancelled) return;
+        setCertificates(rows);
+        setReady(true);
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, [userId])
+  );
 
   return (
     <>
@@ -79,7 +81,7 @@ export default function CertificatesScreen() {
               <>
                 <Ionicons name="ribbon" size={40} color={colors.goldDark} style={{ alignSelf: "center" }} />
                 <Text style={styles.modalTitle}>{certificateTitle(viewing.scope)}</Text>
-                <Text style={styles.modalRow}>الطالب: تُمنح هذه الشهادة</Text>
+                <Text style={styles.modalRow}>تُمنح هذه الشهادة إلى: {viewing.student_name}</Text>
                 <Text style={styles.modalRow}>لإتمام: {amountShort(viewing.scope, viewing.juz_count)}</Text>
                 {viewing.juz_names && <Text style={styles.modalRow}>{viewing.juz_names}</Text>}
                 <Text style={styles.modalRow}>برواية: {viewing.narration}</Text>
