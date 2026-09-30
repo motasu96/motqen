@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -18,6 +18,8 @@ import { getStudentPrimaryTeacher } from "../../lib/teachers";
 import { getProgramBySlug } from "../../lib/programs";
 import { buildPlan, getWeekPlan, overallProgressPercent, weekIndexForDate } from "../../lib/quranPlan";
 import { getSurahByNumber } from "../../lib/quranSurahs";
+import { isWithinAvailableWindow, useLiveRooms, useOnlineTeacherIds } from "../../lib/presence";
+import PulseBadge from "../../components/PulseBadge";
 import { fonts, gradientFor, Palette, radius, shadow, useTheme } from "../../lib/theme";
 
 const DAY_LABELS = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
@@ -52,9 +54,17 @@ export default function HomeScreen() {
   const [upcoming, setUpcoming] = useState<UpcomingBooking[]>([]);
   const [latestLesson, setLatestLesson] = useState<LessonWithTeacher | null>(null);
   const [recentHomework, setRecentHomework] = useState<HomeworkRow[]>([]);
-  const [primaryTeacher, setPrimaryTeacher] = useState<{ id: string; name: string } | null>(null);
+  const [primaryTeacher, setPrimaryTeacher] = useState<{ id: string; name: string; availableTimes: string[] } | null>(null);
   const [ready, setReady] = useState(false);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const onlineTeacherIds = useOnlineTeacherIds();
+  const liveRooms = useLiveRooms();
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const load = useCallback(async () => {
     if (!userId) return;
@@ -214,6 +224,11 @@ export default function HomeScreen() {
                 <View style={styles.rowCardText}>
                   <Text style={styles.cardTitle}>الدخول المباشر مع معلمك</Text>
                   <Text style={styles.cardDesc}>ادخل مباشرة لغرفة معلمك {primaryTeacher.name}</Text>
+                  {onlineTeacherIds.has(primaryTeacher.id) && isWithinAvailableWindow(primaryTeacher.availableTimes, now) && (
+                    <View style={{ marginTop: 6 }}>
+                      <PulseBadge color="emerald" label="متاح الآن" />
+                    </View>
+                  )}
                 </View>
                 <Ionicons name="chevron-back" size={18} color={colors.inkSoft} />
               </TouchableOpacity>
@@ -232,9 +247,12 @@ export default function HomeScreen() {
                   {upcoming.map((b) => (
                     <View key={b.id} style={styles.sessionRow}>
                       <View style={styles.rowText}>
-                        <Text style={styles.sessionTitle}>
-                          {formatDate(b.date)} · {b.time}
-                        </Text>
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                          <Text style={styles.sessionTitle}>
+                            {formatDate(b.date)} · {b.time}
+                          </Text>
+                          {liveRooms.get(b.id)?.teacherPresent && <PulseBadge color="red" label="مباشر الآن" />}
+                        </View>
                         <Text style={styles.cardDesc}>مع {b.teacherName}</Text>
                       </View>
                       <TouchableOpacity style={styles.smallJoinButton} onPress={() => router.push(`/room/${b.id}`)}>

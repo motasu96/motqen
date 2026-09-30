@@ -6,6 +6,8 @@ import { useAuth } from "../lib/auth";
 import { listUpcomingBookings, UpcomingBooking } from "../lib/studentProfile";
 import { listStudentLessons } from "../lib/lessons";
 import { listStudentGroupAttendance } from "../lib/groups";
+import { useLiveRooms } from "../lib/presence";
+import PulseBadge from "../components/PulseBadge";
 import { fonts, Palette, radius, shadow, useTheme } from "../lib/theme";
 
 type HistoryItem = {
@@ -29,6 +31,7 @@ export default function LessonsScreen() {
   const [upcoming, setUpcoming] = useState<UpcomingBooking[]>([]);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [ready, setReady] = useState(false);
+  const liveRooms = useLiveRooms();
 
   const load = useCallback(async () => {
     if (!userId) return;
@@ -93,7 +96,10 @@ export default function LessonsScreen() {
                     <Ionicons name="time-outline" size={18} color={colors.goldDark} />
                   </View>
                   <View style={styles.rowText}>
-                    <Text style={styles.title}>{b.date}</Text>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                      <Text style={styles.title}>{b.date}</Text>
+                      {liveRooms.get(b.id)?.teacherPresent && <PulseBadge color="red" label="مباشر الآن" />}
+                    </View>
                     <Text style={styles.meta}>
                       الساعة {b.time} · مع {b.teacherName}
                     </Text>

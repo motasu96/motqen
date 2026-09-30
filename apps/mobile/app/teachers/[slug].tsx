@@ -3,6 +3,8 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-nat
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { getTeacherBySlug, Teacher } from "../../lib/teachers";
+import { isWithinAvailableWindow, useOnlineTeacherIds } from "../../lib/presence";
+import PulseBadge from "../../components/PulseBadge";
 import { fonts, Palette, radius, shadow, useTheme } from "../../lib/theme";
 
 function Stars({ value, color }: { value: number; color: string }) {
@@ -21,6 +23,13 @@ export default function TeacherDetailScreen() {
   const styles = getStyles(colors);
   const [teacher, setTeacher] = useState<Teacher | null>(null);
   const [ready, setReady] = useState(false);
+  const onlineTeacherIds = useOnlineTeacherIds();
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (!slug) return;
@@ -62,6 +71,9 @@ export default function TeacherDetailScreen() {
           </View>
           <Text style={styles.name}>{teacher.name}</Text>
           <Text style={styles.title}>{teacher.title}</Text>
+          {onlineTeacherIds.has(teacher.id) && isWithinAvailableWindow(teacher.availableTimes, now) && (
+            <PulseBadge color="emerald" label="متاح الآن" />
+          )}
           <Stars value={teacher.stats.rating} color={colors.gold} />
 
           <View style={styles.statsGrid}>

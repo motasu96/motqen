@@ -3,6 +3,8 @@ import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View }
 import { Ionicons } from "@expo/vector-icons";
 import { Link, Stack } from "expo-router";
 import { getActiveTeachers, Teacher } from "../../lib/teachers";
+import { isWithinAvailableWindow, useOnlineTeacherIds } from "../../lib/presence";
+import PulseBadge from "../../components/PulseBadge";
 import { fonts, Palette, radius, shadow, useTheme } from "../../lib/theme";
 
 function Stars({ value, color }: { value: number; color: string }) {
@@ -20,6 +22,13 @@ export default function TeachersScreen() {
   const styles = getStyles(colors);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [ready, setReady] = useState(false);
+  const onlineTeacherIds = useOnlineTeacherIds();
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -56,6 +65,9 @@ export default function TeachersScreen() {
                 </View>
                 <Text style={styles.name}>{t.name}</Text>
                 <Text style={styles.title}>{t.title}</Text>
+                {onlineTeacherIds.has(t.id) && isWithinAvailableWindow(t.availableTimes, now) && (
+                  <PulseBadge color="emerald" label="متاح الآن" />
+                )}
                 <Stars value={t.stats.rating} color={colors.gold} />
                 <Text style={styles.stats}>
                   +{t.stats.students} طالب · +{t.stats.yearsExperience} سنوات خبرة

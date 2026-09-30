@@ -6,6 +6,8 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useAuth } from "../../lib/auth";
 import { GroupWithTeacher, joinGroup, leaveGroup, listAllGroupsForStudents, listMyGroupEnrollmentIds } from "../../lib/groups";
 import { getProgramBySlug } from "../../lib/programs";
+import { useLiveRooms } from "../../lib/presence";
+import PulseBadge from "../../components/PulseBadge";
 import { fonts, Palette, radius, shadow, useTheme } from "../../lib/theme";
 
 const DAY_LABELS = ["السبت", "الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];
@@ -22,6 +24,7 @@ export default function GroupsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [actingOn, setActingOn] = useState<string | null>(null);
+  const liveRooms = useLiveRooms();
 
   const load = useCallback(async () => {
     if (!studentId) return;
@@ -125,7 +128,10 @@ export default function GroupsScreen() {
                   </View>
                 )}
               </View>
-              <Text style={styles.title}>{g.title}</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <Text style={styles.title}>{g.title}</Text>
+                {liveRooms.get(g.id)?.teacherPresent && <PulseBadge color="red" label="مباشر الآن" />}
+              </View>
               <View style={styles.metaRow}>
                 <Ionicons name="calendar-outline" size={14} color={colors.inkSoft} />
                 <Text style={styles.meta}>

@@ -7,6 +7,7 @@ import { WebView } from "react-native-webview";
 import { useAuth } from "../../lib/auth";
 import { getMyStudentProfile } from "../../lib/studentProfile";
 import { buildJitsiUrl } from "../../lib/jitsi";
+import { useRoomPresence } from "../../lib/presence";
 import { fonts } from "../../lib/theme";
 
 export default function RoomScreen() {
@@ -31,6 +32,8 @@ export default function RoomScreen() {
   }, [userId]);
 
   const url = buildJitsiUrl(room, displayName);
+
+  useRoomPresence(room ?? null, room ? { role: "student", name: displayName } : null);
 
   return (
     <>
