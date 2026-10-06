@@ -68,6 +68,14 @@ export async function getTeacherWhatsApp(teacherId: string): Promise<string | nu
   return (data?.whatsapp as string | undefined) ?? null;
 }
 
+// Same as getTeacherWhatsApp, for several teachers at once. Teachers who
+// haven't shared a number — or whose number RLS hides — are simply absent.
+export async function getTeacherWhatsApps(teacherIds: string[]): Promise<Map<string, string>> {
+  if (teacherIds.length === 0) return new Map();
+  const { data } = await supabase.from("teacher_contacts").select("teacher_id, whatsapp").in("teacher_id", teacherIds);
+  return new Map((data ?? []).map((r) => [r.teacher_id as string, r.whatsapp as string]));
+}
+
 export async function getActiveTeachers(): Promise<Teacher[]> {
   const { data } = await supabase.from("teachers").select("*").eq("status", "active").order("created_at");
   return (data ?? []).map((row) => mapTeacherRow(row as TeacherRow));

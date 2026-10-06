@@ -20,6 +20,7 @@ import { buildPlan, getWeekPlan, overallProgressPercent, weekIndexForDate } from
 import { getSurahByNumber } from "../../lib/quranSurahs";
 import { isWithinAvailableWindow, useLiveRooms, useOnlineTeacherIds } from "../../lib/presence";
 import PulseBadge from "../../components/PulseBadge";
+import PaidLessonsNotice from "../../components/PaidLessonsNotice";
 import { fonts, gradientFor, Palette, radius, shadow, useTheme } from "../../lib/theme";
 
 const DAY_LABELS = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
@@ -233,6 +234,8 @@ export default function HomeScreen() {
                 <Ionicons name="chevron-back" size={18} color={colors.inkSoft} />
               </TouchableOpacity>
             )}
+
+            <PaidLessonsNotice upcoming={upcoming} studentName={fullName} />
 
             {/* Upcoming sessions */}
             <View style={styles.card}>

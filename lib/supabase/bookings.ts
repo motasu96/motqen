@@ -14,6 +14,7 @@ export type UpcomingBooking = {
   id: string;
   date: string;
   time: string;
+  teacherId: string;
   teacherName: string;
 };
 
@@ -60,7 +61,7 @@ export async function listUpcomingBookings(supabase: SupabaseClient, studentId: 
   const today = new Date().toISOString().slice(0, 10);
   const { data } = await supabase
     .from("bookings")
-    .select("id, session_date, session_time, teachers(name)")
+    .select("id, session_date, session_time, teacher_id, teachers(name)")
     .eq("student_id", studentId)
     .eq("status", "confirmed")
     .gte("session_date", today)
@@ -74,6 +75,7 @@ export async function listUpcomingBookings(supabase: SupabaseClient, studentId: 
       id: row.id as string,
       date: row.session_date as string,
       time: row.session_time as string,
+      teacherId: row.teacher_id as string,
       teacherName: teacherName ?? "",
     };
   });
