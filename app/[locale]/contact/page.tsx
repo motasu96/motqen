@@ -5,8 +5,8 @@ import { useTranslations } from "next-intl";
 import { Breadcrumb } from "@/components/ui";
 import { IconMail, IconMapPin, IconPhone, IconWhatsApp } from "@/components/icons";
 import { useToast } from "@/components/Toast";
+import { ADMIN_WHATSAPP_NUMBER, whatsappHref as buildWhatsappHref } from "@/lib/contact";
 
-const WHATSAPP_NUMBER = "970567841689";
 const PHONE_DISPLAY = "+970 56 784 1689";
 
 export default function ContactPage() {
@@ -16,7 +16,7 @@ export default function ContactPage() {
   const t = useTranslations("Contact");
   const tNav = useTranslations("Nav");
   const tWhatsApp = useTranslations("WhatsApp");
-  const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(tWhatsApp("greeting"))}`;
+  const whatsappHref = buildWhatsappHref(ADMIN_WHATSAPP_NUMBER, tWhatsApp("greeting"));
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();

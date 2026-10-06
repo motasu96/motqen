@@ -5,7 +5,8 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useAuth } from "../lib/auth";
 import { cancelBooking, getMyStudentProfile, listUpcomingBookings, UpcomingBooking } from "../lib/studentProfile";
 import { createBooking, getTakenSlots } from "../lib/bookings";
-import { getTeacherAvailableTimes } from "../lib/teachers";
+import { getTeacherAvailableTimes, getTeacherWhatsApp } from "../lib/teachers";
+import { ADMIN_WHATSAPP_NUMBER, openWhatsApp } from "../lib/contact";
 import { DEFAULT_AVAILABLE_TIMES, formatTimeSlot } from "../lib/timeSlots";
 import { useLiveRooms } from "../lib/presence";
 import PulseBadge from "./PulseBadge";
@@ -35,6 +36,8 @@ function formatCountdown(ms: number) {
 type BookingType = "trial" | "group";
 type PendingSlot = { day: string; hhmm: string; time: string; expiresAt: number };
 
+const WHATSAPP_GREEN = "#25D366";
+
 export default function BookingCalendar({ teacherId, teacherName }: { teacherId: string; teacherName: string }) {
   const { session } = useAuth();
   const { colors } = useTheme();
@@ -51,6 +54,8 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
   const [takenSlots, setTakenSlots] = useState<Set<string>>(new Set());
   const [slotsReady, setSlotsReady] = useState(false);
   const [studentName, setStudentName] = useState<string | null>(null);
+  const [teacherWhatsApp, setTeacherWhatsApp] = useState<string | null>(null);
+  const [lastBooked, setLastBooked] = useState<{ day: string; time: string } | null>(null);
   const [pendingSlot, setPendingSlot] = useState<PendingSlot | null>(null);
   const [confirmedFlash, setConfirmedFlash] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
@@ -77,12 +82,14 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
     if (!studentId) return;
     let cancelled = false;
     (async () => {
-      const [taken, { fullName }] = await Promise.all([
+      const [taken, { fullName }, whatsapp] = await Promise.all([
         getTakenSlots(teacherId, days[0].iso, days[days.length - 1].iso),
         getMyStudentProfile(studentId),
+        getTeacherWhatsApp(teacherId),
       ]);
       if (cancelled) return;
       setTakenSlots(taken);
+      setTeacherWhatsApp(whatsapp);
       setStudentName(fullName);
       setSlotsReady(true);
     })();
@@ -175,7 +182,10 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
       return;
     }
     setTakenSlots((prev) => new Set(prev).add(`${pendingSlot.day}__${pendingSlot.time}`));
-    await loadUpcoming();
+    // The booking itself is what makes the teacher's shared number readable (RLS).
+    const [, whatsapp] = await Promise.all([loadUpcoming(), getTeacherWhatsApp(teacherId)]);
+    setTeacherWhatsApp(whatsapp);
+    setLastBooked({ day: pendingSlot.day, time: pendingSlot.time });
     setConfirmedFlash(pendingSlot.time);
     setPendingSlot(null);
     setTimeout(() => setConfirmedFlash(null), 1800);
@@ -183,6 +193,24 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
 
   function handleCancelHold() {
     setPendingSlot(null);
+  }
+
+  const greeting = studentName ? `السلام عليكم، أنا ${studentName}.` : "السلام عليكم.";
+
+  function contactAdminForPricing() {
+    openWhatsApp(ADMIN_WHATSAPP_NUMBER, `السلام عليكم، أرغب بمعرفة سعر الحصص الفردية مع ${teacherName} وطرق الدفع المتاحة.`);
+  }
+
+  function contactAdminAboutBooking(day: string, time: string) {
+    openWhatsApp(
+      ADMIN_WHATSAPP_NUMBER,
+      `${greeting} حجزت حصة فردية مع ${teacherName} يوم ${day} الساعة ${time}، وأرغب بمعرفة السعر وطرق الدفع المتاحة.`
+    );
+  }
+
+  function contactTeacherForPricing() {
+    if (!teacherWhatsApp) return;
+    openWhatsApp(teacherWhatsApp, `${greeting} تواصلت معك عبر منصة متقن، وأرغب بمعرفة سعر الحصص الفردية معك وطرق الدفع.`);
   }
 
   function handleCancelBooking(id: string) {
@@ -249,6 +277,25 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
         </View>
       ) : (
         <>
+          <View style={styles.paidBox}>
+            <Text style={styles.paidTitle}>الحصص الفردية مدفوعة</Text>
+            <Text style={styles.note}>
+              لا يتم أي دفع عبر التطبيق. احجز موعدك ثم تواصل مع الإدارة عبر واتساب لمعرفة السعر وطرق الدفع.
+            </Text>
+            <View style={styles.whatsappRow}>
+              <TouchableOpacity style={styles.whatsappButton} onPress={contactAdminForPricing}>
+                <Ionicons name="logo-whatsapp" size={16} color="#fff" />
+                <Text style={styles.whatsappButtonText}>اسأل الإدارة عن السعر</Text>
+              </TouchableOpacity>
+              {teacherWhatsApp ? (
+                <TouchableOpacity style={styles.whatsappButton} onPress={contactTeacherForPricing}>
+                  <Ionicons name="logo-whatsapp" size={16} color="#fff" />
+                  <Text style={styles.whatsappButtonText}>تواصل مع {teacherName}</Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
+          </View>
+
           <Text style={styles.note}>اختر يومًا ثم وقتًا متاحًا لدى المعلم، وسيُحجز لك المكان لمدة 10 دقائق لتأكيد الحجز.</Text>
 
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.daysRow}>
@@ -326,6 +373,35 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
               </View>
             </View>
           )}
+
+          {lastBooked && (
+            <View style={styles.holdBox}>
+              <View>
+                <Text style={styles.holdTitle}>
+                  تم حجز موعدك: {lastBooked.day} — {lastBooked.time}
+                </Text>
+                <Text style={styles.cardDesc}>الخطوة التالية: تواصل عبر واتساب لمعرفة سعر الحصة وطرق الدفع المتاحة.</Text>
+              </View>
+              <View style={styles.whatsappRow}>
+                <TouchableOpacity
+                  style={styles.whatsappButton}
+                  onPress={() => contactAdminAboutBooking(lastBooked.day, lastBooked.time)}
+                >
+                  <Ionicons name="logo-whatsapp" size={16} color="#fff" />
+                  <Text style={styles.whatsappButtonText}>اسأل الإدارة عن السعر</Text>
+                </TouchableOpacity>
+                {teacherWhatsApp ? (
+                  <TouchableOpacity style={styles.whatsappButton} onPress={contactTeacherForPricing}>
+                    <Ionicons name="logo-whatsapp" size={16} color="#fff" />
+                    <Text style={styles.whatsappButtonText}>تواصل مع {teacherName}</Text>
+                  </TouchableOpacity>
+                ) : null}
+                <TouchableOpacity onPress={() => setLastBooked(null)}>
+                  <Text style={styles.holdCancelText}>إغلاق</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
         </>
       )}
 
@@ -381,6 +457,11 @@ function getStyles(colors: Palette) {
     typeButtonActive: { backgroundColor: colors.gold },
     typeButtonText: { fontFamily: fonts.bold, fontSize: 12, color: colors.inkSoft },
     typeButtonTextActive: { color: "#fff" },
+    paidBox: { gap: 8, backgroundColor: colors.bg, borderRadius: radius.lg, padding: 14, borderWidth: 1, borderColor: colors.line },
+    paidTitle: { fontFamily: fonts.extraBold, fontSize: 13, color: colors.ink, textAlign: "right" },
+    whatsappRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 10 },
+    whatsappButton: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: WHATSAPP_GREEN, borderRadius: radius.pill, paddingHorizontal: 14, paddingVertical: 9 },
+    whatsappButtonText: { color: "#fff", fontFamily: fonts.bold, fontSize: 12 },
     groupBox: { alignItems: "flex-start", gap: 6, backgroundColor: colors.bg, borderRadius: radius.lg, padding: 16, borderWidth: 1, borderColor: colors.line },
     groupTitle: { fontFamily: fonts.extraBold, fontSize: 14, color: colors.ink, textAlign: "right" },
     groupCta: { marginTop: 8, borderWidth: 1, borderColor: colors.gold, borderRadius: radius.sm, paddingHorizontal: 16, paddingVertical: 10 },

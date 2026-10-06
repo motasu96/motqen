@@ -6,6 +6,7 @@ import { Link } from "@/i18n/navigation";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { useStudentNav } from "@/components/dashboard/studentNav";
 import MyUpcomingSessions from "@/components/dashboard/MyUpcomingSessions";
+import PaidLessonsNotice from "@/components/dashboard/PaidLessonsNotice";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
 import PulseBadge from "@/components/dashboard/PulseBadge";
 import { isWithinAvailableWindow, useOnlineTeacherIds } from "@/lib/supabase/presence";
@@ -284,6 +285,8 @@ export default function StudentDashboardPage() {
             />
           </div>
         )}
+
+        <PaidLessonsNotice upcoming={upcoming} studentName={fullName} />
 
         <div className="card flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-4">

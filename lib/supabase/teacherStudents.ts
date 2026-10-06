@@ -34,6 +34,23 @@ export async function updateMyAvailableDays(supabase: SupabaseClient, teacherId:
   return !error;
 }
 
+// The optional WhatsApp number a teacher shares with their students for
+// private-lesson pricing (see migration 0030). Digits only, international.
+export async function getMyWhatsApp(supabase: SupabaseClient, teacherId: string): Promise<string | null> {
+  const { data } = await supabase.from("teacher_contacts").select("whatsapp").eq("teacher_id", teacherId).maybeSingle();
+  return (data?.whatsapp as string | undefined) ?? null;
+}
+
+// null clears it, so the teacher can stop sharing their number at any time.
+export async function updateMyWhatsApp(supabase: SupabaseClient, teacherId: string, whatsapp: string | null): Promise<boolean> {
+  const { error } = whatsapp
+    ? await supabase
+        .from("teacher_contacts")
+        .upsert({ teacher_id: teacherId, whatsapp, updated_at: new Date().toISOString() })
+    : await supabase.from("teacher_contacts").delete().eq("teacher_id", teacherId);
+  return !error;
+}
+
 // The real students a teacher has actually taught (anyone who booked a
 // session with them), used to populate "assign homework to" pickers.
 export async function listTeacherStudents(supabase: SupabaseClient, teacherId: string): Promise<TeacherStudentOption[]> {

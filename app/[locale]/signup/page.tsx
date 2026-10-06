@@ -515,6 +515,7 @@ function SignupFlow() {
                   {matchedTeachers.length > 0 && (
                     <fieldset className="flex flex-col gap-3">
                       <legend className="mb-1 text-sm font-bold text-ink">{t("teacherMatchPrivateTitle")}</legend>
+                      <p className="text-xs text-ink-soft">{t("teacherMatchPrivatePaidNote")}</p>
                       {matchedTeachers.map((mt) => {
                         const selected = selectedMatch?.kind === "teacher" && selectedMatch.id === mt.id;
                         const sortedDays = [...mt.availableDays].sort((a, b) => a - b);

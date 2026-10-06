@@ -9,10 +9,11 @@ import PulseBadge from "@/components/dashboard/PulseBadge";
 import { useLiveRooms } from "@/lib/supabase/presence";
 import { createClient } from "@/lib/supabase/client";
 import { createBooking, getTakenSlots } from "@/lib/supabase/bookings";
-import { getTeacherAvailableTimes } from "@/lib/supabase/teachers";
+import { getTeacherAvailableTimes, getTeacherWhatsApp } from "@/lib/supabase/teachers";
 import { useUpcomingBookings } from "@/lib/supabase/useUpcomingBookings";
 import { DEFAULT_AVAILABLE_TIMES, formatTimeSlot } from "@/lib/timeSlots";
-import { IconCalendar, IconCheck, IconClock, IconFamily } from "@/components/icons";
+import { ADMIN_WHATSAPP_NUMBER, whatsappHref } from "@/lib/contact";
+import { IconCalendar, IconCheck, IconClock, IconFamily, IconWhatsApp } from "@/components/icons";
 
 const HOLD_DURATION_MS = 10 * 60 * 1000;
 
@@ -35,6 +36,20 @@ function formatCountdown(ms: number) {
 }
 
 type BookingType = "trial" | "group";
+
+function WhatsAppLink({ href, label }: { href: string; label: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-2 rounded-pill bg-[#25D366] px-4 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90"
+    >
+      <IconWhatsApp className="h-4 w-4" aria-hidden="true" />
+      {label}
+    </a>
+  );
+}
 
 export default function BookingCalendar({ teacherId, teacherName }: { teacherId: string; teacherName: string }) {
   const { showToast } = useToast();
@@ -61,6 +76,8 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
   const [submitting, setSubmitting] = useState(false);
   const [studentId, setStudentId] = useState<string | null>(null);
   const [studentName, setStudentName] = useState<string | null>(null);
+  const [teacherWhatsApp, setTeacherWhatsApp] = useState<string | null>(null);
+  const [lastBooked, setLastBooked] = useState<{ day: string; time: string } | null>(null);
   const [takenSlots, setTakenSlots] = useState<Set<string>>(new Set());
   const [slotsReady, setSlotsReady] = useState(false);
   const { upcoming, ready, cancel, reload } = useUpcomingBookings();
@@ -87,12 +104,14 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
       } = await supabase.auth.getUser();
       if (cancelled || !user) return;
       setStudentId(user.id);
-      const [taken, { data: profile }] = await Promise.all([
+      const [taken, { data: profile }, whatsapp] = await Promise.all([
         getTakenSlots(supabase, teacherId, days[0].iso, days[days.length - 1].iso),
         supabase.from("profiles").select("full_name").eq("id", user.id).single(),
+        getTeacherWhatsApp(supabase, teacherId),
       ]);
       if (cancelled) return;
       setTakenSlots(taken);
+      setTeacherWhatsApp(whatsapp);
       setStudentName((profile?.full_name as string | null) ?? null);
       setSlotsReady(true);
     }
@@ -180,7 +199,10 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
       return;
     }
     setTakenSlots((prev) => new Set(prev).add(`${pendingSlot.day}__${pendingSlot.time}`));
-    await reload();
+    // The booking itself is what makes the teacher's shared number readable (RLS).
+    const [, whatsapp] = await Promise.all([reload(), getTeacherWhatsApp(createClient(), teacherId)]);
+    setTeacherWhatsApp(whatsapp);
+    setLastBooked({ day: pendingSlot.day, time: pendingSlot.time });
     setConfirmedFlash(pendingSlot.time);
     showToast(t("toastBooked", { date: pendingSlot.day, time: pendingSlot.time }), "success");
     setPendingSlot(null);
@@ -190,6 +212,10 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
   function handleCancelHold() {
     setPendingSlot(null);
   }
+
+  const nameParams = { hasName: studentName ? "yes" : "no", student: studentName ?? "" };
+  const adminPricingHref = whatsappHref(ADMIN_WHATSAPP_NUMBER, t("adminPricingMessage", { teacher: teacherName }));
+  const teacherPricingHref = teacherWhatsApp ? whatsappHref(teacherWhatsApp, t("teacherPricingMessage", nameParams)) : null;
 
   async function handleCancel(id: string) {
     const removed = upcoming.find((b) => b.id === id);
@@ -254,7 +280,18 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
 
       {bookingType === "trial" && (
         <>
-          <p className="text-xs text-ink-soft">{t("bookingTypeTrialNote")}</p>
+          <div className="flex flex-col gap-3 rounded-2xl border border-line bg-bg p-5">
+            <div>
+              <h4 className="text-sm font-extrabold text-ink">{t("paidLessonTitle")}</h4>
+              <p className="mt-1 text-xs text-ink-soft">{t("bookingTypeTrialNote")}</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <WhatsAppLink href={adminPricingHref} label={t("contactAdminWhatsApp")} />
+              {teacherPricingHref && (
+                <WhatsAppLink href={teacherPricingHref} label={t("contactTeacherWhatsApp", { teacher: teacherName })} />
+              )}
+            </div>
+          </div>
 
           <div className="flex gap-2 overflow-x-auto pb-1">
             {days.map((d) => (
@@ -332,6 +369,33 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
                 </button>
                 <button onClick={handleCancelHold} className="text-sm font-bold text-ink-soft hover:text-gold-dark">
                   {t("pendingHoldCancel")}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {lastBooked && (
+            <div className="animate-fade-up flex flex-col gap-3 rounded-2xl border border-gold bg-gold-light p-5">
+              <div>
+                <h4 className="flex items-center gap-2 text-sm font-extrabold text-ink">
+                  <IconCheck className="h-4 w-4 text-gold-dark" aria-hidden="true" />
+                  {t("bookedNextStepTitle", { date: lastBooked.day, time: lastBooked.time })}
+                </h4>
+                <p className="mt-1 text-sm text-ink">{t("bookedNextStepDesc")}</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <WhatsAppLink
+                  href={whatsappHref(
+                    ADMIN_WHATSAPP_NUMBER,
+                    t("adminBookedMessage", { ...nameParams, teacher: teacherName, date: lastBooked.day, time: lastBooked.time })
+                  )}
+                  label={t("contactAdminWhatsApp")}
+                />
+                {teacherPricingHref && (
+                  <WhatsAppLink href={teacherPricingHref} label={t("contactTeacherWhatsApp", { teacher: teacherName })} />
+                )}
+                <button onClick={() => setLastBooked(null)} className="text-sm font-bold text-ink-soft hover:text-gold-dark">
+                  {t("bookedNextStepDismiss")}
                 </button>
               </div>
             </div>
