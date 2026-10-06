@@ -60,6 +60,14 @@ export async function getTeacherAvailableTimes(teacherId: string): Promise<strin
   return (data?.available_times as string[] | null) ?? [];
 }
 
+// The WhatsApp number a teacher chose to share for private-lesson pricing
+// (web migration 0030). RLS only reveals it to a student with a confirmed
+// booking with this teacher or who chose them at signup — otherwise null.
+export async function getTeacherWhatsApp(teacherId: string): Promise<string | null> {
+  const { data } = await supabase.from("teacher_contacts").select("whatsapp").eq("teacher_id", teacherId).maybeSingle();
+  return (data?.whatsapp as string | undefined) ?? null;
+}
+
 export async function getActiveTeachers(): Promise<Teacher[]> {
   const { data } = await supabase.from("teachers").select("*").eq("status", "active").order("created_at");
   return (data ?? []).map((row) => mapTeacherRow(row as TeacherRow));

@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "متقن | Motqen",
     short_name: "متقن",
-    description: "منصة متقن لتعليم القرآن الكريم عن بُعد، مجانية بالكامل.",
+    description: "منصة متقن لتعليم القرآن الكريم عن بُعد — حلقات جماعية مجانية وحصص فردية مع معلمك.",
     start_url: "/",
     scope: "/",
     display: "standalone",

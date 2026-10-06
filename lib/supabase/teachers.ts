@@ -83,6 +83,15 @@ export async function getTeacherAvailableTimes(supabase: SupabaseClient, teacher
   return (data?.available_times as string[] | null) ?? [];
 }
 
+// The WhatsApp number a teacher chose to share for private-lesson pricing
+// (migration 0030). RLS only reveals it to a student with a confirmed
+// booking with this teacher or who chose them at signup — for anyone else,
+// or if the teacher never shared one, this returns null.
+export async function getTeacherWhatsApp(supabase: SupabaseClient, teacherId: string): Promise<string | null> {
+  const { data } = await supabase.from("teacher_contacts").select("whatsapp").eq("teacher_id", teacherId).maybeSingle();
+  return (data?.whatsapp as string | undefined) ?? null;
+}
+
 // The teacher a student is currently working with, used for the "direct
 // entry" walk-in card — their most recent confirmed booking, past or
 // upcoming. Returns null if the student has never booked a session.

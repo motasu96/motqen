@@ -12,9 +12,12 @@ import {
   getMyAvailableDays,
   getMyAvailableTimes,
   getMyTeacherId,
+  getMyWhatsApp,
   updateMyAvailableDays,
   updateMyAvailableTimes,
+  updateMyWhatsApp,
 } from "@/lib/supabase/teacherStudents";
+import { normalizeWhatsAppNumber } from "@/lib/contact";
 import { listTeacherBookings, TeacherBooking } from "@/lib/supabase/bookings";
 import { TIME_SLOT_OPTIONS, formatTimeSlot } from "@/lib/timeSlots";
 import JoinMeetingButton from "@/components/dashboard/JoinMeetingButton";
@@ -39,6 +42,8 @@ export default function TeacherSchedulePage() {
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [availableDays, setAvailableDays] = useState<number[]>([]);
   const [savingTimes, setSavingTimes] = useState(false);
+  const [whatsapp, setWhatsapp] = useState("");
+  const [savingWhatsapp, setSavingWhatsapp] = useState(false);
   const dayLabels = tc.raw("weekDaysSaturdayFirst") as string[];
 
   useEffect(() => {
@@ -62,15 +67,17 @@ export default function TeacherSchedulePage() {
         return;
       }
       setTeacherId(tId);
-      const [rows, times, days] = await Promise.all([
+      const [rows, times, days, myWhatsapp] = await Promise.all([
         listTeacherBookings(supabase, tId),
         getMyAvailableTimes(supabase, tId),
         getMyAvailableDays(supabase, tId),
+        getMyWhatsApp(supabase, tId),
       ]);
       if (cancelled) return;
       setBookings(rows);
       setAvailableTimes(times);
       setAvailableDays(days);
+      setWhatsapp(myWhatsapp ? `+${myWhatsapp}` : "");
       setReady(true);
     })();
     return () => {
@@ -101,6 +108,25 @@ export default function TeacherSchedulePage() {
     setSavingTimes(false);
     const ok = okTimes && okDays;
     showToast(ok ? t("toastAvailabilitySaved") : t("errorAvailabilitySaved"), ok ? "success" : "error");
+  }
+
+  async function handleSaveWhatsapp() {
+    if (!teacherId) return;
+    const trimmed = whatsapp.trim();
+    const normalized = trimmed ? normalizeWhatsAppNumber(trimmed) : null;
+    if (trimmed && !normalized) {
+      showToast(t("whatsappContactInvalid"), "error");
+      return;
+    }
+    setSavingWhatsapp(true);
+    const ok = await updateMyWhatsApp(createClient(), teacherId, normalized);
+    setSavingWhatsapp(false);
+    if (!ok) {
+      showToast(t("errorWhatsappSaved"), "error");
+      return;
+    }
+    setWhatsapp(normalized ? `+${normalized}` : "");
+    showToast(normalized ? t("toastWhatsappSaved") : t("toastWhatsappCleared"), "success");
   }
 
   const today = new Date().toISOString().slice(0, 10);
@@ -173,6 +199,31 @@ export default function TeacherSchedulePage() {
           >
             {savingTimes ? t("savingAvailability") : t("saveAvailabilityCta")}
           </button>
+        </div>
+      )}
+
+      {ready && teacherId && (
+        <div className="card mb-6 flex flex-col gap-4 p-6">
+          <div>
+            <h3 className="text-sm font-extrabold text-ink">{t("whatsappContactTitle")}</h3>
+            <p className="mt-1 text-xs text-ink-soft">{t("whatsappContactSubtitle")}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <input
+              type="tel"
+              dir="ltr"
+              inputMode="tel"
+              autoComplete="tel"
+              aria-label={t("whatsappContactTitle")}
+              value={whatsapp}
+              onChange={(e) => setWhatsapp(e.target.value)}
+              placeholder={t("whatsappContactPlaceholder")}
+              className="input max-w-xs"
+            />
+            <button onClick={handleSaveWhatsapp} disabled={savingWhatsapp} className="btn-primary disabled:opacity-70">
+              {savingWhatsapp ? t("savingAvailability") : t("saveWhatsappCta")}
+            </button>
+          </div>
         </div>
       )}
 

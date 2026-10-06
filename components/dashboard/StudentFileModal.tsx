@@ -7,7 +7,8 @@ import { getStudentFileProfile, StudentFileProfile } from "@/lib/supabase/studen
 import { getCountryByIso } from "@/data/countries";
 import { programs } from "@/data/programs";
 import { localize } from "@/lib/localize";
-import { IconFolder, IconX } from "@/components/icons";
+import { normalizeWhatsAppNumber, whatsappHref } from "@/lib/contact";
+import { IconFolder, IconWhatsApp, IconX } from "@/components/icons";
 
 function Row({ label, value }: { label: string; value: string | null | undefined }) {
   if (!value) return null;
@@ -44,6 +45,9 @@ export default function StudentFileModal({ studentId, onClose }: { studentId: st
   const country = student?.country ? getCountryByIso(student.country) : undefined;
   const program = student?.program_slug ? programs.find((p) => p.slug === student.program_slug) : undefined;
   const programTitle = program ? localize(program, locale).title : null;
+  // Lets the teacher/admin message the student directly — e.g. to give
+  // them the price and payment methods for private lessons.
+  const phoneWhatsApp = profile?.phone ? normalizeWhatsAppNumber(profile.phone) : null;
   const preferredDaysLabel = (student?.preferred_days ?? [])
     .map((d) => {
       const i = Number(d);
@@ -82,7 +86,25 @@ export default function StudentFileModal({ studentId, onClose }: { studentId: st
             <Row label={t("studentFileAge")} value={student.age ? String(student.age) : null} />
             <Row label={t("studentFileCountry")} value={country ? (locale === "en" ? country.nameEn : country.name) : null} />
             <Row label={t("studentFileCity")} value={student.city} />
-            <Row label={t("studentFilePhone")} value={profile?.phone} />
+            {profile?.phone && (
+              <div className="flex items-center justify-between gap-3 px-5 py-3.5 text-sm">
+                <span className="text-ink-soft">{t("studentFilePhone")}</span>
+                <span className="flex items-center gap-2">
+                  <span dir="ltr" className="font-bold text-ink">{profile.phone}</span>
+                  {phoneWhatsApp && (
+                    <a
+                      href={whatsappHref(phoneWhatsApp)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={t("studentFileWhatsAppAria", { name: profile.fullName ?? "" })}
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-[#25D366] text-white transition-opacity hover:opacity-90"
+                    >
+                      <IconWhatsApp className="h-4 w-4" aria-hidden="true" />
+                    </a>
+                  )}
+                </span>
+              </div>
+            )}
             <Row label={t("studentFileEmail")} value={student.email} />
             <Row label={t("studentFileProgram")} value={programTitle} />
             <Row label={t("studentFilePreferredDays")} value={preferredDaysLabel || null} />

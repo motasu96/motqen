@@ -1,13 +1,12 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { ADMIN_WHATSAPP_NUMBER, whatsappHref } from "@/lib/contact";
 import { IconWhatsApp } from "./icons";
-
-const WHATSAPP_NUMBER = "970567841689";
 
 export default function WhatsAppButton() {
   const t = useTranslations("WhatsApp");
-  const href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(t("greeting"))}`;
+  const href = whatsappHref(ADMIN_WHATSAPP_NUMBER, t("greeting"));
 
   return (
     <a
