@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { buildTeacherApprovedEmail } from "@/lib/emails/teacherApprovedEmail";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/supabase/requireAdmin";
 import { createAccountSetupLink } from "@/lib/supabase/accountSetup";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -32,6 +33,10 @@ export async function POST(req: NextRequest) {
   if (!hasSupabase) {
     return NextResponse.json({ error: "Supabase is not configured" }, { status: 501 });
   }
+
+  // Runs with the service-role key, so only a signed-in admin may call it.
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
 
   let payload: { teacherRowId?: unknown };
   try {
@@ -89,6 +94,7 @@ export async function POST(req: NextRequest) {
       email: application.email,
       email_confirm: true,
       password: crypto.randomUUID(),
+      app_metadata: { role: "teacher" },
       user_metadata: { role: "teacher", full_name: teacher.name, phone: application.phone },
     });
 
