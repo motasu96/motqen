@@ -32,6 +32,8 @@ function ThemedStack() {
       <StatusBar style={isDark ? "light" : "dark"} />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="(teacher)" />
+        <Stack.Screen name="(admin)" />
         <Stack.Screen name="login" />
         <Stack.Screen name="room/[room]" options={{ presentation: "fullScreenModal" }} />
       </Stack>

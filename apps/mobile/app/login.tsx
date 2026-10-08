@@ -14,12 +14,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { Redirect } from "expo-router";
-import { useAuth } from "../lib/auth";
+import { homeRouteFor, useAuth } from "../lib/auth";
 import { supabase } from "../lib/supabase";
 import { fonts, gradientFor, Palette, radius, shadow, useTheme } from "../lib/theme";
 
 export default function LoginScreen() {
-  const { session, loading: sessionLoading } = useAuth();
+  const { session, role, loading: sessionLoading } = useAuth();
   const { colors } = useTheme();
   const styles = getStyles(colors);
   const [email, setEmail] = useState("");
@@ -27,8 +27,8 @@ export default function LoginScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (!sessionLoading && session) {
-    return <Redirect href="/(tabs)" />;
+  if (!sessionLoading && session && role) {
+    return <Redirect href={homeRouteFor(role)} />;
   }
 
   async function handleLogin() {
@@ -48,14 +48,14 @@ export default function LoginScreen() {
       return;
     }
 
-    // This app is student-only — a teacher/admin account can authenticate
-    // fine but has no student data, so it would land on a blank/broken
-    // home screen with no explanation. Reject it here instead.
-    const { data: profile } = await supabase.from("profiles").select("role").eq("id", data.user.id).single();
-    if (profile?.role !== "student") {
+    // Students, teachers and admins each get their own interface (see
+    // homeRouteFor). An account with no recognised role has nothing to
+    // show here, so reject it instead of landing on a blank screen.
+    const { data: profile } = await supabase.from("profiles").select("role").eq("id", data.user.id).maybeSingle();
+    if (profile?.role !== "student" && profile?.role !== "teacher" && profile?.role !== "admin") {
       await supabase.auth.signOut();
       setSubmitting(false);
-      setError("هذا التطبيق مخصص لحسابات الطلاب فقط.");
+      setError("تعذّر تحديد نوع هذا الحساب. تواصل مع إدارة المنصة.");
       return;
     }
 
