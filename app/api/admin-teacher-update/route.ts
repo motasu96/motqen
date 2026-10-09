@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/supabase/requireAdmin";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -64,6 +65,10 @@ export async function POST(req: NextRequest) {
   if (!hasSupabase) {
     return NextResponse.json({ error: "Supabase is not configured" }, { status: 501 });
   }
+
+  // Runs with the service-role key, so only a signed-in admin may call it.
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
 
   let payload: Payload;
   try {

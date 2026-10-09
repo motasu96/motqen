@@ -1,0 +1,119 @@
+import { SupabaseClient } from "@supabase/supabase-js";
+
+export type BookingRow = {
+  id: string;
+  student_id: string;
+  teacher_id: string;
+  session_date: string;
+  session_time: string;
+  status: "confirmed" | "cancelled";
+  created_at: string;
+};
+
+export type UpcomingBooking = {
+  id: string;
+  date: string;
+  time: string;
+  teacherId: string;
+  teacherName: string;
+};
+
+export async function getTakenSlots(
+  supabase: SupabaseClient,
+  teacherId: string,
+  fromDate: string,
+  toDate: string
+): Promise<Set<string>> {
+  const { data } = await supabase
+    .from("bookings")
+    .select("session_date, session_time")
+    .eq("teacher_id", teacherId)
+    .eq("status", "confirmed")
+    .gte("session_date", fromDate)
+    .lte("session_date", toDate);
+  return new Set((data ?? []).map((r) => `${r.session_date}__${r.session_time}`));
+}
+
+export async function createBooking(
+  supabase: SupabaseClient,
+  params: { studentId: string; teacherId: string; date: string; time: string }
+): Promise<{ booking: BookingRow | null; error: "slot_taken" | "unknown" | null }> {
+  const { data, error } = await supabase
+    .from("bookings")
+    .insert({
+      student_id: params.studentId,
+      teacher_id: params.teacherId,
+      session_date: params.date,
+      session_time: params.time,
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    // Postgres unique_violation
+    if (error.code === "23505") return { booking: null, error: "slot_taken" };
+    return { booking: null, error: "unknown" };
+  }
+  return { booking: data as BookingRow, error: null };
+}
+
+export async function listUpcomingBookings(supabase: SupabaseClient, studentId: string): Promise<UpcomingBooking[]> {
+  const today = new Date().toISOString().slice(0, 10);
+  const { data } = await supabase
+    .from("bookings")
+    .select("id, session_date, session_time, teacher_id, teachers(name)")
+    .eq("student_id", studentId)
+    .eq("status", "confirmed")
+    .gte("session_date", today)
+    .order("session_date", { ascending: true })
+    .order("session_time", { ascending: true });
+
+  return (data ?? []).map((row) => {
+    const teacher = row.teachers as unknown as { name: string } | { name: string }[] | null;
+    const teacherName = Array.isArray(teacher) ? teacher[0]?.name : teacher?.name;
+    return {
+      id: row.id as string,
+      date: row.session_date as string,
+      time: row.session_time as string,
+      teacherId: row.teacher_id as string,
+      teacherName: teacherName ?? "",
+    };
+  });
+}
+
+export async function cancelBooking(supabase: SupabaseClient, bookingId: string): Promise<boolean> {
+  const { error } = await supabase.from("bookings").update({ status: "cancelled" }).eq("id", bookingId);
+  return !error;
+}
+
+export type TeacherBooking = {
+  id: string;
+  date: string;
+  time: string;
+  studentId: string;
+  studentName: string;
+};
+
+// All of a teacher's confirmed bookings (both upcoming and past), used to
+// build "join now" and "log this session" lists on the teacher dashboard.
+export async function listTeacherBookings(supabase: SupabaseClient, teacherId: string): Promise<TeacherBooking[]> {
+  const { data } = await supabase
+    .from("bookings")
+    .select("id, session_date, session_time, student_id, profiles(full_name)")
+    .eq("teacher_id", teacherId)
+    .eq("status", "confirmed")
+    .order("session_date", { ascending: true })
+    .order("session_time", { ascending: true });
+
+  return (data ?? []).map((row) => {
+    const profile = row.profiles as unknown as { full_name: string | null } | { full_name: string | null }[] | null;
+    const studentName = Array.isArray(profile) ? profile[0]?.full_name : profile?.full_name;
+    return {
+      id: row.id as string,
+      date: row.session_date as string,
+      time: row.session_time as string,
+      studentId: row.student_id as string,
+      studentName: studentName || "",
+    };
+  });
+}

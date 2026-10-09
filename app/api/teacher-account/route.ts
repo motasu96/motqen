@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { buildTeacherApprovedEmail } from "@/lib/emails/teacherApprovedEmail";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/supabase/requireAdmin";
 import { createAccountSetupLink } from "@/lib/supabase/accountSetup";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -18,6 +19,10 @@ export async function POST(req: NextRequest) {
   if (!hasSupabase) {
     return NextResponse.json({ error: "Supabase is not configured" }, { status: 501 });
   }
+
+  // Runs with the service-role key, so only a signed-in admin may call it.
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
 
   let payload: { teacherRowId?: unknown; name?: unknown; email?: unknown; phone?: unknown; slug?: unknown };
   try {
@@ -42,6 +47,10 @@ export async function POST(req: NextRequest) {
     email,
     email_confirm: true,
     password: crypto.randomUUID(),
+    // app_metadata can only be set server-side; the signup trigger trusts it
+    // for the role (migration 0032). user_metadata keeps role only so the
+    // pre-0032 trigger still works until that migration is applied.
+    app_metadata: { role: "teacher" },
     user_metadata: { role: "teacher", full_name: name, phone },
   });
 

@@ -1,10 +1,10 @@
 import { Redirect } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
-import { useAuth } from "../lib/auth";
+import { homeRouteFor, useAuth } from "../lib/auth";
 import { useTheme } from "../lib/theme";
 
 export default function Index() {
-  const { session, loading } = useAuth();
+  const { session, role, loading } = useAuth();
   const { colors } = useTheme();
 
   if (loading) {
@@ -15,5 +15,7 @@ export default function Index() {
     );
   }
 
-  return <Redirect href={session ? "/(tabs)" : "/login"} />;
+  // An account whose role couldn't be read falls back to the student home,
+  // which already handles a missing student record gracefully.
+  return <Redirect href={session ? homeRouteFor(role) : "/login"} />;
 }

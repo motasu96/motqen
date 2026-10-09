@@ -1,11 +1,11 @@
 import { Redirect, Tabs } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "../../lib/auth";
+import { homeRouteFor, useAuth } from "../../lib/auth";
 import { fonts, useTheme } from "../../lib/theme";
 
 export default function TabsLayout() {
-  const { session, loading } = useAuth();
+  const { session, role, loading } = useAuth();
   const { colors } = useTheme();
 
   if (loading) {
@@ -18,6 +18,12 @@ export default function TabsLayout() {
 
   if (!session) {
     return <Redirect href="/login" />;
+  }
+
+  // Teachers/admins that land on the student tabs (stale deep link, back
+  // navigation) belong in their own interface.
+  if (role === "teacher" || role === "admin") {
+    return <Redirect href={homeRouteFor(role)} />;
   }
 
   return (

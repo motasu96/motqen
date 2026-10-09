@@ -8,6 +8,24 @@ import { supabase } from "./supabase";
 const TEACHERS_CHANNEL = "presence-teachers-online";
 const ROOMS_CHANNEL = "presence-rooms-live";
 
+// Teacher-side: marks this teacher as online for as long as the calling
+// component stays mounted. Mounted once in the teacher tabs layout so the
+// teacher stays "online" across navigation between their screens.
+export function useTeacherOnlinePresence(teacherId: string | null) {
+  useEffect(() => {
+    if (!teacherId) return;
+    const channel = supabase.channel(TEACHERS_CHANNEL, { config: { presence: { key: teacherId } } });
+    channel.subscribe(async (status) => {
+      if (status === "SUBSCRIBED") {
+        await channel.track({ teacherId, online_at: new Date().toISOString() });
+      }
+    });
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [teacherId]);
+}
+
 // Read-only: the set of teacher ids currently online anywhere on the
 // platform (web dashboard or this app).
 export function useOnlineTeacherIds(): Set<string> {
