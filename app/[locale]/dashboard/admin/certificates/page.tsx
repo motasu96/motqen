@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   CertificateRow,
   CertScope,
+  Gender,
   GRADE_LABELS,
   GRADE_LABEL_TRANSLATION_KEYS,
   GradeLabel,
@@ -47,6 +48,9 @@ export default function AdminCertificatesPage() {
   const [students, setStudents] = useState<StudentForCertificate[]>([]);
   const [teachers, setTeachers] = useState<TeacherForCertificate[]>([]);
   const [teacherId, setTeacherId] = useState("");
+  // The title printed on the certificate ("المعلم" / "المعلمة"). Pre-filled
+  // from the chosen teacher's gender, but the admin has the final say.
+  const [teacherGender, setTeacherGender] = useState<Gender>("male");
   const [certificates, setCertificates] = useState<CertificateRow[]>([]);
   const [ready, setReady] = useState(false);
   const [viewing, setViewing] = useState<CertificateRow | null>(null);
@@ -103,6 +107,12 @@ export default function AdminCertificatesPage() {
   const selectedStudent = students.find((s) => s.studentId === studentId) ?? null;
   const selectedTeacher = teachers.find((tr) => tr.id === teacherId) ?? null;
 
+  function chooseTeacher(id: string) {
+    setTeacherId(id);
+    const tr = teachers.find((x) => x.id === id);
+    if (tr) setTeacherGender(tr.gender);
+  }
+
   async function handleIssue() {
     if (!adminId || !selectedStudent || !issuedAt || (scope === "parts" && !juzCount.trim())) {
       showToast(t("errorCertificateFields"), "error");
@@ -125,7 +135,7 @@ export default function AdminCertificatesPage() {
       studentGender: selectedStudent.studentGender,
       teacherId: selectedTeacher.id,
       teacherName: selectedTeacher.name,
-      teacherGender: selectedTeacher.gender,
+      teacherGender,
       issuedBy: adminId,
       issuedByName: (profile?.full_name as string | null) || adminName,
       scope,
@@ -146,6 +156,7 @@ export default function AdminCertificatesPage() {
     showToast(t("toastCertificateIssued"), "success");
     setStudentId("");
     setTeacherId("");
+    setTeacherGender("male");
     setScope("parts");
     setJuzCount("10");
     setJuzNames("");
@@ -183,7 +194,7 @@ export default function AdminCertificatesPage() {
                   const id = e.target.value;
                   setStudentId(id);
                   // Pre-select the teacher the student last booked with; the admin can change it.
-                  setTeacherId(students.find((s) => s.studentId === id)?.teacherId ?? "");
+                  chooseTeacher(students.find((s) => s.studentId === id)?.teacherId ?? "");
                 }}
                 className="input"
               >
@@ -197,13 +208,20 @@ export default function AdminCertificatesPage() {
             </div>
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-ink-soft">{t("certFieldTeacher")}</label>
-              <select value={teacherId} onChange={(e) => setTeacherId(e.target.value)} className="input">
+              <select value={teacherId} onChange={(e) => chooseTeacher(e.target.value)} className="input">
                 <option value="">{t("selectTeacherPlaceholder")}</option>
                 {teachers.map((tr) => (
                   <option key={tr.id} value={tr.id}>
                     {tr.name}
                   </option>
                 ))}
+              </select>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-ink-soft">{t("certFieldTeacherTitle")}</label>
+              <select value={teacherGender} onChange={(e) => setTeacherGender(e.target.value as Gender)} className="input">
+                <option value="male">{t("teacherTitleMale")}</option>
+                <option value="female">{t("teacherTitleFemale")}</option>
               </select>
             </div>
           </div>

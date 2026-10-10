@@ -12,6 +12,7 @@ import {
   CertificateRow,
   CertScope,
   deleteCertificate,
+  Gender,
   GRADE_LABELS,
   GradeLabel,
   issueCertificate,
@@ -48,6 +49,9 @@ export default function AdminCertificates() {
   const [students, setStudents] = useState<StudentForCertificate[]>([]);
   const [teachers, setTeachers] = useState<TeacherForCertificate[]>([]);
   const [teacherId, setTeacherId] = useState("");
+  // The title printed on the certificate ("المعلم" / "المعلمة"). Pre-filled
+  // from the chosen teacher's gender, but the admin has the final say.
+  const [teacherGender, setTeacherGender] = useState<Gender>("male");
   const [certificates, setCertificates] = useState<CertificateRow[]>([]);
   const [ready, setReady] = useState(false);
   const [sharingId, setSharingId] = useState<string | null>(null);
@@ -85,6 +89,12 @@ export default function AdminCertificates() {
 
   const selected = students.find((s) => s.studentId === studentId) ?? null;
   const selectedTeacher = teachers.find((tr) => tr.id === teacherId) ?? null;
+
+  function chooseTeacher(id: string) {
+    setTeacherId(id);
+    const tr = teachers.find((x) => x.id === id);
+    if (tr) setTeacherGender(tr.gender);
+  }
   const suggestions = useMemo(() => {
     const q = query.trim();
     if (!q) return [];
@@ -122,7 +132,7 @@ export default function AdminCertificates() {
       studentGender: selected.studentGender,
       teacherId: selectedTeacher.id,
       teacherName: selectedTeacher.name,
-      teacherGender: selectedTeacher.gender,
+      teacherGender,
       issuedBy: adminId,
       issuedByName: (profile?.full_name as string | null) || "إدارة متقن",
       scope,
@@ -144,6 +154,7 @@ export default function AdminCertificates() {
     setQuery("");
     setStudentId("");
     setTeacherId("");
+    setTeacherGender("male");
     setScope("parts");
     setJuzCount("10");
     setJuzNames("");
@@ -213,7 +224,7 @@ export default function AdminCertificates() {
                     onPress={() => {
                       setStudentId(s.studentId);
                       // Pre-select the teacher the student last booked with; the admin can change it.
-                      setTeacherId(s.teacherId ?? "");
+                      chooseTeacher(s.teacherId ?? "");
                     }}
                   />
                 ))}
@@ -226,10 +237,20 @@ export default function AdminCertificates() {
             ) : (
               <ChipRow>
                 {teachers.map((tr) => (
-                  <Chip key={tr.id} label={tr.name} active={teacherId === tr.id} onPress={() => setTeacherId(tr.id)} />
+                  <Chip key={tr.id} label={tr.name} active={teacherId === tr.id} onPress={() => chooseTeacher(tr.id)} />
                 ))}
               </ChipRow>
             )}
+
+            <Text style={{ fontFamily: fonts.bold, fontSize: 12, color: colors.ink, textAlign: "right" }}>صيغة اللقب على الشهادة</Text>
+            <Segmented
+              value={teacherGender}
+              onChange={setTeacherGender}
+              options={[
+                { key: "male", label: "المعلم" },
+                { key: "female", label: "المعلمة" },
+              ]}
+            />
 
             <Text style={{ fontFamily: fonts.bold, fontSize: 12, color: colors.ink, textAlign: "right" }}>نوع الشهادة</Text>
             <Segmented
