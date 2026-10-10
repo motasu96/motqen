@@ -62,6 +62,19 @@ export type StudentForCertificate = {
   teacherGender: Gender;
 };
 
+export type TeacherForCertificate = { id: string; name: string; gender: Gender };
+
+// Every teacher on the platform (the admin sees suspended ones too), for the
+// "issue a certificate" teacher picker.
+export async function listTeachersForCertificates(supabase: SupabaseClient): Promise<TeacherForCertificate[]> {
+  const { data } = await supabase.from("teachers").select("id, name, gender").order("name");
+  return ((data ?? []) as { id: string; name: string; gender: Gender | null }[]).map((r) => ({
+    id: r.id,
+    name: r.name,
+    gender: r.gender ?? "male",
+  }));
+}
+
 // Every real student with their most recent confirmed booking's teacher,
 // used to populate the admin's "issue a certificate" picker.
 export async function listStudentsForCertificates(supabase: SupabaseClient): Promise<StudentForCertificate[]> {
