@@ -31,7 +31,7 @@ export const GRADE_LABEL_TEXT: Record<string, string> = {
   pass: "مقبول",
 };
 
-export type CertScope = "parts" | "khatm";
+export type CertScope = "parts" | "khatm" | "course";
 
 export type Gender = "male" | "female";
 
@@ -46,6 +46,7 @@ export type CertificateRow = {
   issued_by_name: string;
   scope: CertScope;
   program_slug: string | null;
+  course_slug: string | null;
   narration: string;
   juz_count: number | null;
   juz_names: string | null;
@@ -70,10 +71,12 @@ export function formatJuzCount(n: number): string {
 }
 
 export function certificateTitle(scope: CertScope): string {
+  if (scope === "course") return "شهادة إتمام دورة";
   return scope === "khatm" ? "شهادة ختم القرآن الكريم" : "شهادة حفظ";
 }
 
 export function amountShort(scope: CertScope, juzCount: number | null): string {
+  if (scope === "course") return "دورة";
   if (scope === "khatm") return "القرآن كاملًا";
   return formatJuzCount(juzCount ?? 0);
 }

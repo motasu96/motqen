@@ -1,5 +1,14 @@
 import { CertificateRow, GRADE_LABEL_TEXT } from "./examsCertificates";
-import { amountShort, certificateTitle, gregorianDate, hijriDate, studentPhrases, teacherLabel } from "./certificateFormat";
+import {
+  amountShort,
+  blessingPhrase,
+  certificateTitle,
+  courseTitle,
+  gregorianDate,
+  hijriDate,
+  studentPhrases,
+  teacherLabel,
+} from "./certificateFormat";
 import { programs } from "./programs";
 
 const SITE_URL = "https://www.motqen.site";
@@ -23,6 +32,37 @@ export function buildCertificateHtml(cert: CertificateRow): string {
   const programTitle = program?.title ?? "—";
   const gradeLabelText = cert.grade_label ? GRADE_LABEL_TEXT[cert.grade_label] : undefined;
   const gradeCell = gradeLabelText ?? (cert.grade_percent != null ? `${cert.grade_percent}%` : "—");
+  const isCourse = cert.scope === "course";
+  const courseName = isCourse ? courseTitle(cert.program_slug, cert.course_slug) || "—" : "";
+  const eyebrow =
+    cert.scope === "course"
+      ? "CERTIFICATE OF COURSE COMPLETION"
+      : cert.scope === "khatm"
+      ? "CERTIFICATE OF QURAN COMPLETION"
+      : "CERTIFICATE OF QURAN MEMORIZATION";
+  const bodyText = isCourse
+    ? `قد ${g.completed} دورة «${escapeHtml(courseName)}» ضمن برنامج «${escapeHtml(programTitle)}»، ${g.passed} الاختبار النهائي بنجاح، سائلين الله ${blessingPhrase(cert.student_gender)}.`
+    : `قد ${g.completed} حفظ ما يلي من كتاب الله تعالى، ${g.passed} الاختبار النهائي بنجاح، سائلين الله ${blessingPhrase(cert.student_gender)}.`;
+  const statCells = isCourse
+    ? [
+        { label: "البرنامج", en: "Program", value: programTitle, gold: false },
+        { label: "الدورة", en: "Course", value: courseName, gold: false },
+        { label: "التقدير", en: "Grade", value: gradeCell, gold: true },
+      ]
+    : [
+        { label: "البرنامج", en: "Program", value: programTitle, gold: false },
+        { label: "المقدار", en: "Portion", value: amountShort(cert.scope, cert.juz_count), gold: false },
+        { label: "الرواية", en: "Narration", value: cert.narration, gold: false },
+        { label: "التقدير", en: "Grade", value: gradeCell, gold: true },
+      ];
+  const statsHtml = statCells
+    .map(
+      (c) => `<div class="stat">
+          <div class="stat-label">${c.label} · <span style="direction:ltr">${c.en}</span></div>
+          <div class="stat-value${c.gold ? " gold" : ""}">${escapeHtml(c.value)}</div>
+        </div>`
+    )
+    .join("\n        ");
   const verifyUrl = `${SITE_URL}/verify/${cert.certificate_number}`;
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=0&data=${encodeURIComponent(verifyUrl)}`;
 
@@ -67,7 +107,7 @@ export function buildCertificateHtml(cert: CertificateRow): string {
     width: 100%;
     max-width: 860px;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(${statCells.length}, minmax(0, 1fr));
     border-top: 1px solid ${BORDER};
     border-bottom: 1px solid ${BORDER};
   }
@@ -111,7 +151,7 @@ export function buildCertificateHtml(cert: CertificateRow): string {
     <div class="content">
       <img class="logo" src="${SITE_URL}/images/logo.png" />
 
-      <div class="eyebrow">${certificateTitle(cert.scope) === "شهادة ختم القرآن الكريم" ? "CERTIFICATE OF QURAN COMPLETION" : "CERTIFICATE OF QURAN MEMORIZATION"}</div>
+      <div class="eyebrow">${eyebrow}</div>
       <h1>${certificateTitle(cert.scope)}</h1>
 
       <div class="intro">
@@ -121,25 +161,10 @@ export function buildCertificateHtml(cert: CertificateRow): string {
 
       <div class="student-name">${escapeHtml(cert.student_name)}</div>
 
-      <p class="body-text">قد ${g.completed} حفظ ما يلي من كتاب الله تعالى، ${g.passed} الاختبار النهائي بنجاح، سائلين الله أن يبارك فيه وينفع به.</p>
+      <p class="body-text">${bodyText}</p>
 
       <div class="stats">
-        <div class="stat">
-          <div class="stat-label">البرنامج · <span style="direction:ltr">Program</span></div>
-          <div class="stat-value">${escapeHtml(programTitle)}</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">المقدار · <span style="direction:ltr">Portion</span></div>
-          <div class="stat-value">${amountShort(cert.scope, cert.juz_count)}</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">الرواية · <span style="direction:ltr">Narration</span></div>
-          <div class="stat-value">${escapeHtml(cert.narration)}</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">التقدير · <span style="direction:ltr">Grade</span></div>
-          <div class="stat-value gold">${escapeHtml(gradeCell)}</div>
-        </div>
+        ${statsHtml}
       </div>
 
       ${

@@ -9,7 +9,7 @@ import { confirmMemorization } from "../../lib/staff/memorization";
 import { getStudentPlan, updateStudentPlan } from "../../lib/staff/students";
 import { isIsoDate, todayIso } from "../../lib/staff/roomLink";
 import StudentFileSheet from "../../components/staff/StudentFileSheet";
-import { Button, Card, Chip, Empty, Field, Loading, Pill, Screen, SectionTitle, Segmented } from "../../components/staff/ui";
+import { Button, Card, Chip, ChipRow, Empty, Field, Loading, Pill, Screen, SectionTitle, Segmented } from "../../components/staff/ui";
 import { useTheme, fonts } from "../../lib/theme";
 
 const PLAN_DURATIONS = [
@@ -102,11 +102,11 @@ function StudentPlanPanel({ studentId, onSaved }: { studentId: string; onSaved: 
   return (
     <View style={{ gap: 12 }}>
       <Text style={{ fontFamily: fonts.bold, fontSize: 12, textAlign: "right" }}>مدة الخطة</Text>
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+      <ChipRow>
         {PLAN_DURATIONS.map((d) => (
           <Chip key={d.months} label={d.label} active={durationMonths === d.months} onPress={() => setDurationMonths(d.months)} />
         ))}
-      </View>
+      </ChipRow>
       <Field label="الأجزاء المحفوظة حاليًا (0–29)" value={juz} onChangeText={setJuz} keyboardType="numeric" />
       <Text style={{ fontFamily: fonts.bold, fontSize: 12, textAlign: "right" }}>أيام المراجعة أسبوعيًا</Text>
       <Segmented

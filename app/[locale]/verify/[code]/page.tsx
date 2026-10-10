@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { verifyCertificate, PublicCertificate } from "@/lib/supabase/certificates";
-import { certificateTitle, amountShort, gregorianDate, hijriDate } from "@/lib/certificateFormat";
+import { certificateTitle, certificateAmount, gregorianDate, hijriDate } from "@/lib/certificateFormat";
 import { programs } from "@/data/programs";
 import { localize } from "@/lib/localize";
 import { IconAward, IconX } from "@/components/icons";
@@ -62,7 +62,7 @@ export default async function VerifyCertificatePage({
               <div>
                 <div className="text-xs text-ink-soft">{t("labelAchievement")}</div>
                 <div className="text-sm font-bold text-ink">
-                  {certificateTitle(cert.scope, locale)} — {amountShort(cert.scope, cert.juz_count, locale)}
+                  {certificateTitle(cert.scope, locale)} — {certificateAmount(cert, locale)}
                 </div>
                 <div className="text-xs text-ink-soft">{cert.narration}</div>
               </div>

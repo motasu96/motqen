@@ -17,7 +17,7 @@ import {
 } from "../../lib/staff/teacherStudents";
 import { teacherRoomHref } from "../../lib/staff/roomLink";
 import PulseBadge from "../../components/PulseBadge";
-import { Button, Card, Chip, Empty, Field, Loading, Muted, Row, Screen, SectionTitle } from "../../components/staff/ui";
+import { Button, Card, Chip, ChipRow, Empty, Field, Loading, Muted, Row, Screen, SectionTitle } from "../../components/staff/ui";
 
 // Same Saturday-first order as the web schedule page (0 = Saturday), which
 // is what teachers.available_days and group_sessions.day_of_week use.
@@ -113,17 +113,17 @@ export default function TeacherSchedule() {
             <SectionTitle icon="time-outline">الأوقات المتاحة للحجز</SectionTitle>
             <Muted>اختر الأوقات التي تناسبك، وسيراها الطلاب عند حجز حصة معك</Muted>
             <Muted>الأيام المتاحة للحصص الفردية</Muted>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            <ChipRow>
               {DAYS.map((label, i) => (
                 <Chip key={label} label={label} active={days.includes(i)} onPress={() => toggleDay(i)} />
               ))}
-            </View>
+            </ChipRow>
             <Muted>الأوقات المتاحة</Muted>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            <ChipRow>
               {TIME_SLOT_OPTIONS.map((hhmm) => (
                 <Chip key={hhmm} label={formatTimeSlot(hhmm)} active={times.includes(hhmm)} onPress={() => toggleTime(hhmm)} />
               ))}
-            </View>
+            </ChipRow>
             <Button
               label="حفظ الأوقات"
               onPress={saveAvailability}

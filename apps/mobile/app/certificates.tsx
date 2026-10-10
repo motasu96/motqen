@@ -5,13 +5,8 @@ import { Stack, useFocusEffect } from "expo-router";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { useAuth } from "../lib/auth";
-import {
-  amountShort,
-  CertificateRow,
-  certificateTitle,
-  GRADE_LABEL_TEXT,
-  listMyCertificates,
-} from "../lib/examsCertificates";
+import { CertificateRow, certificateTitle, GRADE_LABEL_TEXT, listMyCertificates } from "../lib/examsCertificates";
+import { certificateAmount } from "../lib/certificateFormat";
 import { buildCertificateHtml } from "../lib/certificateHtml";
 import { fonts, Palette, radius, shadow, useTheme } from "../lib/theme";
 
@@ -79,7 +74,7 @@ export default function CertificatesScreen() {
                   <Ionicons name="ribbon" size={20} color={colors.goldDark} />
                 </View>
                 <Text style={styles.title}>
-                  {certificateTitle(c.scope)} — {amountShort(c.scope, c.juz_count)}
+                  {certificateTitle(c.scope)} — {certificateAmount(c)}
                 </Text>
                 <Text style={styles.meta}>
                   {c.grade_label ? `${GRADE_LABEL_TEXT[c.grade_label] ?? c.grade_label} · ` : ""}
@@ -119,9 +114,9 @@ export default function CertificatesScreen() {
                 <Ionicons name="ribbon" size={40} color={colors.goldDark} style={{ alignSelf: "center" }} />
                 <Text style={styles.modalTitle}>{certificateTitle(viewing.scope)}</Text>
                 <Text style={styles.modalRow}>تُمنح هذه الشهادة إلى: {viewing.student_name}</Text>
-                <Text style={styles.modalRow}>لإتمام: {amountShort(viewing.scope, viewing.juz_count)}</Text>
+                <Text style={styles.modalRow}>لإتمام: {certificateAmount(viewing)}</Text>
                 {viewing.juz_names && <Text style={styles.modalRow}>{viewing.juz_names}</Text>}
-                <Text style={styles.modalRow}>برواية: {viewing.narration}</Text>
+                {viewing.scope !== "course" && <Text style={styles.modalRow}>برواية: {viewing.narration}</Text>}
                 {viewing.grade_label && (
                   <Text style={styles.modalRow}>
                     التقدير: {GRADE_LABEL_TEXT[viewing.grade_label] ?? viewing.grade_label}

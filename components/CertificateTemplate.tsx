@@ -6,7 +6,9 @@ import { programs } from "@/data/programs";
 import { localize } from "@/lib/localize";
 import {
   amountShort,
+  blessingPhrase,
   certificateTitle,
+  courseTitle,
   gregorianDate,
   hijriDate,
   studentPhrases,
@@ -35,6 +37,8 @@ export default function CertificateTemplate({
   const g = studentPhrases(cert.student_gender, locale);
   const program = programs.find((p) => p.slug === cert.program_slug);
   const programTitle = program ? localize(program, locale).title : "—";
+  const isCourse = cert.scope === "course";
+  const courseName = isCourse ? courseTitle(cert.program_slug, cert.course_slug, "ar") || "—" : "";
   const gradeLabelText =
     cert.grade_label &&
     { excellent_high: "ممتاز مرتفع", excellent: "ممتاز", very_good: "جيد جدًا", good: "جيد", pass: "مقبول" }[cert.grade_label];
@@ -93,47 +97,57 @@ export default function CertificateTemplate({
         </div>
 
         <p style={{ margin: "14px 0 0", maxWidth: 680, fontSize: 17, lineHeight: 1.8, color: BODY }}>
-          قد {g.completed} حفظ ما يلي من كتاب الله تعالى، {g.passed} الاختبار النهائي بنجاح، سائلين الله أن يبارك فيه وينفع به.
+          {isCourse
+            ? `قد ${g.completed} دورة «${courseName}» ضمن برنامج «${programTitle}»، ${g.passed} الاختبار النهائي بنجاح، سائلين الله ${blessingPhrase(cert.student_gender)}.`
+            : `قد ${g.completed} حفظ ما يلي من كتاب الله تعالى، ${g.passed} الاختبار النهائي بنجاح، سائلين الله ${blessingPhrase(cert.student_gender)}.`}
         </p>
 
-        <div
-          style={{
-            marginTop: 20,
-            width: "100%",
-            maxWidth: 860,
-            display: "grid",
-            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-            borderTop: `1px solid ${BORDER}`,
-            borderBottom: `1px solid ${BORDER}`,
-          }}
-        >
-          <div style={{ padding: "12px 8px", display: "flex", flexDirection: "column", gap: 2 }}>
-            <div style={{ fontSize: 13, color: MUTED }}>
-              البرنامج · <span dir="ltr">Program</span>
+        {(() => {
+          const gradeValue = gradeLabelText ?? (cert.grade_percent != null ? `${cert.grade_percent}%` : "—");
+          const cells: { label: string; en: string; value: string; accent?: boolean }[] = isCourse
+            ? [
+                { label: "البرنامج", en: "Program", value: programTitle },
+                { label: "الدورة", en: "Course", value: courseName },
+                { label: "التقدير", en: "Grade", value: gradeValue, accent: true },
+              ]
+            : [
+                { label: "البرنامج", en: "Program", value: programTitle },
+                { label: "المقدار", en: "Portion", value: amountShort(cert.scope, cert.juz_count, "ar") },
+                { label: "الرواية", en: "Narration", value: cert.narration },
+                { label: "التقدير", en: "Grade", value: gradeValue, accent: true },
+              ];
+          return (
+            <div
+              style={{
+                marginTop: 20,
+                width: "100%",
+                maxWidth: 860,
+                display: "grid",
+                gridTemplateColumns: `repeat(${cells.length}, minmax(0, 1fr))`,
+                borderTop: `1px solid ${BORDER}`,
+                borderBottom: `1px solid ${BORDER}`,
+              }}
+            >
+              {cells.map((cell, idx) => (
+                <div
+                  key={cell.en}
+                  style={{
+                    padding: "12px 8px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                    borderRight: idx === 0 ? undefined : `1px solid ${BORDER}`,
+                  }}
+                >
+                  <div style={{ fontSize: 13, color: MUTED }}>
+                    {cell.label} · <span dir="ltr">{cell.en}</span>
+                  </div>
+                  <div style={{ fontSize: 18, fontWeight: 600, color: cell.accent ? GOLD_DARK : undefined }}>{cell.value}</div>
+                </div>
+              ))}
             </div>
-            <div style={{ fontSize: 18, fontWeight: 600 }}>{programTitle}</div>
-          </div>
-          <div style={{ padding: "12px 8px", display: "flex", flexDirection: "column", gap: 2, borderRight: `1px solid ${BORDER}` }}>
-            <div style={{ fontSize: 13, color: MUTED }}>
-              المقدار · <span dir="ltr">Portion</span>
-            </div>
-            <div style={{ fontSize: 18, fontWeight: 600 }}>{amountShort(cert.scope, cert.juz_count, "ar")}</div>
-          </div>
-          <div style={{ padding: "12px 8px", display: "flex", flexDirection: "column", gap: 2, borderRight: `1px solid ${BORDER}` }}>
-            <div style={{ fontSize: 13, color: MUTED }}>
-              الرواية · <span dir="ltr">Narration</span>
-            </div>
-            <div style={{ fontSize: 18, fontWeight: 600 }}>{cert.narration}</div>
-          </div>
-          <div style={{ padding: "12px 8px", display: "flex", flexDirection: "column", gap: 2, borderRight: `1px solid ${BORDER}` }}>
-            <div style={{ fontSize: 13, color: MUTED }}>
-              التقدير · <span dir="ltr">Grade</span>
-            </div>
-            <div style={{ fontSize: 18, fontWeight: 600, color: GOLD_DARK }}>
-              {gradeLabelText ?? (cert.grade_percent != null ? `${cert.grade_percent}%` : "—")}
-            </div>
-          </div>
-        </div>
+          );
+        })()}
 
         {cert.juz_names && (
           <div style={{ marginTop: 10, maxWidth: 780, fontSize: 14, color: SUBTLE, lineHeight: 1.6 }}>

@@ -20,7 +20,7 @@ import {
   listAllCertificates,
   listStudentsForCertificates,
 } from "@/lib/supabase/certificates";
-import { amountShort, certificateTitle } from "@/lib/certificateFormat";
+import { certificateAmount, certificateTitle } from "@/lib/certificateFormat";
 import { programs } from "@/data/programs";
 import { localize } from "@/lib/localize";
 import CertificateView from "@/components/CertificateView";
@@ -53,6 +53,7 @@ export default function AdminCertificatesPage() {
   const [juzCount, setJuzCount] = useState("10");
   const [juzNames, setJuzNames] = useState("");
   const [programSlug, setProgramSlug] = useState(programs[0]?.slug ?? "");
+  const [courseSlug, setCourseSlug] = useState("");
   const [narration, setNarration] = useState("حفص عن عاصم");
   const [gradePercent, setGradePercent] = useState("");
   const [gradeLabel, setGradeLabel] = useState<GradeLabel | "">("");
@@ -104,6 +105,10 @@ export default function AdminCertificatesPage() {
       showToast(t("errorCertificateNoTeacher"), "error");
       return;
     }
+    if (scope === "course" && !courseSlug) {
+      showToast(t("errorCertificateCourse"), "error");
+      return;
+    }
     setIssuing(true);
     const supabase = createClient();
     const { data: profile } = await supabase.from("profiles").select("full_name").eq("id", adminId).single();
@@ -118,6 +123,7 @@ export default function AdminCertificatesPage() {
       issuedByName: (profile?.full_name as string | null) || adminName,
       scope,
       programSlug: programSlug || null,
+      courseSlug: scope === "course" ? courseSlug : null,
       narration: narration.trim() || "حفص عن عاصم",
       juzCount: scope === "parts" ? Number(juzCount) : null,
       juzNames: scope === "parts" && juzNames.trim() ? juzNames.trim() : null,
@@ -135,6 +141,7 @@ export default function AdminCertificatesPage() {
     setScope("parts");
     setJuzCount("10");
     setJuzNames("");
+    setCourseSlug("");
     setNarration("حفص عن عاصم");
     setGradePercent("");
     setGradeLabel("");
@@ -180,9 +187,22 @@ export default function AdminCertificatesPage() {
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-ink-soft">{t("certFieldScope")}</label>
-              <select value={scope} onChange={(e) => setScope(e.target.value as CertScope)} className="input">
+              <select
+                value={scope}
+                onChange={(e) => {
+                  const next = e.target.value as CertScope;
+                  setScope(next);
+                  // A course certificate needs a program that has courses.
+                  if (next === "course" && !programs.find((p) => p.slug === programSlug)?.courses?.length) {
+                    setProgramSlug(programs.find((p) => p.courses?.length)?.slug ?? programSlug);
+                    setCourseSlug("");
+                  }
+                }}
+                className="input"
+              >
                 <option value="parts">{t("scopeParts")}</option>
                 <option value="khatm">{t("scopeKhatm")}</option>
+                <option value="course">{t("scopeCourse")}</option>
               </select>
             </div>
             {scope === "parts" && (
@@ -200,8 +220,15 @@ export default function AdminCertificatesPage() {
             )}
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-ink-soft">{t("certFieldProgram")}</label>
-              <select value={programSlug} onChange={(e) => setProgramSlug(e.target.value)} className="input">
-                {programs.map((p0) => {
+              <select
+                value={programSlug}
+                onChange={(e) => {
+                  setProgramSlug(e.target.value);
+                  setCourseSlug("");
+                }}
+                className="input"
+              >
+                {(scope === "course" ? programs.filter((p) => p.courses?.length) : programs).map((p0) => {
                   const p = localize(p0, locale);
                   return (
                     <option key={p.slug} value={p.slug}>
@@ -212,6 +239,23 @@ export default function AdminCertificatesPage() {
               </select>
             </div>
           </div>
+
+          {scope === "course" && (
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-ink-soft">{t("certFieldCourse")}</label>
+              <select value={courseSlug} onChange={(e) => setCourseSlug(e.target.value)} className="input">
+                <option value="">{t("selectCoursePlaceholder")}</option>
+                {(programs.find((p) => p.slug === programSlug)?.courses ?? []).map((c0) => {
+                  const c = localize(c0, locale);
+                  return (
+                    <option key={c.slug} value={c.slug}>
+                      {c.title}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+          )}
 
           {scope === "parts" && (
             <div className="flex flex-col gap-2">
@@ -227,10 +271,12 @@ export default function AdminCertificatesPage() {
           )}
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-ink-soft">{t("certFieldNarration")}</label>
-              <input value={narration} onChange={(e) => setNarration(e.target.value)} className="input" />
-            </div>
+            {scope !== "course" && (
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-ink-soft">{t("certFieldNarration")}</label>
+                <input value={narration} onChange={(e) => setNarration(e.target.value)} className="input" />
+              </div>
+            )}
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-ink-soft">{t("certFieldDate")}</label>
               <input type="date" value={issuedAt} onChange={(e) => setIssuedAt(e.target.value)} className="input" />
@@ -284,7 +330,7 @@ export default function AdminCertificatesPage() {
                 <div>
                   <div className="text-sm font-bold text-ink">{c.student_name}</div>
                   <div className="text-xs text-ink-soft">
-                    {certificateTitle(c.scope, locale)} — {amountShort(c.scope, c.juz_count, locale)}
+                    {certificateTitle(c.scope, locale)} — {certificateAmount(c, locale)}
                     {c.grade_label ? ` · ${tCert(GRADE_LABEL_TRANSLATION_KEYS[c.grade_label])}` : ""}
                     {c.grade_percent != null ? ` (${c.grade_percent}%)` : ""} · {tc("with")} {c.teacher_name} · {c.issued_at}
                   </div>
