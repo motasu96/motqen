@@ -17,7 +17,9 @@ import {
   issueCertificate,
   listAllCertificates,
   listStudentsForCertificates,
+  listTeachersForCertificates,
   StudentForCertificate,
+  TeacherForCertificate,
 } from "../../lib/staff/certificates";
 import {
   Button,
@@ -44,6 +46,8 @@ export default function AdminCertificates() {
   const adminId = session?.user?.id ?? null;
 
   const [students, setStudents] = useState<StudentForCertificate[]>([]);
+  const [teachers, setTeachers] = useState<TeacherForCertificate[]>([]);
+  const [teacherId, setTeacherId] = useState("");
   const [certificates, setCertificates] = useState<CertificateRow[]>([]);
   const [ready, setReady] = useState(false);
   const [sharingId, setSharingId] = useState<string | null>(null);
@@ -62,8 +66,13 @@ export default function AdminCertificates() {
   const [issuing, setIssuing] = useState(false);
 
   const load = useCallback(async () => {
-    const [studentRows, certRows] = await Promise.all([listStudentsForCertificates(supabase), listAllCertificates(supabase)]);
+    const [studentRows, certRows, teacherRows] = await Promise.all([
+      listStudentsForCertificates(supabase),
+      listAllCertificates(supabase),
+      listTeachersForCertificates(supabase),
+    ]);
     setStudents(studentRows);
+    setTeachers(teacherRows);
     setCertificates(certRows);
     setReady(true);
   }, []);
@@ -75,6 +84,7 @@ export default function AdminCertificates() {
   );
 
   const selected = students.find((s) => s.studentId === studentId) ?? null;
+  const selectedTeacher = teachers.find((tr) => tr.id === teacherId) ?? null;
   const suggestions = useMemo(() => {
     const q = query.trim();
     if (!q) return [];
@@ -100,8 +110,8 @@ export default function AdminCertificates() {
       Alert.alert("اختر الدورة", "اختر الدورة التي أتمّها الطالب.");
       return;
     }
-    if (!selected.teacherId) {
-      Alert.alert("لا يوجد معلم", "لم يُحدَّد معلم لهذا الطالب بعد، لا يمكن إصدار شهادة له حاليًا.");
+    if (!selectedTeacher) {
+      Alert.alert("اختر المعلم", "اختر المعلم الذي درّس الطالب.");
       return;
     }
     setIssuing(true);
@@ -110,9 +120,9 @@ export default function AdminCertificates() {
       studentId: selected.studentId,
       studentName: selected.studentName,
       studentGender: selected.studentGender,
-      teacherId: selected.teacherId,
-      teacherName: selected.teacherName,
-      teacherGender: selected.teacherGender,
+      teacherId: selectedTeacher.id,
+      teacherName: selectedTeacher.name,
+      teacherGender: selectedTeacher.gender,
       issuedBy: adminId,
       issuedByName: (profile?.full_name as string | null) || "إدارة متقن",
       scope,
@@ -133,6 +143,7 @@ export default function AdminCertificates() {
     Alert.alert("تم", "تم إصدار الشهادة بنجاح");
     setQuery("");
     setStudentId("");
+    setTeacherId("");
     setScope("parts");
     setJuzCount("10");
     setJuzNames("");
@@ -176,7 +187,7 @@ export default function AdminCertificates() {
             {selected ? (
               <Row
                 title={selected.studentName || "—"}
-                subtitle={selected.teacherName ? `المعلم: ${selected.teacherName}` : "لا يوجد معلم لهذا الطالب بعد"}
+                subtitle={selected.teacherName ? `آخر معلم حجز معه: ${selected.teacherName}` : "لم يحجز مع معلم بعد"}
                 trailing={
                   <Button
                     label="تغيير"
@@ -184,6 +195,7 @@ export default function AdminCertificates() {
                     small
                     onPress={() => {
                       setStudentId("");
+                      setTeacherId("");
                       setQuery("");
                     }}
                   />
@@ -198,10 +210,25 @@ export default function AdminCertificates() {
                     key={s.studentId}
                     title={s.studentName || "—"}
                     subtitle={s.teacherName ? `المعلم: ${s.teacherName}` : "بدون معلم"}
-                    onPress={() => setStudentId(s.studentId)}
+                    onPress={() => {
+                      setStudentId(s.studentId);
+                      // Pre-select the teacher the student last booked with; the admin can change it.
+                      setTeacherId(s.teacherId ?? "");
+                    }}
                   />
                 ))}
               </>
+            )}
+
+            <Text style={{ fontFamily: fonts.bold, fontSize: 12, color: colors.ink, textAlign: "right" }}>المعلم</Text>
+            {teachers.length === 0 ? (
+              <Muted>لا يوجد معلمون.</Muted>
+            ) : (
+              <ChipRow>
+                {teachers.map((tr) => (
+                  <Chip key={tr.id} label={tr.name} active={teacherId === tr.id} onPress={() => setTeacherId(tr.id)} />
+                ))}
+              </ChipRow>
             )}
 
             <Text style={{ fontFamily: fonts.bold, fontSize: 12, color: colors.ink, textAlign: "right" }}>نوع الشهادة</Text>
@@ -272,7 +299,7 @@ export default function AdminCertificates() {
               ))}
             </ChipRow>
 
-            <Button label="إصدار الشهادة" icon="ribbon-outline" onPress={issue} loading={issuing} disabled={!selected} />
+            <Button label="إصدار الشهادة" icon="ribbon-outline" onPress={issue} loading={issuing} disabled={!selected || !selectedTeacher} />
           </Card>
 
           <SectionTitle icon="documents-outline">الشهادات الصادرة</SectionTitle>

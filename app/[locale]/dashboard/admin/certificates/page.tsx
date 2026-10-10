@@ -15,10 +15,12 @@ import {
   GRADE_LABEL_TRANSLATION_KEYS,
   GradeLabel,
   StudentForCertificate,
+  TeacherForCertificate,
   deleteCertificate,
   issueCertificate,
   listAllCertificates,
   listStudentsForCertificates,
+  listTeachersForCertificates,
 } from "@/lib/supabase/certificates";
 import { certificateAmount, certificateTitle } from "@/lib/certificateFormat";
 import { programs } from "@/data/programs";
@@ -43,6 +45,8 @@ export default function AdminCertificatesPage() {
 
   const [adminId, setAdminId] = useState<string | null>(null);
   const [students, setStudents] = useState<StudentForCertificate[]>([]);
+  const [teachers, setTeachers] = useState<TeacherForCertificate[]>([]);
+  const [teacherId, setTeacherId] = useState("");
   const [certificates, setCertificates] = useState<CertificateRow[]>([]);
   const [ready, setReady] = useState(false);
   const [viewing, setViewing] = useState<CertificateRow | null>(null);
@@ -62,11 +66,13 @@ export default function AdminCertificatesPage() {
 
   async function load() {
     const supabase = createClient();
-    const [studentRows, certRows] = await Promise.all([
+    const [studentRows, certRows, teacherRows] = await Promise.all([
       listStudentsForCertificates(supabase),
       listAllCertificates(supabase),
+      listTeachersForCertificates(supabase),
     ]);
     setStudents(studentRows);
+    setTeachers(teacherRows);
     setCertificates(certRows);
     setReady(true);
   }
@@ -95,14 +101,15 @@ export default function AdminCertificatesPage() {
   }, []);
 
   const selectedStudent = students.find((s) => s.studentId === studentId) ?? null;
+  const selectedTeacher = teachers.find((tr) => tr.id === teacherId) ?? null;
 
   async function handleIssue() {
     if (!adminId || !selectedStudent || !issuedAt || (scope === "parts" && !juzCount.trim())) {
       showToast(t("errorCertificateFields"), "error");
       return;
     }
-    if (!selectedStudent.teacherId) {
-      showToast(t("errorCertificateNoTeacher"), "error");
+    if (!selectedTeacher) {
+      showToast(t("errorCertificateTeacher"), "error");
       return;
     }
     if (scope === "course" && !courseSlug) {
@@ -116,9 +123,9 @@ export default function AdminCertificatesPage() {
       studentId: selectedStudent.studentId,
       studentName: selectedStudent.studentName,
       studentGender: selectedStudent.studentGender,
-      teacherId: selectedStudent.teacherId,
-      teacherName: selectedStudent.teacherName,
-      teacherGender: selectedStudent.teacherGender,
+      teacherId: selectedTeacher.id,
+      teacherName: selectedTeacher.name,
+      teacherGender: selectedTeacher.gender,
       issuedBy: adminId,
       issuedByName: (profile?.full_name as string | null) || adminName,
       scope,
@@ -138,6 +145,7 @@ export default function AdminCertificatesPage() {
     }
     showToast(t("toastCertificateIssued"), "success");
     setStudentId("");
+    setTeacherId("");
     setScope("parts");
     setJuzCount("10");
     setJuzNames("");
@@ -169,7 +177,16 @@ export default function AdminCertificatesPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-ink-soft">{t("certFieldStudent")}</label>
-              <select value={studentId} onChange={(e) => setStudentId(e.target.value)} className="input">
+              <select
+                value={studentId}
+                onChange={(e) => {
+                  const id = e.target.value;
+                  setStudentId(id);
+                  // Pre-select the teacher the student last booked with; the admin can change it.
+                  setTeacherId(students.find((s) => s.studentId === id)?.teacherId ?? "");
+                }}
+                className="input"
+              >
                 <option value="">{t("selectStudentPlaceholder")}</option>
                 {students.map((s) => (
                   <option key={s.studentId} value={s.studentId}>
@@ -180,7 +197,14 @@ export default function AdminCertificatesPage() {
             </div>
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-ink-soft">{t("certFieldTeacher")}</label>
-              <div className="input flex items-center text-ink-soft">{selectedStudent?.teacherName || tc("dash")}</div>
+              <select value={teacherId} onChange={(e) => setTeacherId(e.target.value)} className="input">
+                <option value="">{t("selectTeacherPlaceholder")}</option>
+                {teachers.map((tr) => (
+                  <option key={tr.id} value={tr.id}>
+                    {tr.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
