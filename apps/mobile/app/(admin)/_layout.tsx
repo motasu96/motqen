@@ -41,6 +41,8 @@ export default function AdminLayout() {
       <Tabs.Screen name="students" options={{ title: "الطلاب", tabBarIcon: tabIcon("people", "people-outline") }} />
       <Tabs.Screen name="teachers" options={{ title: "المعلمون", tabBarIcon: tabIcon("school", "school-outline") }} />
       <Tabs.Screen name="index" options={{ title: "الرئيسية", tabBarIcon: tabIcon("home", "home-outline") }} />
+      {/* Reached from "More"; not a tab of its own. */}
+      <Tabs.Screen name="certificates" options={{ href: null }} />
     </Tabs>
   );
 }
