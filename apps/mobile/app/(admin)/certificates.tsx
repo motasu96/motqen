@@ -4,7 +4,7 @@ import { useFocusEffect } from "expo-router";
 import { useAuth } from "../../lib/auth";
 import { supabase } from "../../lib/supabase";
 import { programs } from "../../lib/programs";
-import { amountShort, certificateTitle } from "../../lib/certificateFormat";
+import { certificateAmount, certificateTitle } from "../../lib/certificateFormat";
 import { GRADE_LABEL_TEXT } from "../../lib/examsCertificates";
 import { shareCertificatePdf } from "../../lib/certificateShare";
 import { isIsoDate, todayIso } from "../../lib/staff/roomLink";
@@ -54,6 +54,7 @@ export default function AdminCertificates() {
   const [juzCount, setJuzCount] = useState("10");
   const [juzNames, setJuzNames] = useState("");
   const [programSlug, setProgramSlug] = useState(programs[0]?.slug ?? "");
+  const [courseSlug, setCourseSlug] = useState("");
   const [narration, setNarration] = useState("حفص عن عاصم");
   const [gradePercent, setGradePercent] = useState("");
   const [gradeLabel, setGradeLabel] = useState<GradeLabel | "">("");
@@ -95,6 +96,10 @@ export default function AdminCertificates() {
       Alert.alert("المعدل غير صالح", "اكتب نسبة من 0 إلى 100.");
       return;
     }
+    if (scope === "course" && !courseSlug) {
+      Alert.alert("اختر الدورة", "اختر الدورة التي أتمّها الطالب.");
+      return;
+    }
     if (!selected.teacherId) {
       Alert.alert("لا يوجد معلم", "لم يُحدَّد معلم لهذا الطالب بعد، لا يمكن إصدار شهادة له حاليًا.");
       return;
@@ -112,6 +117,7 @@ export default function AdminCertificates() {
       issuedByName: (profile?.full_name as string | null) || "إدارة متقن",
       scope,
       programSlug: programSlug || null,
+      courseSlug: scope === "course" ? courseSlug : null,
       narration: narration.trim() || "حفص عن عاصم",
       juzCount: scope === "parts" ? count : null,
       juzNames: scope === "parts" && juzNames.trim() ? juzNames.trim() : null,
@@ -130,6 +136,7 @@ export default function AdminCertificates() {
     setScope("parts");
     setJuzCount("10");
     setJuzNames("");
+    setCourseSlug("");
     setNarration("حفص عن عاصم");
     setGradePercent("");
     setGradeLabel("");
@@ -200,10 +207,18 @@ export default function AdminCertificates() {
             <Text style={{ fontFamily: fonts.bold, fontSize: 12, color: colors.ink, textAlign: "right" }}>نوع الشهادة</Text>
             <Segmented
               value={scope}
-              onChange={setScope}
+              onChange={(next) => {
+                setScope(next);
+                // A course certificate needs a program that has courses.
+                if (next === "course" && !programs.find((p) => p.slug === programSlug)?.courses?.length) {
+                  setProgramSlug(programs.find((p) => p.courses?.length)?.slug ?? programSlug);
+                  setCourseSlug("");
+                }
+              }}
               options={[
                 { key: "parts", label: "حفظ أجزاء" },
-                { key: "khatm", label: "ختم القرآن كاملًا" },
+                { key: "khatm", label: "ختم القرآن" },
+                { key: "course", label: "إتمام دورة" },
               ]}
             />
             {scope === "parts" && (
@@ -221,12 +236,31 @@ export default function AdminCertificates() {
 
             <Text style={{ fontFamily: fonts.bold, fontSize: 12, color: colors.ink, textAlign: "right" }}>البرنامج</Text>
             <ChipRow>
-              {programs.map((p) => (
-                <Chip key={p.slug} label={p.title} active={programSlug === p.slug} onPress={() => setProgramSlug(p.slug)} />
+              {(scope === "course" ? programs.filter((p) => p.courses?.length) : programs).map((p) => (
+                <Chip
+                  key={p.slug}
+                  label={p.title}
+                  active={programSlug === p.slug}
+                  onPress={() => {
+                    setProgramSlug(p.slug);
+                    setCourseSlug("");
+                  }}
+                />
               ))}
             </ChipRow>
 
-            <Field label="الرواية" value={narration} onChangeText={setNarration} />
+            {scope === "course" && (
+              <>
+                <Text style={{ fontFamily: fonts.bold, fontSize: 12, color: colors.ink, textAlign: "right" }}>الدورة</Text>
+                <ChipRow>
+                  {(programs.find((p) => p.slug === programSlug)?.courses ?? []).map((c) => (
+                    <Chip key={c.slug} label={c.title} active={courseSlug === c.slug} onPress={() => setCourseSlug(c.slug)} />
+                  ))}
+                </ChipRow>
+              </>
+            )}
+
+            {scope !== "course" && <Field label="الرواية" value={narration} onChangeText={setNarration} />}
             <Field label="تاريخ الإصدار" placeholder="YYYY-MM-DD" value={issuedAt} onChangeText={setIssuedAt} keyboardType="numbers-and-punctuation" />
             <Field label="المعدل % (اختياري)" value={gradePercent} onChangeText={setGradePercent} keyboardType="numeric" />
 
@@ -254,7 +288,7 @@ export default function AdminCertificates() {
                   <Pill label={c.certificate_number} />
                 </View>
                 <Muted>
-                  {certificateTitle(c.scope)} — {amountShort(c.scope, c.juz_count)}
+                  {certificateTitle(c.scope)} — {certificateAmount(c)}
                   {c.grade_label ? ` · ${GRADE_LABEL_TEXT[c.grade_label] ?? c.grade_label}` : ""}
                   {c.grade_percent != null ? ` (${c.grade_percent}%)` : ""} · المعلم {c.teacher_name} · {c.issued_at}
                 </Muted>

@@ -9,7 +9,7 @@ import { useStudentLogout } from "@/lib/supabase/useStudentLogout";
 import { useStudentProfile } from "@/lib/supabase/useStudentProfile";
 import { createClient } from "@/lib/supabase/client";
 import { CertificateRow, GRADE_LABEL_TRANSLATION_KEYS, listMyCertificates } from "@/lib/supabase/certificates";
-import { amountShort, certificateTitle } from "@/lib/certificateFormat";
+import { certificateAmount, certificateTitle } from "@/lib/certificateFormat";
 import CertificateView from "@/components/CertificateView";
 import { IconAward } from "@/components/icons";
 
@@ -69,7 +69,7 @@ export default function StudentCertificatesPage() {
               </span>
               <div>
                 <div className="text-sm font-extrabold text-ink">
-                  {certificateTitle(c.scope, locale)} — {amountShort(c.scope, c.juz_count, locale)}
+                  {certificateTitle(c.scope, locale)} — {certificateAmount(c, locale)}
                 </div>
                 <div className="mt-1 text-xs text-ink-soft">
                   {c.grade_label ? `${tCert(GRADE_LABEL_TRANSLATION_KEYS[c.grade_label])}` : ""}

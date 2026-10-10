@@ -13,7 +13,7 @@ export const GRADE_LABEL_TRANSLATION_KEYS: Record<GradeLabel, string> = {
   pass: "gradePass",
 };
 
-export type CertScope = "parts" | "khatm";
+export type CertScope = "parts" | "khatm" | "course";
 export type Gender = "male" | "female";
 
 export type CertificateRow = {
@@ -29,6 +29,7 @@ export type CertificateRow = {
   issued_by_name: string;
   scope: CertScope;
   program_slug: string | null;
+  course_slug: string | null;
   narration: string;
   juz_count: number | null;
   juz_names: string | null;
@@ -47,6 +48,7 @@ export type PublicCertificate = {
   juz_count: number | null;
   juz_names: string | null;
   program_slug: string | null;
+  course_slug: string | null;
   narration: string;
   issued_at: string;
 };
@@ -114,6 +116,7 @@ export async function issueCertificate(
     issuedByName: string;
     scope: CertScope;
     programSlug: string | null;
+    courseSlug: string | null;
     narration: string;
     juzCount: number | null;
     juzNames: string | null;
@@ -133,6 +136,7 @@ export async function issueCertificate(
     issued_by_name: params.issuedByName,
     scope: params.scope,
     program_slug: params.programSlug,
+    course_slug: params.courseSlug,
     narration: params.narration,
     juz_count: params.juzCount,
     juz_names: params.juzNames,
@@ -168,7 +172,7 @@ export async function deleteCertificate(supabase: SupabaseClient, id: string): P
 export async function verifyCertificate(supabase: SupabaseClient, certificateNumber: string): Promise<PublicCertificate | null> {
   const { data } = await supabase
     .from("certificates")
-    .select("certificate_number, student_name, scope, juz_count, juz_names, program_slug, narration, issued_at")
+    .select("certificate_number, student_name, scope, juz_count, juz_names, program_slug, course_slug, narration, issued_at")
     .eq("certificate_number", certificateNumber)
     .maybeSingle();
   return (data as PublicCertificate | null) ?? null;
