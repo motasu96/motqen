@@ -190,6 +190,13 @@ export function Chip({ label, active, onPress }: { label: string; active?: boole
   );
 }
 
+// A wrapping group of choice chips that starts at the RIGHT edge, the way
+// Arabic is read (the app's layout is left-to-right, so a plain row would put
+// the first option, e.g. Saturday or 8:00, at the far left).
+export function ChipRow({ children }: { children: ReactNode }) {
+  return <View style={{ flexDirection: "row-reverse", flexWrap: "wrap", gap: 8 }}>{children}</View>;
+}
+
 export function Pill({ label, tone = "gold" }: { label: string; tone?: "gold" | "green" | "red" | "blue" }) {
   const { colors } = useTheme();
   const styles = getStyles(colors);

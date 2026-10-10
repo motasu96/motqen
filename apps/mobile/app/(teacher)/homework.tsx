@@ -6,7 +6,7 @@ import { supabase } from "../../lib/supabase";
 import { listTeacherStudents, TeacherStudentOption } from "../../lib/staff/teacherStudents";
 import { assignHomework, gradeHomework, HomeworkType, HomeworkWithStudent, listTeacherHomework } from "../../lib/staff/homework";
 import { isIsoDate } from "../../lib/staff/roomLink";
-import { Button, Card, Chip, Empty, Field, Loading, Pill, Screen, SectionTitle, Segmented } from "../../components/staff/ui";
+import { Button, Card, Chip, ChipRow, Empty, Field, Loading, Pill, Screen, SectionTitle, Segmented } from "../../components/staff/ui";
 import { fonts, useTheme } from "../../lib/theme";
 
 const TYPE_LABEL: Record<HomeworkType, string> = { recitation: "تسميع", review: "مراجعة", tajweed: "تجويد" };
@@ -92,11 +92,11 @@ export default function TeacherHomework() {
             <Card>
               <SectionTitle icon="add-circle-outline">تعيين واجب جديد</SectionTitle>
               <Text style={{ fontFamily: fonts.bold, fontSize: 12, color: colors.ink, textAlign: "right" }}>اختر الطالب</Text>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+              <ChipRow>
                 {students.map((s) => (
                   <Chip key={s.id} label={s.name || "—"} active={studentId === s.id} onPress={() => setStudentId(s.id)} />
                 ))}
-              </View>
+              </ChipRow>
               <Segmented
                 value={type}
                 onChange={setType}

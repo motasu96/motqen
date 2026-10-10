@@ -16,7 +16,7 @@ import {
 } from "../../lib/staff/groupAttendance";
 import { isIsoDate, teacherRoomHref, todayIso } from "../../lib/staff/roomLink";
 import PulseBadge from "../../components/PulseBadge";
-import { Button, Card, Chip, Empty, Field, Loading, Muted, Pill, Screen, Segmented } from "../../components/staff/ui";
+import { Button, Card, Chip, ChipRow, Empty, Field, Loading, Muted, Pill, Screen, Segmented } from "../../components/staff/ui";
 import { fonts, Palette, radius, useTheme } from "../../lib/theme";
 
 const DAYS = ["السبت", "الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];
@@ -144,11 +144,11 @@ function GroupAttendancePanel({
       {loggedDates.length > 0 && (
         <View style={{ gap: 8 }}>
           <Muted>سجلات سابقة</Muted>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+          <ChipRow>
             {loggedDates.map((d) => (
               <Chip key={d} label={d} active={d === sessionDate} onPress={() => selectDate(d)} />
             ))}
-          </View>
+          </ChipRow>
         </View>
       )}
     </View>
@@ -377,6 +377,6 @@ function getStyles(colors: Palette) {
     sheetTitle: { flex: 1, fontFamily: fonts.extraBold, fontSize: 17, color: colors.ink, textAlign: "right" },
     close: { width: 36, height: 36, borderRadius: 18, borderWidth: 1, borderColor: colors.line, alignItems: "center", justifyContent: "center" },
     label: { fontFamily: fonts.bold, fontSize: 12, color: colors.ink, textAlign: "right" },
-    wrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+    wrap: { flexDirection: "row-reverse", flexWrap: "wrap", gap: 8 },
   });
 }
