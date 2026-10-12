@@ -1,30 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient as createServerSupabaseClient } from "@/lib/supabase/server";
+import { getRequestUserId } from "@/lib/supabase/requestUser";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // How long after account creation an unauthenticated registration call is
 // still accepted (the signup page calls this within seconds of signUp).
 const FRESH_ACCOUNT_WINDOW_MS = 15 * 60 * 1000;
-
-async function sessionUserId(req: NextRequest): Promise<string | null> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anonKey) return null;
-
-  const bearer = /^Bearer\s+(\S+)$/i.exec(req.headers.get("authorization") ?? "")?.[1];
-  if (bearer) {
-    const client = createSupabaseClient(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } });
-    const { data, error } = await client.auth.getUser(bearer);
-    return error ? null : (data.user?.id ?? null);
-  }
-  if (req.headers.get("sec-fetch-site") === "cross-site") return null;
-  const client = await createServerSupabaseClient();
-  const { data, error } = await client.auth.getUser();
-  return error ? null : (data.user?.id ?? null);
-}
 
 async function authorizeRegistration(
   req: NextRequest,
@@ -34,7 +16,7 @@ async function authorizeRegistration(
   const forbidden = () => NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   // Signed in as the account being registered: fine.
-  if ((await sessionUserId(req)) === userId) return null;
+  if ((await getRequestUserId(req)) === userId) return null;
 
   // Otherwise (email confirmation pending, so no session for the new account
   // yet): only a brand-new student account that has no student record. Ids are random UUIDs known only

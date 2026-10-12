@@ -1074,6 +1074,46 @@
       "resetToDefaultAvatar": "Reset to default logo"
     }
   },
+  "DeleteAccount": {
+    "metaTitle": "Delete Account | Motqen",
+    "eyebrow": "Delete account",
+    "title": "How to delete your account and data",
+    "intro": "You can delete your Motqen account and all the data tied to it at any time. This page explains how, and what is removed.",
+    "sections": [
+      {
+        "title": "From the app",
+        "body": [
+          "Sign in, open the \"Account\" tab, tap \"Delete my account\" and confirm. Deletion is immediate and cannot be undone."
+        ]
+      },
+      {
+        "title": "By contacting us",
+        "body": [
+          "If you cannot sign in, email us from the address registered on the account at info@motqen.site with the subject \"Account deletion request\" and we will delete it within 30 days at most."
+        ]
+      },
+      {
+        "title": "What is deleted",
+        "body": [
+          "Your account, profile and registration details (age, program, country, city, phone number and email), along with your bookings, lessons, homework, attendance record, reviews and certificates on the platform."
+        ]
+      },
+      {
+        "title": "What may remain",
+        "body": [
+          "We may keep the minimum records that the law requires or that are needed to protect the platform from abuse, and only for as long as necessary. Emails you sent us stay in our mailbox until we delete them at your request."
+        ]
+      },
+      {
+        "title": "Teacher and admin accounts",
+        "body": [
+          "Teacher and admin accounts are linked to records other students rely on, so they are deleted by the platform's administration. Email us at info@motqen.site."
+        ]
+      }
+    ],
+    "contactTitle": "Need help?",
+    "contactDesc": "Email us at info@motqen.site and we will help as soon as possible."
+  },
   "Privacy": {
     "metaTitle": "Privacy Policy | Motqen",
     "eyebrow": "Privacy Policy",

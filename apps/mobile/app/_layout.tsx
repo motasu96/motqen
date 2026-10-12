@@ -35,6 +35,7 @@ function ThemedStack() {
         <Stack.Screen name="(teacher)" />
         <Stack.Screen name="(admin)" />
         <Stack.Screen name="login" />
+        <Stack.Screen name="signup" />
         <Stack.Screen name="room/[room]" options={{ presentation: "fullScreenModal" }} />
       </Stack>
     </>

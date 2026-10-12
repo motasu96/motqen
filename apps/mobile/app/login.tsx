@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { Redirect } from "expo-router";
+import { Redirect, useRouter } from "expo-router";
 import { homeRouteFor, useAuth } from "../lib/auth";
 import { supabase } from "../lib/supabase";
 import { fonts, gradientFor, Palette, radius, shadow, useTheme } from "../lib/theme";
@@ -22,6 +22,7 @@ export default function LoginScreen() {
   const { session, role, loading: sessionLoading } = useAuth();
   const { colors } = useTheme();
   const styles = getStyles(colors);
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -116,6 +117,10 @@ export default function LoginScreen() {
               {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>دخول</Text>}
             </LinearGradient>
           </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => router.push("/signup")} activeOpacity={0.7} style={styles.signupLink}>
+            <Text style={styles.signupText}>طالب جديد؟ أنشئ حسابًا</Text>
+          </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -159,5 +164,7 @@ function getStyles(colors: Palette) {
     marginTop: 8,
   },
   buttonText: { color: "#fff", fontFamily: fonts.extraBold, fontSize: 15 },
+  signupLink: { alignItems: "center", paddingVertical: 14 },
+  signupText: { fontFamily: fonts.bold, fontSize: 14, color: colors.goldDark },
   });
 }
