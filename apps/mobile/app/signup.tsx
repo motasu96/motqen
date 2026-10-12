@@ -146,7 +146,7 @@ export default function SignupScreen() {
     fetch(`${SITE_URL}/api/welcome-email`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name.trim(), email: cleanEmail, locale: "ar" }),
+      body: JSON.stringify({ userId: data.user.id, locale: "ar" }),
     }).catch(() => {});
 
     setSubmitting(false);
