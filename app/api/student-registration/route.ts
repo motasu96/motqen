@@ -1,7 +1,58 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient as createServerSupabaseClient } from "@/lib/supabase/server";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// How long after account creation an unauthenticated registration call is
+// still accepted (the signup page calls this within seconds of signUp).
+const FRESH_ACCOUNT_WINDOW_MS = 15 * 60 * 1000;
+
+async function sessionUserId(req: NextRequest): Promise<string | null> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anonKey) return null;
+
+  const bearer = /^Bearer\s+(\S+)$/i.exec(req.headers.get("authorization") ?? "")?.[1];
+  if (bearer) {
+    const client = createSupabaseClient(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const { data, error } = await client.auth.getUser(bearer);
+    return error ? null : (data.user?.id ?? null);
+  }
+  if (req.headers.get("sec-fetch-site") === "cross-site") return null;
+  const client = await createServerSupabaseClient();
+  const { data, error } = await client.auth.getUser();
+  return error ? null : (data.user?.id ?? null);
+}
+
+async function authorizeRegistration(
+  req: NextRequest,
+  admin: ReturnType<typeof createAdminClient>,
+  userId: string
+): Promise<NextResponse | null> {
+  const forbidden = () => NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  // Signed in as the account being registered: fine.
+  if ((await sessionUserId(req)) === userId) return null;
+
+  // Otherwise (email confirmation pending, so no session for the new account
+  // yet): only a brand-new student account that has no student record. Ids are random UUIDs known only
+  // to the person who just created the account, so this cannot be used to
+  // overwrite an existing student, nor to touch a teacher or admin.
+  const { data: created, error } = await admin.auth.admin.getUserById(userId);
+  const user = created?.user;
+  if (error || !user) return forbidden();
+  if (Date.now() - new Date(user.created_at).getTime() > FRESH_ACCOUNT_WINDOW_MS) return forbidden();
+
+  const { data: profile } = await admin.from("profiles").select("role").eq("id", userId).maybeSingle();
+  if (profile && profile.role !== "student") return forbidden();
+
+  const { data: existing } = await admin.from("students").select("id").eq("id", userId).maybeSingle();
+  if (existing) return forbidden();
+
+  return null;
+}
 
 export async function POST(req: NextRequest) {
   const hasSupabase = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
@@ -70,6 +121,15 @@ export async function POST(req: NextRequest) {
   }
 
   const supabase = createAdminClient();
+
+  // This route writes with the service-role key, so it must not trust the
+  // `userId` the caller sends. Two legitimate callers exist:
+  //  1. the signup page right after supabase.auth.signUp — with a session when
+  //     email confirmation is off, without one when it is on;
+  //  2. nobody else.
+  const denied = await authorizeRegistration(req, supabase, userId);
+  if (denied) return denied;
+
   const { error } = await supabase.from("students").upsert({
     id: userId,
     gender,
