@@ -70,7 +70,7 @@ export default function ProgramDetailScreen() {
           </View>
         )}
 
-        <TouchableOpacity onPress={() => router.push("/(tabs)/groups")} activeOpacity={0.85}>
+        <TouchableOpacity onPress={() => router.push({ pathname: "/(tabs)/groups", params: { programSlug: program.slug } })} activeOpacity={0.85}>
           <LinearGradient colors={gradientFor(colors)} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.cta}>
             <Text style={styles.ctaText}>عرض الحلقات المتاحة لهذا البرنامج</Text>
           </LinearGradient>
