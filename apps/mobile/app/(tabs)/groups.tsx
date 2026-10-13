@@ -18,7 +18,7 @@ export default function GroupsScreen() {
   const styles = getStyles(colors);
   const router = useRouter();
   const studentId = session?.user?.id;
-  const { teacherId: teacherIdFilter } = useLocalSearchParams<{ teacherId?: string }>();
+  const { teacherId: teacherIdFilter, programSlug: programFilter } = useLocalSearchParams<{ teacherId?: string; programSlug?: string }>();
 
   const [groups, setGroups] = useState<GroupWithTeacher[]>([]);
   const [enrolledIds, setEnrolledIds] = useState<Set<string>>(new Set());
@@ -94,7 +94,13 @@ export default function GroupsScreen() {
     );
   }
 
-  const visibleGroups = teacherIdFilter ? groups.filter((g) => g.teacher_id === teacherIdFilter) : groups;
+  // Opened from a program page ("show this program's circles") or from a
+  // teacher's booking calendar: narrow the list, keeping a way back to all.
+  const filterProgram = programFilter ? getProgramBySlug(programFilter) : undefined;
+  const visibleGroups = groups.filter(
+    (g) => (!teacherIdFilter || g.teacher_id === teacherIdFilter) && (!programFilter || g.program_slug === programFilter)
+  );
+  const filtered = Boolean(teacherIdFilter || programFilter);
 
   return (
     <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
@@ -104,17 +110,24 @@ export default function GroupsScreen() {
         keyExtractor={(g) => g.id}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.gold} />}
         ListHeaderComponent={
-          teacherIdFilter ? (
-            <TouchableOpacity onPress={() => router.setParams({ teacherId: undefined })} style={{ marginBottom: 12 }}>
-              <Text style={styles.showAllLink}>عرض كل الحلقات</Text>
-            </TouchableOpacity>
+          filtered ? (
+            <View style={{ marginBottom: 12, gap: 6 }}>
+              {filterProgram ? <Text style={styles.filterTitle}>حلقات برنامج «{filterProgram.title}»</Text> : null}
+              <TouchableOpacity onPress={() => router.setParams({ teacherId: undefined, programSlug: undefined })}>
+                <Text style={styles.showAllLink}>عرض كل الحلقات</Text>
+              </TouchableOpacity>
+            </View>
           ) : null
         }
         ListEmptyComponent={
           <View style={styles.emptyWrap}>
             <Ionicons name="people-outline" size={40} color={colors.line} />
             <Text style={styles.empty}>
-              {teacherIdFilter ? "لا توجد حلقات جماعية متاحة لهذا المعلم حاليًا" : "لا توجد حلقات جماعية متاحة حاليًا"}
+              {filterProgram
+                ? `لا توجد حلقات جماعية متاحة حاليًا في برنامج «${filterProgram.title}»`
+                : teacherIdFilter
+                  ? "لا توجد حلقات جماعية متاحة لهذا المعلم حاليًا"
+                  : "لا توجد حلقات جماعية متاحة حاليًا"}
             </Text>
           </View>
         }
@@ -199,6 +212,7 @@ function getStyles(colors: Palette) {
   return StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   showAllLink: { fontFamily: fonts.bold, fontSize: 12, color: colors.goldDark, textAlign: "right" },
+  filterTitle: { fontFamily: fonts.extraBold, fontSize: 15, color: colors.ink, textAlign: "right" },
   center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg },
   content: { padding: 20, gap: 14 },
   emptyWrap: { alignItems: "center", marginTop: 60, gap: 10 },
