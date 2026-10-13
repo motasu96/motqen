@@ -1,11 +1,12 @@
 import { useCallback, useState } from "react";
-import { Linking, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Linking, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import Constants from "expo-constants";
 import { useAuth } from "../../lib/auth";
 import { supabase } from "../../lib/supabase";
+import { SITE_URL } from "../../lib/site";
 import { getMyStudentProfile } from "../../lib/studentProfile";
 import { getProgramBySlug } from "../../lib/programs";
 import { fonts, Palette, radius, shadow, useTheme } from "../../lib/theme";
@@ -17,6 +18,7 @@ export default function ProfileScreen() {
   const userId = session?.user?.id;
   const [fullName, setFullName] = useState<string | null>(null);
   const [programSlug, setProgramSlug] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -33,6 +35,39 @@ export default function ProfileScreen() {
       };
     }, [userId])
   );
+
+  function confirmDelete() {
+    Alert.alert(
+      "حذف الحساب",
+      "سيتم حذف حسابك وجميع بياناتك (الحجوزات والحصص والواجبات والشهادات) نهائيًا ولا يمكن التراجع عن ذلك. هل أنت متأكد؟",
+      [
+        { text: "إلغاء", style: "cancel" },
+        { text: "حذف نهائيًا", style: "destructive", onPress: deleteAccount },
+      ]
+    );
+  }
+
+  async function deleteAccount() {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) {
+      Alert.alert("تعذّر الحذف", "سجّل الدخول من جديد ثم حاول مرة أخرى.");
+      return;
+    }
+    setDeleting(true);
+    try {
+      const response = await fetch(`${SITE_URL}/api/delete-account`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error(String(response.status));
+      await supabase.auth.signOut();
+    } catch {
+      Alert.alert("تعذّر حذف الحساب", "تحقق من اتصالك بالإنترنت وحاول مرة أخرى، أو تواصل معنا ليتم الحذف.");
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   const program = programSlug ? getProgramBySlug(programSlug) : undefined;
   const displayName = fullName || "طالب متقن";
@@ -99,6 +134,14 @@ export default function ProfileScreen() {
       <TouchableOpacity style={styles.logout} onPress={() => supabase.auth.signOut()} activeOpacity={0.8}>
         <Ionicons name="log-out-outline" size={18} color={colors.danger} />
         <Text style={styles.logoutText}>تسجيل الخروج</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.deleteLink} onPress={confirmDelete} disabled={deleting} activeOpacity={0.7}>
+        {deleting ? (
+          <ActivityIndicator color={colors.danger} size="small" />
+        ) : (
+          <Text style={styles.deleteText}>حذف حسابي</Text>
+        )}
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -173,5 +216,7 @@ function getStyles(colors: Palette) {
       alignItems: "center",
     },
     logoutText: { color: colors.danger, fontFamily: fonts.bold, fontSize: 14 },
+    deleteLink: { alignItems: "center", paddingVertical: 10 },
+    deleteText: { color: colors.inkSoft, fontFamily: fonts.medium, fontSize: 12, textDecorationLine: "underline" },
   });
 }

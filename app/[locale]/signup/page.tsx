@@ -210,12 +210,11 @@ function SignupFlow() {
             preferredTeacherId: selectedMatch?.kind === "teacher" ? selectedMatch.id : null,
           }),
         }).catch(() => {});
-      }
-      if (form.email) {
+        // The server mails the address stored on the new account, not one we send.
         fetch("/api/welcome-email", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: form.name, email: form.email, locale }),
+          body: JSON.stringify({ userId: data.user.id, locale }),
         }).catch(() => {});
       }
       setSubmitting(false);
@@ -229,13 +228,6 @@ function SignupFlow() {
       return;
     }
 
-    if (form.email) {
-      fetch("/api/welcome-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: form.name, email: form.email, locale }),
-      }).catch(() => {});
-    }
     showToast(t("toastSuccess"), "success");
     setTimeout(() => router.push("/onboarding"), 700);
   }

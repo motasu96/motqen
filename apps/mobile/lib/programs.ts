@@ -14,6 +14,8 @@ export type Program = {
   short: string;
   description: string;
   ageGroup: string;
+  // Who the program is for; signup hides the ones that don't fit the student.
+  category: "children" | "adults" | "women" | "all";
   features: string[];
   courses?: ProgramCourse[];
 };
@@ -21,6 +23,7 @@ export type Program = {
 export const programs: Program[] = [
   {
     slug: "hifz-mutqan",
+    category: "all",
     title: "الحفظ المتقن",
     short: "حفظ القرآن الكريم بخطة متقنة ومتابعة مستمرة",
     description:
@@ -36,6 +39,7 @@ export const programs: Program[] = [
   },
   {
     slug: "tilawa-tajweed",
+    category: "all",
     title: "التلاوة والتجويد",
     short: "تعلم القراءة الصحيحة وأحكام التجويد",
     description:
@@ -76,6 +80,7 @@ export const programs: Program[] = [
   },
   {
     slug: "muraja-hifz",
+    category: "all",
     title: "الحفظ والمراجعة",
     short: "برامج مخصصة للمراجعة والحفظ بإشراف متخصص",
     description:
@@ -90,6 +95,7 @@ export const programs: Program[] = [
   },
   {
     slug: "qiraat-ashr",
+    category: "adults",
     title: "الإجازة بالسند",
     short: "احصل على إجازة معتمدة بسند متصل إلى النبي ﷺ",
     description:
@@ -104,6 +110,7 @@ export const programs: Program[] = [
   },
   {
     slug: "bara-em-mutqin",
+    category: "children",
     title: "برامج الأطفال",
     short: "برامج تعليمية للأطفال بأساليب ممتعة وتفاعلية",
     description:
@@ -118,6 +125,7 @@ export const programs: Program[] = [
   },
   {
     slug: "barnamej-nisaa",
+    category: "women",
     title: "برامج النساء",
     short: "برامج خاصة للنساء بخصوصية تامة",
     description:
