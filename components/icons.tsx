@@ -382,3 +382,12 @@ export function IconPalette(props: IconProps) {
     </svg>
   );
 }
+
+export function IconPackage(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M12 2.8 20 7v10l-8 4.2L4 17V7l8-4.2Z" />
+      <path d="M4 7l8 4.2L20 7M12 11.2v10" />
+    </svg>
+  );
+}
