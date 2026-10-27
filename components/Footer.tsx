@@ -12,6 +12,7 @@ export default function Footer() {
   const QUICK_LINKS = [
     { href: "/", label: tNav("home") },
     { href: "/programs", label: tNav("programs") },
+    { href: "/pricing", label: tNav("pricing") },
     { href: "/teachers", label: tNav("teachers") },
     { href: "/articles", label: tNav("articles") },
   ];

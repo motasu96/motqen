@@ -37,7 +37,7 @@ export async function getTakenSlots(
 export async function createBooking(
   supabase: SupabaseClient,
   params: { studentId: string; teacherId: string; date: string; time: string }
-): Promise<{ booking: BookingRow | null; error: "slot_taken" | "unknown" | null }> {
+): Promise<{ booking: BookingRow | null; error: "slot_taken" | "no_package" | "unknown" | null }> {
   const { data, error } = await supabase
     .from("bookings")
     .insert({
@@ -52,6 +52,9 @@ export async function createBooking(
   if (error) {
     // Postgres unique_violation
     if (error.code === "23505") return { booking: null, error: "slot_taken" };
+    // Raised by the booking trigger when the student has neither a free
+    // trial lesson nor a lesson left in an active package (migration 0034).
+    if (error.message?.includes("NO_ACTIVE_PACKAGE")) return { booking: null, error: "no_package" };
     return { booking: null, error: "unknown" };
   }
   return { booking: data as BookingRow, error: null };

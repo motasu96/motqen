@@ -148,3 +148,50 @@ export async function voidStudentPackage(supabase: SupabaseClient, id: string): 
   const { error } = await supabase.from("student_packages").update({ status: "void" }).eq("id", id);
   return !error;
 }
+
+// ---- Student side -------------------------------------------------------
+
+export type BookingCredit = {
+  lessonsLeft: number;
+  nextExpiry: string | null;
+  trialAvailable: boolean;
+};
+
+// The signed-in student's own balance (my_booking_credit in migration 0034).
+// Returns null when it can't be read — notably before that migration has been
+// run — so callers fall back to the old behaviour instead of blocking booking.
+export async function getMyBookingCredit(supabase: SupabaseClient): Promise<BookingCredit | null> {
+  const { data, error } = await supabase.rpc("my_booking_credit");
+  if (error) return null;
+  const row = (Array.isArray(data) ? data[0] : data) as
+    | { lessons_left: number | null; next_expiry: string | null; trial_available: boolean | null }
+    | null
+    | undefined;
+  if (!row) return null;
+  return {
+    lessonsLeft: row.lessons_left ?? 0,
+    nextExpiry: row.next_expiry ?? null,
+    trialAvailable: Boolean(row.trial_available),
+  };
+}
+
+export function canBook(credit: BookingCredit | null): boolean {
+  // Unknown balance (migration not run yet): don't block.
+  return credit === null || credit.lessonsLeft > 0 || credit.trialAvailable;
+}
+
+// The packages on offer. Row Level Security only ever returns the active ones
+// to a non-admin, but filter anyway so an admin's view matches the public one.
+export async function listActivePackages(supabase: SupabaseClient): Promise<PackageRow[]> {
+  const { data } = await supabase
+    .from("packages")
+    .select(PACKAGE_COLUMNS)
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+  return ((data ?? []) as PackageRow[]).map((p) => ({ ...p, price_usd: Number(p.price_usd) }));
+}
+
+export function pricePerLesson(p: Pick<PackageRow, "price_usd" | "lessons_count">): number {
+  return Math.round((p.price_usd / p.lessons_count) * 100) / 100;
+}

@@ -6,6 +6,7 @@
     "ogLocale": "en_US"
   },
   "Nav": {
+    "pricing": "Pricing",
     "home": "Home",
     "about": "About Motqen",
     "programs": "Programs",
@@ -544,7 +545,8 @@
       "groups": "Group Classes",
       "attendanceLog": "Student Log",
       "certificates": "Certificates",
-      "packages": "Packages"
+      "packages": "Packages",
+      "myPackages": "My Package"
     },
     "status": {
       "lessonCompleted": "Completed",
@@ -1076,6 +1078,71 @@
     }
   },
   "Packages": {
+    "student": {
+      "bookNow": "Book a lesson now",
+      "title": "My package",
+      "subtitle": "Your private-lesson balance, your subscriptions and the packages on offer.",
+      "balanceTitle": "Your current balance",
+      "lessonsLeft": "{count, plural, one {# lesson left} other {# lessons left}}",
+      "noLessons": "No balance right now",
+      "expiresOn": "Earliest expiry: {date}",
+      "trialAvailable": "Your free trial lesson is available. Book it now.",
+      "policy": "Cancelling a booking at least 24 hours before it starts returns the lesson to your balance.",
+      "buyTitle": "Subscribe to a package",
+      "buyHint": "Pick a package and message us on WhatsApp. Once payment is received we activate it so you can book your lessons.",
+      "subscribe": "Subscribe on WhatsApp",
+      "subscribeMessage": "Assalamu alaikum{hasName, select, yes {, I'm {student}} other {}}. I'd like to subscribe to \"{package}\" ({lessons} lessons for ${price}). Which payment methods are available?",
+      "noPackages": "No packages are listed right now. Contact the administration on WhatsApp to learn the prices.",
+      "contactAdmin": "Contact the administration",
+      "contactAdminMessage": "Assalamu alaikum{hasName, select, yes {, I'm {student}} other {}}. I'd like to know the available packages, prices and payment methods.",
+      "mySubscriptions": "My subscriptions",
+      "noSubscriptions": "You have no subscriptions yet.",
+      "usedOf": "{used} of {total}",
+      "expires": "Expires: {date}",
+      "states": {
+        "active": "Active",
+        "void": "Voided",
+        "exhausted": "Used up",
+        "expired": "Expired"
+      },
+      "bookingCredit": "{count, plural, one {Your balance: # lesson} other {Your balance: # lessons}}",
+      "bookingTrial": "Your first lesson is free. Book your slot now.",
+      "bookingNoCredit": "You have no balance to book with. Subscribe to a package to book private lessons.",
+      "bookingViewPackages": "View packages",
+      "toastNoCredit": "Not enough balance to book. Subscribe to a package first.",
+      "toastCancelRefunded": "Cancelled, and the lesson was returned to your balance.",
+      "toastCancelLate": "Cancelled. Cancelling less than 24 hours ahead doesn't return the lesson."
+    },
+    "pricing": {
+      "metaTitle": "Pricing | Motqen",
+      "eyebrow": "Pricing",
+      "title": "Private lesson packages",
+      "intro": "Group circles are completely free. Private lessons (student and teacher only) are booked from a package balance, and every new student's first lesson is free.",
+      "trialTitle": "Your first lesson is free",
+      "trialDesc": "Create an account and book a trial lesson with the teacher of your choice, no commitment.",
+      "groupsTitle": "Group circles are free",
+      "groupsDesc": "Join group circles in any program at no charge.",
+      "packagesTitle": "Packages",
+      "noPackages": "Packages will be announced soon. Message us on WhatsApp to learn the prices.",
+      "lessons": "{count, plural, one {# lesson} other {# lessons}}",
+      "validity": "valid for {count} days",
+      "perLesson": "≈ ${price} per lesson",
+      "price": "${price}",
+      "subscribe": "Subscribe on WhatsApp",
+      "subscribeMessage": "Assalamu alaikum. I'd like to subscribe to \"{package}\" ({lessons} lessons for ${price}). Which payment methods are available?",
+      "contactAdmin": "Ask the administration about prices",
+      "contactAdminMessage": "Assalamu alaikum. I'd like to know the available packages, prices and payment methods.",
+      "howTitle": "How it works",
+      "steps": [
+        "Create your account and book your free trial lesson.",
+        "Pick the package that suits you and message us on WhatsApp.",
+        "We send you the available payment methods, and activate your package once paid.",
+        "Book your lessons with your teacher. Each booking uses one lesson from your balance."
+      ],
+      "policyTitle": "Cancellation and refunds",
+      "policy": "Cancelling a booking at least 24 hours before it starts returns the lesson to your balance; later cancellations don't. A package is valid for the period stated, and lessons left unused after it ends expire.",
+      "signupCta": "Start with a free lesson"
+    },
     "admin": {
       "title": "Packages & subscriptions",
       "subtitle": "Manage the private-lesson packages, and activate one for a student once payment is received.",

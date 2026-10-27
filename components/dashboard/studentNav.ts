@@ -8,6 +8,7 @@ import {
   IconFamily,
   IconFolder,
   IconHome,
+  IconPackage,
   IconTask,
   IconTeacherBadge,
 } from "@/components/icons";
@@ -20,6 +21,7 @@ export function useStudentNav(): DashboardNavItem[] {
     { href: "/dashboard/student/teachers", label: t("teachers"), icon: IconTeacherBadge },
     { href: "/dashboard/student/lessons", label: t("myLessons"), icon: IconBook },
     { href: "/dashboard/student/groups", label: t("groups"), icon: IconFamily },
+    { href: "/dashboard/student/packages", label: t("myPackages"), icon: IconPackage },
     { href: "/dashboard/student/homework", label: t("homework"), icon: IconTask },
     { href: "/dashboard/student/reports", label: t("reports"), icon: IconChart },
     { href: "/dashboard/student/exams", label: t("exams"), icon: IconExam },

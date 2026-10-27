@@ -10,6 +10,7 @@ import { useLiveRooms } from "@/lib/supabase/presence";
 import { createClient } from "@/lib/supabase/client";
 import { createBooking, getTakenSlots } from "@/lib/supabase/bookings";
 import { getTeacherAvailableTimes, getTeacherWhatsApp } from "@/lib/supabase/teachers";
+import { BookingCredit, canBook, getMyBookingCredit } from "@/lib/supabase/packages";
 import { useUpcomingBookings } from "@/lib/supabase/useUpcomingBookings";
 import { DEFAULT_AVAILABLE_TIMES, formatTimeSlot } from "@/lib/timeSlots";
 import { ADMIN_WHATSAPP_NUMBER, whatsappHref } from "@/lib/contact";
@@ -56,6 +57,7 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
   const locale = useLocale();
   const t = useTranslations("Dashboard.student");
   const tc = useTranslations("Dashboard.common");
+  const tp = useTranslations("Packages.student");
 
   const [availableTimes, setAvailableTimes] = useState<string[]>(DEFAULT_AVAILABLE_TIMES);
   const TIME_SLOTS = useMemo(
@@ -80,6 +82,10 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
   const [lastBooked, setLastBooked] = useState<{ day: string; time: string } | null>(null);
   const [takenSlots, setTakenSlots] = useState<Set<string>>(new Set());
   const [slotsReady, setSlotsReady] = useState(false);
+  // The student's private-lesson balance; null until read, or when it can't be
+  // (e.g. the packages migration has not been run), in which case booking is
+  // not blocked here.
+  const [credit, setCredit] = useState<BookingCredit | null>(null);
   const { upcoming, ready, cancel, reload } = useUpcomingBookings();
   const liveRooms = useLiveRooms();
 
@@ -104,12 +110,14 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
       } = await supabase.auth.getUser();
       if (cancelled || !user) return;
       setStudentId(user.id);
-      const [taken, { data: profile }, whatsapp] = await Promise.all([
+      const [taken, { data: profile }, whatsapp, myCredit] = await Promise.all([
         getTakenSlots(supabase, teacherId, days[0].iso, days[days.length - 1].iso),
         supabase.from("profiles").select("full_name").eq("id", user.id).single(),
         getTeacherWhatsApp(supabase, teacherId),
+        getMyBookingCredit(supabase),
       ]);
       if (cancelled) return;
+      setCredit(myCredit);
       setTakenSlots(taken);
       setTeacherWhatsApp(whatsapp);
       setStudentName((profile?.full_name as string | null) ?? null);
@@ -161,7 +169,13 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
     return h * 60 + m <= nowDate.getHours() * 60 + nowDate.getMinutes();
   }
 
+  const bookable = canBook(credit);
+
   function handleSelectSlot(hhmm: string, time: string) {
+    if (!bookable) {
+      showToast(tp("toastNoCredit"), "error");
+      return;
+    }
     if (isSlotTaken(selectedDay, time)) {
       showToast(t("toastSlotTaken"), "error");
       return;
@@ -194,15 +208,28 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
       setPendingSlot(null);
       return;
     }
+    if (error === "no_package") {
+      showToast(tp("toastNoCredit"), "error");
+      setPendingSlot(null);
+      setCredit(await getMyBookingCredit(createClient()));
+      return;
+    }
     if (error || !booking) {
       showToast(t("toastSlotTaken"), "error");
       return;
     }
     setTakenSlots((prev) => new Set(prev).add(`${pendingSlot.day}__${pendingSlot.time}`));
     // The booking itself is what makes the teacher's shared number readable (RLS).
-    const [, whatsapp] = await Promise.all([reload(), getTeacherWhatsApp(createClient(), teacherId)]);
+    const [, whatsapp, newCredit] = await Promise.all([
+      reload(),
+      getTeacherWhatsApp(createClient(), teacherId),
+      getMyBookingCredit(createClient()),
+    ]);
     setTeacherWhatsApp(whatsapp);
-    setLastBooked({ day: pendingSlot.day, time: pendingSlot.time });
+    // With balances in place the lesson has already been paid for; the
+    // "contact us for the price" next step only applies before they exist.
+    if (credit === null && newCredit === null) setLastBooked({ day: pendingSlot.day, time: pendingSlot.time });
+    setCredit(newCredit);
     setConfirmedFlash(pendingSlot.time);
     showToast(t("toastBooked", { date: pendingSlot.day, time: pendingSlot.time }), "success");
     setPendingSlot(null);
@@ -219,6 +246,7 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
 
   async function handleCancel(id: string) {
     const removed = upcoming.find((b) => b.id === id);
+    const before = credit;
     const ok = await cancel(id);
     if (!ok) return;
     if (removed) {
@@ -227,6 +255,13 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
         next.delete(`${removed.date}__${removed.time}`);
         return next;
       });
+    }
+    const after = await getMyBookingCredit(createClient());
+    setCredit(after);
+    if (before && after) {
+      const refunded = after.lessonsLeft > before.lessonsLeft || (after.trialAvailable && !before.trialAvailable);
+      showToast(refunded ? tp("toastCancelRefunded") : tp("toastCancelLate"), refunded ? "success" : "info");
+      return;
     }
     showToast(t("toastCancelled"), "info");
   }
@@ -280,18 +315,44 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
 
       {bookingType === "trial" && (
         <>
-          <div className="flex flex-col gap-3 rounded-2xl border border-line bg-bg p-5">
-            <div>
-              <h4 className="text-sm font-extrabold text-ink">{t("paidLessonTitle")}</h4>
-              <p className="mt-1 text-xs text-ink-soft">{t("bookingTypeTrialNote")}</p>
+          {credit === null ? (
+            <div className="flex flex-col gap-3 rounded-2xl border border-line bg-bg p-5">
+              <div>
+                <h4 className="text-sm font-extrabold text-ink">{t("paidLessonTitle")}</h4>
+                <p className="mt-1 text-xs text-ink-soft">{t("bookingTypeTrialNote")}</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <WhatsAppLink href={adminPricingHref} label={t("contactAdminWhatsApp")} />
+                {teacherPricingHref && (
+                  <WhatsAppLink href={teacherPricingHref} label={t("contactTeacherWhatsApp", { teacher: teacherName })} />
+                )}
+              </div>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <WhatsAppLink href={adminPricingHref} label={t("contactAdminWhatsApp")} />
-              {teacherPricingHref && (
-                <WhatsAppLink href={teacherPricingHref} label={t("contactTeacherWhatsApp", { teacher: teacherName })} />
+          ) : (
+            <div
+              className={`flex flex-col gap-3 rounded-2xl border p-5 ${bookable ? "border-gold bg-gold-light" : "border-line bg-bg"}`}
+            >
+              {credit.trialAvailable ? (
+                <p className="text-sm font-extrabold text-ink">{tp("bookingTrial")}</p>
+              ) : credit.lessonsLeft > 0 ? (
+                <p className="text-sm font-extrabold text-ink">{tp("bookingCredit", { count: credit.lessonsLeft })}</p>
+              ) : (
+                <p className="text-sm font-extrabold text-ink">{tp("bookingNoCredit")}</p>
               )}
+              {credit.trialAvailable && credit.lessonsLeft > 0 ? (
+                <p className="text-xs text-ink-soft">{tp("bookingCredit", { count: credit.lessonsLeft })}</p>
+              ) : null}
+              <p className="text-xs text-ink-soft">{tp("policy")}</p>
+              {!bookable ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link href="/dashboard/student/packages" className="btn-primary">
+                    {tp("bookingViewPackages")}
+                  </Link>
+                  <WhatsAppLink href={adminPricingHref} label={t("contactAdminWhatsApp")} />
+                </div>
+              ) : null}
             </div>
-          </div>
+          )}
 
           <div className="flex gap-2 overflow-x-auto pb-1">
             {days.map((d) => (
@@ -314,7 +375,7 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
             {TIME_SLOTS.map(({ hhmm, label: time }) => {
               const taken = slotsReady && isSlotTaken(selectedDay, time);
               const past = isSlotPast(selectedDay, hhmm);
-              const disabled = taken || past;
+              const disabled = taken || past || !bookable;
               const justConfirmed = confirmedFlash === time;
               const isPending = pendingSlot?.day === selectedDay && pendingSlot?.time === time;
               return (

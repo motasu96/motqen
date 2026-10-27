@@ -18,6 +18,7 @@ export default function Header() {
     { href: "/", label: t("home") },
     { href: "/about", label: t("about") },
     { href: "/programs", label: t("programs") },
+    { href: "/pricing", label: t("pricing") },
     { href: "/teachers", label: t("teachers") },
     { href: "/articles", label: t("articles") },
     { href: "/contact", label: t("contact") },
@@ -43,7 +44,7 @@ export default function Header() {
           <Logo />
         </Link>
 
-        <nav className="hidden items-center gap-7 lg:flex">
+        <nav className="hidden items-center gap-7 xl:flex">
           {NAV_LINKS.map((link) => {
             const active = pathname === link.href;
             return (
@@ -60,7 +61,7 @@ export default function Header() {
           })}
         </nav>
 
-        <div className="hidden items-center gap-3 lg:flex">
+        <div className="hidden items-center gap-3 xl:flex">
           <AccentPicker className="h-9 w-9" />
           <ThemeToggle className="h-9 w-9" />
           <LocaleSwitcher />
@@ -84,14 +85,14 @@ export default function Header() {
           aria-expanded={open}
           aria-controls="mobile-nav"
           onClick={() => setOpen((v) => !v)}
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-card transition-transform active:scale-95 lg:hidden"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-card transition-transform active:scale-95 xl:hidden"
         >
           {open ? <IconX className="h-5 w-5" aria-hidden="true" /> : <IconMenu className="h-5 w-5" aria-hidden="true" />}
         </button>
       </div>
 
       {open && (
-        <div id="mobile-nav" className="animate-fade-up border-t border-line bg-card lg:hidden">
+        <div id="mobile-nav" className="animate-fade-up border-t border-line bg-card xl:hidden">
           <div className="container-page flex flex-col gap-1 py-4">
             {NAV_LINKS.map((link) => (
               <Link
