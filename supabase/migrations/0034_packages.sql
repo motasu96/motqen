@@ -114,16 +114,38 @@ alter table public.bookings
 
 -- 4. Helpers --------------------------------------------------------------------
 
--- When does a booking start? Slots are "HH:MM" wall-clock text with no
--- timezone, so this assumes one (used only for the 24-hour cancellation
--- rule). Change 'Asia/Riyadh' here if most of your students are elsewhere.
+-- When does a booking start? Slots are wall-clock text with no timezone, so
+-- this assumes one (used only for the 24-hour cancellation rule). Change
+-- 'Asia/Riyadh' here if most of your students are elsewhere.
+--
+-- Bookings store whatever label the booking screen showed, which depends on
+-- the language it was made in: "16:00", "4:00 م", "4:00 PM", "12:30 ص"... All
+-- of those are understood here (م/PM = afternoon, ص/AM = morning). A value in
+-- an unrecognised format counts as the start of that day.
 create or replace function public.booking_starts_at(p_date date, p_time text)
 returns timestamptz
-language sql
+language plpgsql
 immutable
 as $$
-  select ((p_date + (case when p_time ~ '^[0-9]{1,2}:[0-9]{2}' then substring(p_time from '^[0-9]{1,2}:[0-9]{2}')::time else time '00:00' end))::timestamp)
-         at time zone 'Asia/Riyadh';
+declare
+  m text[] := regexp_match(btrim(coalesce(p_time, '')), '^([0-9]{1,2}):([0-9]{2})\s*(ص|م|am|pm)?$', 'i');
+  h int;
+  mi int;
+  marker text;
+begin
+  if m is null then
+    return p_date::timestamp at time zone 'Asia/Riyadh';
+  end if;
+  h := m[1]::int;
+  mi := m[2]::int;
+  marker := lower(coalesce(m[3], ''));
+  if marker in ('م', 'pm') then
+    if h < 12 then h := h + 12; end if;
+  elsif marker in ('ص', 'am') then
+    if h = 12 then h := 0; end if;
+  end if;
+  return (p_date + make_interval(hours => h, mins => mi))::timestamp at time zone 'Asia/Riyadh';
+end;
 $$;
 
 -- Requests that skip the student rules: admins, and the service role / SQL
