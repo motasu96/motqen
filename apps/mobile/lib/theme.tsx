@@ -13,19 +13,27 @@ export type Palette = {
   line: string;
   danger: string;
   success: string;
+  primary: string;
+  primaryLight: string;
+  hero: string;
+  heroEnd: string;
 };
 
 export const lightPalette: Palette = {
-  bg: "#FBF7EE",
+  bg: "#F8F7F2",
   card: "#FFFFFF",
   gold: "#C89B4A",
   goldDark: "#A87A37",
   goldLight: "#F1E3C4",
   ink: "#2E2418",
-  inkSoft: "#7F7567",
-  line: "#EDE3CD",
+  inkSoft: "#736F64",
+  line: "#E8E6DC",
   danger: "#EF4444",
   success: "#10B981",
+  primary: "#245B49",
+  primaryLight: "#E8F1EB",
+  hero: "#163E33",
+  heroEnd: "#2C6250",
 };
 
 // Mirrors the web app's .dark CSS variable overrides in app/globals.css.
@@ -40,6 +48,10 @@ export const darkPalette: Palette = {
   line: "#382F23",
   danger: "#EF4444",
   success: "#10B981",
+  primary: "#A0D6BA",
+  primaryLight: "#203B30",
+  hero: "#183D32",
+  heroEnd: "#24513F",
 };
 
 export function gradientFor(colors: Palette) {

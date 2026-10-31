@@ -10,6 +10,7 @@ import { ADMIN_WHATSAPP_NUMBER, openWhatsApp } from "../lib/contact";
 import { DEFAULT_AVAILABLE_TIMES, formatTimeSlot } from "../lib/timeSlots";
 import { useLiveRooms } from "../lib/presence";
 import PulseBadge from "./PulseBadge";
+import { arabicRow } from "./student/ui";
 import { fonts, Palette, radius, shadow, useTheme } from "../lib/theme";
 
 const HOLD_DURATION_MS = 10 * 60 * 1000;
@@ -126,11 +127,13 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
   }, []);
 
   useEffect(() => {
-    if (pendingSlot && now >= pendingSlot.expiresAt) {
+    if (!pendingSlot || submitting) return;
+    const timer = setTimeout(() => {
       setPendingSlot(null);
-      Alert.alert("انتهت مهلة الحجز", "انتهت مهلة حجز هذا الموعد، اختر موعدًا من جديد.");
-    }
-  }, [now, pendingSlot]);
+      Alert.alert("انتهت مهلة المراجعة", "اختر وقتًا متاحًا من جديد.");
+    }, Math.max(0, pendingSlot.expiresAt - Date.now()));
+    return () => clearTimeout(timer);
+  }, [pendingSlot, submitting]);
 
   function isSlotTaken(day: string, time: string) {
     return takenSlots.has(`${day}__${time}`);
@@ -157,38 +160,42 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
   }
 
   async function handleConfirmHold() {
-    if (!pendingSlot || !studentId) return;
-    if (isSlotPast(pendingSlot.day, pendingSlot.hhmm)) {
+    if (!pendingSlot || !studentId || submitting) return;
+    const selected = pendingSlot;
+    if (Date.now() >= selected.expiresAt || isSlotPast(selected.day, selected.hhmm)) {
       setPendingSlot(null);
       Alert.alert("انتهى هذا الموعد", "الرجاء اختيار موعد لاحق.");
       return;
     }
     setSubmitting(true);
-    const { booking, error } = await createBooking({
-      studentId,
-      teacherId,
-      date: pendingSlot.day,
-      time: pendingSlot.time,
-    });
-    setSubmitting(false);
-    if (error === "slot_taken") {
-      setTakenSlots((prev) => new Set(prev).add(`${pendingSlot.day}__${pendingSlot.time}`));
-      Alert.alert("هذا الموعد محجوز", "حجز أحدهم هذا الموعد للتو، اختر موعدًا آخر.");
+    try {
+      const { booking, error } = await createBooking({
+        studentId, teacherId, date: selected.day, time: selected.time,
+      });
+      if (error === "slot_taken") {
+        setTakenSlots((prev) => new Set(prev).add(`${selected.day}__${selected.time}`));
+        Alert.alert("هذا الموعد محجوز", "حجز أحدهم هذا الموعد للتو، اختر موعدًا آخر.");
+        setPendingSlot(null);
+        return;
+      }
+      if (error || !booking) {
+        Alert.alert("تعذّر الحجز", "لم يتم تأكيد الموعد. حاول مرة أخرى.");
+        return;
+      }
+      setTakenSlots((prev) => new Set(prev).add(`${selected.day}__${selected.time}`));
+      setLastBooked({ day: selected.day, time: selected.time });
+      setConfirmedFlash(selected.time);
       setPendingSlot(null);
-      return;
+      setTimeout(() => setConfirmedFlash(null), 1800);
+      // Contact details are optional: a failed refresh must not make a
+      // successfully created booking look like a failed booking.
+      const [, whatsapp] = await Promise.allSettled([loadUpcoming(), getTeacherWhatsApp(teacherId)]);
+      if (whatsapp.status === "fulfilled") setTeacherWhatsApp(whatsapp.value);
+    } catch {
+      Alert.alert("تعذّر التحقق من الحجز", "تحقق من اتصالك وراجع حصصك القادمة قبل إعادة المحاولة.");
+    } finally {
+      setSubmitting(false);
     }
-    if (error || !booking) {
-      Alert.alert("تعذّر الحجز", "حاول مرة أخرى.");
-      return;
-    }
-    setTakenSlots((prev) => new Set(prev).add(`${pendingSlot.day}__${pendingSlot.time}`));
-    // The booking itself is what makes the teacher's shared number readable (RLS).
-    const [, whatsapp] = await Promise.all([loadUpcoming(), getTeacherWhatsApp(teacherId)]);
-    setTeacherWhatsApp(whatsapp);
-    setLastBooked({ day: pendingSlot.day, time: pendingSlot.time });
-    setConfirmedFlash(pendingSlot.time);
-    setPendingSlot(null);
-    setTimeout(() => setConfirmedFlash(null), 1800);
   }
 
   function handleCancelHold() {
@@ -255,6 +262,7 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
         ).map((bt) => (
           <TouchableOpacity
             key={bt.key}
+            disabled={submitting}
             onPress={() => setBookingType(bt.key)}
             style={[styles.typeButton, bookingType === bt.key && styles.typeButtonActive]}
           >
@@ -280,7 +288,7 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
           <View style={styles.paidBox}>
             <Text style={styles.paidTitle}>الحصص الفردية مدفوعة</Text>
             <Text style={styles.note}>
-              لا يتم أي دفع عبر التطبيق. احجز موعدك ثم تواصل مع الإدارة عبر واتساب لمعرفة السعر وطرق الدفع.
+              الحصة الفردية مدفوعة. تعرّف على السعر وطرق الدفع عبر واتساب قبل تأكيد موعدك؛ لا يُخصم أي مبلغ داخل التطبيق.
             </Text>
             <View style={styles.whatsappRow}>
               <TouchableOpacity style={styles.whatsappButton} onPress={contactAdminForPricing}>
@@ -296,12 +304,17 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
             </View>
           </View>
 
-          <Text style={styles.note}>اختر يومًا ثم وقتًا متاحًا لدى المعلم، وسيُحجز لك المكان لمدة 10 دقائق لتأكيد الحجز.</Text>
+          <Text style={styles.note}>١. اختر اليوم  ·  ٢. اختر الوقت  ·  ٣. راجع وأكّد
+الموعد لا يُحجز لك إلا بعد التأكيد، وقد يختاره طالب آخر قبلك.</Text>
 
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.daysRow}>
             {days.map((d) => (
               <TouchableOpacity
                 key={d.iso}
+                accessibilityRole="button"
+                accessibilityState={{ selected: selectedDay === d.iso }}
+                accessibilityLabel={`${d.label} ${d.dayNum}`}
+                disabled={submitting}
                 onPress={() => setSelectedDay(d.iso)}
                 style={[styles.dayPill, selectedDay === d.iso && styles.dayPillActive]}
               >
@@ -311,16 +324,20 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
             ))}
           </ScrollView>
 
+          {!slotsReady ? <ActivityIndicator accessibilityLabel="جارٍ تحميل الأوقات المتاحة" color={colors.primary} /> : null}
           <View style={styles.slotsGrid}>
             {TIME_SLOTS.map(({ hhmm, label: time }) => {
               const taken = slotsReady && isSlotTaken(selectedDay, time);
               const past = isSlotPast(selectedDay, hhmm);
-              const disabled = taken || past;
+              const disabled = submitting || !slotsReady || taken || past;
               const justConfirmed = confirmedFlash === time;
               const isPending = pendingSlot?.day === selectedDay && pendingSlot?.time === time;
               return (
                 <TouchableOpacity
                   key={hhmm}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${time}${taken ? "، محجوز" : past ? "، انتهى" : ""}`}
+                  accessibilityState={{ disabled, selected: isPending }}
                   disabled={disabled}
                   onPress={() => handleSelectSlot(hhmm, time)}
                   style={[
@@ -353,21 +370,22 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
             <View style={styles.holdBox}>
               <View style={styles.holdHeaderRow}>
                 <View>
-                  <Text style={styles.holdTitle}>تأكيد الحجز المؤقت</Text>
+                  <Text style={styles.holdTitle}>مراجعة موعد الحصة</Text>
                   <Text style={styles.holdSubtitle}>
                     {pendingSlot.day} — {pendingSlot.time}
                   </Text>
                 </View>
                 <View style={{ alignItems: "flex-end" }}>
-                  <Text style={styles.holdTimerLabel}>ينتهي خلال</Text>
+                  <Text style={styles.holdTimerLabel}>مهلة المراجعة</Text>
                   <Text style={styles.holdTimer}>{formatCountdown(pendingSlot.expiresAt - now)}</Text>
                 </View>
               </View>
+              <Text style={styles.note}>الحصة مدفوعة، وتأكيد الموعد لا يعني إتمام الدفع. يمكنك الاستفسار عن السعر من الإدارة أعلاه.</Text>
               <View style={styles.holdActionsRow}>
-                <TouchableOpacity style={styles.confirmButton} disabled={submitting} onPress={handleConfirmHold}>
+                <TouchableOpacity accessibilityRole="button" accessibilityState={{ disabled: submitting, busy: submitting }} style={styles.confirmButton} disabled={submitting} onPress={handleConfirmHold}>
                   {submitting ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.confirmButtonText}>تأكيد الحجز</Text>}
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handleCancelHold}>
+                <TouchableOpacity accessibilityRole="button" disabled={submitting} style={{ minHeight: 44, justifyContent: "center", paddingHorizontal: 12 }} onPress={handleCancelHold}>
                   <Text style={styles.holdCancelText}>إلغاء</Text>
                 </TouchableOpacity>
               </View>
@@ -380,7 +398,7 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
                 <Text style={styles.holdTitle}>
                   تم حجز موعدك: {lastBooked.day} — {lastBooked.time}
                 </Text>
-                <Text style={styles.cardDesc}>الخطوة التالية: تواصل عبر واتساب لمعرفة سعر الحصة وطرق الدفع المتاحة.</Text>
+                <Text style={styles.cardDesc}>تم تثبيت الموعد. تابع مع الإدارة عبر واتساب لاستكمال ترتيبات الدفع.</Text>
               </View>
               <View style={styles.whatsappRow}>
                 <TouchableOpacity
@@ -414,7 +432,7 @@ export default function BookingCalendar({ teacherId, teacherName }: { teacherId:
             {upcoming.map((b) => (
               <View key={b.id} style={styles.upcomingRow}>
                 <View style={styles.rowText}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <View style={{ flexDirection: arabicRow, alignItems: "center", gap: 8 }}>
                     <Text style={styles.upcomingDate}>
                       {b.date} — {b.time}
                     </Text>
@@ -448,19 +466,19 @@ function getStyles(colors: Palette) {
       gap: 16,
       ...shadow.soft,
     },
-    headerRow: { flexDirection: "row", alignItems: "center", gap: 8, justifyContent: "flex-start" },
+    headerRow: { flexDirection: arabicRow, alignItems: "center", gap: 8, justifyContent: "flex-start" },
     cardTitle: { fontFamily: fonts.extraBold, fontSize: 15, color: colors.ink, textAlign: "right" },
     cardDesc: { fontFamily: fonts.regular, fontSize: 12, color: colors.inkSoft, textAlign: "right", marginTop: 2 },
-    note: { fontFamily: fonts.regular, fontSize: 11, color: colors.inkSoft, textAlign: "right" },
-    typeToggle: { flexDirection: "row", gap: 6, backgroundColor: colors.bg, borderRadius: radius.pill, padding: 4, borderWidth: 1, borderColor: colors.line },
-    typeButton: { flex: 1, borderRadius: radius.pill, paddingVertical: 10, alignItems: "center" },
+    note: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 22, color: colors.inkSoft, textAlign: "right" },
+    typeToggle: { flexDirection: arabicRow, gap: 6, backgroundColor: colors.bg, borderRadius: radius.pill, padding: 4, borderWidth: 1, borderColor: colors.line },
+    typeButton: { minHeight: 48, flex: 1, borderRadius: radius.pill, paddingVertical: 10, alignItems: "center" },
     typeButtonActive: { backgroundColor: colors.gold },
     typeButtonText: { fontFamily: fonts.bold, fontSize: 12, color: colors.inkSoft },
     typeButtonTextActive: { color: "#fff" },
     paidBox: { gap: 8, backgroundColor: colors.bg, borderRadius: radius.lg, padding: 14, borderWidth: 1, borderColor: colors.line },
     paidTitle: { fontFamily: fonts.extraBold, fontSize: 13, color: colors.ink, textAlign: "right" },
-    whatsappRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 10 },
-    whatsappButton: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: WHATSAPP_GREEN, borderRadius: radius.pill, paddingHorizontal: 14, paddingVertical: 9 },
+    whatsappRow: { flexDirection: arabicRow, flexWrap: "wrap", alignItems: "center", gap: 10 },
+    whatsappButton: { minHeight: 44, flexDirection: arabicRow, alignItems: "center", gap: 6, backgroundColor: WHATSAPP_GREEN, borderRadius: radius.pill, paddingHorizontal: 14, paddingVertical: 9 },
     whatsappButtonText: { color: "#fff", fontFamily: fonts.bold, fontSize: 12 },
     groupBox: { alignItems: "flex-start", gap: 6, backgroundColor: colors.bg, borderRadius: radius.lg, padding: 16, borderWidth: 1, borderColor: colors.line },
     groupTitle: { fontFamily: fonts.extraBold, fontSize: 14, color: colors.ink, textAlign: "right" },
@@ -472,8 +490,8 @@ function getStyles(colors: Palette) {
     dayLabel: { fontFamily: fonts.regular, fontSize: 11, color: colors.inkSoft },
     dayNum: { fontFamily: fonts.extraBold, fontSize: 14, color: colors.ink },
     dayLabelActive: { color: colors.goldDark },
-    slotsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-    slot: { flexBasis: "23%", flexGrow: 1, alignItems: "center", gap: 2, borderRadius: radius.md, paddingVertical: 10, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.bg },
+    slotsGrid: { flexDirection: arabicRow, flexWrap: "wrap", gap: 8 },
+    slot: { minHeight: 60, flexBasis: "23%", flexGrow: 1, alignItems: "center", gap: 2, borderRadius: radius.md, paddingVertical: 10, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.bg },
     slotDisabled: { opacity: 0.5 },
     slotConfirmed: { borderColor: colors.gold, backgroundColor: colors.gold },
     slotPending: { borderColor: colors.gold, backgroundColor: colors.goldLight },
@@ -484,21 +502,21 @@ function getStyles(colors: Palette) {
     slotSubText: { fontFamily: fonts.regular, fontSize: 9, color: colors.inkSoft },
     slotSubTextConfirmed: { fontFamily: fonts.regular, fontSize: 9, color: "#fff" },
     holdBox: { gap: 12, borderRadius: radius.lg, padding: 16, borderWidth: 1, borderColor: colors.gold, backgroundColor: colors.goldLight },
-    holdHeaderRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+    holdHeaderRow: { flexDirection: arabicRow, justifyContent: "space-between", alignItems: "flex-start" },
     holdTitle: { fontFamily: fonts.extraBold, fontSize: 13, color: colors.ink, textAlign: "right" },
     holdSubtitle: { fontFamily: fonts.bold, fontSize: 13, color: colors.ink, marginTop: 2 },
     holdTimerLabel: { fontFamily: fonts.regular, fontSize: 10, color: colors.inkSoft },
     holdTimer: { fontFamily: fonts.extraBold, fontSize: 18, color: colors.goldDark },
-    holdActionsRow: { flexDirection: "row", alignItems: "center", gap: 16 },
-    confirmButton: { backgroundColor: colors.gold, borderRadius: radius.sm, paddingHorizontal: 20, paddingVertical: 10, minWidth: 110, alignItems: "center" },
+    holdActionsRow: { flexDirection: arabicRow, alignItems: "center", gap: 16 },
+    confirmButton: { minHeight: 48, justifyContent: "center", backgroundColor: "#245B49", borderRadius: radius.sm, paddingHorizontal: 20, paddingVertical: 10, minWidth: 110, alignItems: "center" },
     confirmButtonText: { color: "#fff", fontFamily: fonts.extraBold, fontSize: 13 },
     holdCancelText: { fontFamily: fonts.bold, fontSize: 13, color: colors.inkSoft },
     upcomingSection: { borderTopWidth: 1, borderTopColor: colors.line, paddingTop: 14, gap: 10 },
     upcomingTitle: { fontFamily: fonts.extraBold, fontSize: 13, color: colors.ink, textAlign: "right" },
-    upcomingRow: { flexDirection: "row", alignItems: "center", gap: 8, borderTopWidth: 1, borderTopColor: colors.line, paddingTop: 10 },
+    upcomingRow: { flexDirection: arabicRow, alignItems: "center", gap: 8, borderTopWidth: 1, borderTopColor: colors.line, paddingTop: 10 },
     rowText: { flex: 1 },
     upcomingDate: { fontFamily: fonts.bold, fontSize: 12, color: colors.ink },
-    smallJoinButton: { backgroundColor: colors.gold, borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 6 },
+    smallJoinButton: { minHeight: 44, justifyContent: "center", backgroundColor: "#245B49", borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 6 },
     smallJoinButtonText: { color: "#fff", fontFamily: fonts.bold, fontSize: 11 },
     cancelText: { fontFamily: fonts.bold, fontSize: 11, color: colors.danger },
   });
