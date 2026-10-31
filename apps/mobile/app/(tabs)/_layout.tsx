@@ -1,12 +1,23 @@
 import { Redirect, Tabs } from "expo-router";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, ColorValue, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { homeRouteFor, useAuth } from "../../lib/auth";
 import { fonts, useTheme } from "../../lib/theme";
 
+function TabIcon({ name, color, size, focused }: {
+  name: keyof typeof Ionicons.glyphMap; color: ColorValue; size: number; focused: boolean;
+}) {
+  const { colors } = useTheme();
+  return <View style={{ minWidth: 48, minHeight: 32, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: focused ? colors.primaryLight : "transparent" }}>
+    <Ionicons name={name} color={color} size={size} />
+  </View>;
+}
+
 export default function TabsLayout() {
   const { session, role, loading } = useAuth();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
 
   if (loading) {
     return (
@@ -28,12 +39,15 @@ export default function TabsLayout() {
 
   return (
     <Tabs
+      initialRouteName="index"
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.goldDark,
+        tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.inkSoft,
-        tabBarLabelStyle: { fontFamily: fonts.bold, fontSize: 11 },
-        tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.line, height: 62, paddingTop: 6, paddingBottom: 8 },
+        tabBarHideOnKeyboard: true,
+        tabBarItemStyle: { minHeight: 48 },
+        tabBarLabelStyle: { fontFamily: fonts.bold, fontSize: 12 },
+        tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.line, height: 64 + Math.max(insets.bottom, 8), paddingTop: 8, paddingBottom: Math.max(insets.bottom, 8) },
       }}
     >
       <Tabs.Screen
@@ -41,7 +55,7 @@ export default function TabsLayout() {
         options={{
           title: "حسابي",
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? "person" : "person-outline"} color={color} size={size} />
+            <TabIcon focused={focused} name={focused ? "person" : "person-outline"} color={color} size={size} />
           ),
         }}
       />
@@ -50,7 +64,7 @@ export default function TabsLayout() {
         options={{
           title: "حلقاتي",
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? "people" : "people-outline"} color={color} size={size} />
+            <TabIcon focused={focused} name={focused ? "people" : "people-outline"} color={color} size={size} />
           ),
         }}
       />
@@ -59,7 +73,7 @@ export default function TabsLayout() {
         options={{
           title: "البرامج",
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? "book" : "book-outline"} color={color} size={size} />
+            <TabIcon focused={focused} name={focused ? "book" : "book-outline"} color={color} size={size} />
           ),
         }}
       />
@@ -68,7 +82,7 @@ export default function TabsLayout() {
         options={{
           title: "الرئيسية",
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? "home" : "home-outline"} color={color} size={size} />
+            <TabIcon focused={focused} name={focused ? "home" : "home-outline"} color={color} size={size} />
           ),
         }}
       />

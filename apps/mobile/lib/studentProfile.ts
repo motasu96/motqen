@@ -16,11 +16,12 @@ export type MyStudentProfile = {
   student: StudentRow | null;
 };
 
-export async function getMyStudentProfile(userId: string): Promise<MyStudentProfile> {
-  const [{ data: profile }, { data: student }] = await Promise.all([
-    supabase.from("profiles").select("full_name").eq("id", userId).single(),
+export async function getMyStudentProfile(userId: string, strict = false): Promise<MyStudentProfile> {
+  const [{ data: profile, error: profileError }, { data: student, error: studentError }] = await Promise.all([
+    supabase.from("profiles").select("full_name").eq("id", userId).maybeSingle(),
     supabase.from("students").select("*").eq("id", userId).maybeSingle(),
   ]);
+  if (strict && (profileError || studentError)) throw profileError || studentError;
   return {
     fullName: (profile?.full_name as string | null) ?? null,
     student: (student as StudentRow | null) ?? null,
@@ -35,9 +36,9 @@ export type UpcomingBooking = {
   teacherName: string;
 };
 
-export async function listUpcomingBookings(userId: string): Promise<UpcomingBooking[]> {
+export async function listUpcomingBookings(userId: string, strict = false): Promise<UpcomingBooking[]> {
   const today = new Date().toISOString().slice(0, 10);
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("bookings")
     .select("id, session_date, session_time, teacher_id, teachers(name)")
     .eq("student_id", userId)
@@ -46,6 +47,7 @@ export async function listUpcomingBookings(userId: string): Promise<UpcomingBook
     .order("session_date", { ascending: true })
     .order("session_time", { ascending: true });
 
+  if (strict && error) throw error;
   return (data ?? []).map((row) => {
     const teacher = row.teachers as unknown as { name: string } | { name: string }[] | null;
     const teacherName = Array.isArray(teacher) ? teacher[0]?.name : teacher?.name;
