@@ -2,11 +2,13 @@ import { Redirect, Tabs } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { homeRouteFor, useAuth } from "../../lib/auth";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { fonts, useTheme } from "../../lib/theme";
 
 export default function TabsLayout() {
   const { session, role, loading } = useAuth();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
 
   if (loading) {
     return (
@@ -28,12 +30,13 @@ export default function TabsLayout() {
 
   return (
     <Tabs
+      initialRouteName="index"
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.goldDark,
         tabBarInactiveTintColor: colors.inkSoft,
         tabBarLabelStyle: { fontFamily: fonts.bold, fontSize: 11 },
-        tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.line, height: 62, paddingTop: 6, paddingBottom: 8 },
+        tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.line, height: 60 + Math.max(insets.bottom, 8), paddingTop: 6, paddingBottom: Math.max(insets.bottom, 8) },
       }}
     >
       <Tabs.Screen
@@ -49,6 +52,7 @@ export default function TabsLayout() {
         name="groups"
         options={{
           title: "حلقاتي",
+          href: null,
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons name={focused ? "people" : "people-outline"} color={color} size={size} />
           ),
@@ -58,11 +62,13 @@ export default function TabsLayout() {
         name="programs"
         options={{
           title: "البرامج",
+          href: null,
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons name={focused ? "book" : "book-outline"} color={color} size={size} />
           ),
         }}
       />
+      <Tabs.Screen name="lessons" options={{ title: "حصصي", tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "calendar" : "calendar-outline"} color={color} size={size} /> }} />
       <Tabs.Screen
         name="index"
         options={{
