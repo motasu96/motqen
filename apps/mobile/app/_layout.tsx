@@ -1,7 +1,6 @@
-import "react-native-gesture-handler";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useEffect } from "react";
 import { Text } from "react-native";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -36,6 +35,8 @@ function ThemedStack() {
         <Stack.Screen name="(admin)" />
         <Stack.Screen name="login" />
         <Stack.Screen name="signup" />
+        <Stack.Screen name="forgot-password" />
+        <Stack.Screen name="study" />
         <Stack.Screen name="room/[room]" options={{ presentation: "fullScreenModal" }} />
       </Stack>
     </>

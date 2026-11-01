@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { Link, useFocusEffect, useRouter } from "expo-router";
 import { useAuth } from "../../lib/auth";
@@ -19,9 +18,10 @@ import { getProgramBySlug } from "../../lib/programs";
 import { buildPlan, getWeekPlan, overallProgressPercent, weekIndexForDate } from "../../lib/quranPlan";
 import { getSurahByNumber } from "../../lib/quranSurahs";
 import { isWithinAvailableWindow, useLiveRooms, useOnlineTeacherIds } from "../../lib/presence";
+import BrandLogo from "../../components/BrandLogo";
 import PulseBadge from "../../components/PulseBadge";
 import PaidLessonsNotice from "../../components/PaidLessonsNotice";
-import { fonts, gradientFor, Palette, radius, shadow, useTheme } from "../../lib/theme";
+import { fonts, Palette, radius, shadow, useTheme } from "../../lib/theme";
 
 const DAY_LABELS = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 
@@ -31,17 +31,6 @@ function formatDate(iso: string) {
 }
 
 const HOMEWORK_TYPE_LABELS: Record<string, string> = { recitation: "تلاوة", review: "مراجعة", tajweed: "تجويد" };
-
-const MENU_ITEMS = [
-  { href: "/reports", label: "التقارير", icon: "bar-chart-outline" as const },
-  { href: "/lessons", label: "الحصص", icon: "time-outline" as const },
-  { href: "/homework", label: "الواجبات", icon: "document-text-outline" as const },
-  { href: "/exams", label: "الاختبارات", icon: "clipboard-outline" as const },
-  { href: "/certificates", label: "الشهادات", icon: "ribbon-outline" as const },
-  { href: "/teachers", label: "المعلمون", icon: "people-circle-outline" as const },
-  { href: "/archive", label: "الأرشيف", icon: "folder-outline" as const },
-  { href: "/notices", label: "الإشعارات", icon: "notifications-outline" as const },
-];
 
 export default function HomeScreen() {
   const { session } = useAuth();
@@ -57,6 +46,7 @@ export default function HomeScreen() {
   const [recentHomework, setRecentHomework] = useState<HomeworkRow[]>([]);
   const [primaryTeacher, setPrimaryTeacher] = useState<{ id: string; name: string; availableTimes: string[] } | null>(null);
   const [ready, setReady] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const onlineTeacherIds = useOnlineTeacherIds();
   const liveRooms = useLiveRooms();
@@ -69,6 +59,8 @@ export default function HomeScreen() {
 
   const load = useCallback(async () => {
     if (!userId) return;
+    setLoadError(null);
+    try {
     const [{ fullName: name, student: s }, bookings, lesson, homework, teacher] = await Promise.all([
       getMyStudentProfile(userId),
       listUpcomingBookings(userId),
@@ -82,7 +74,8 @@ export default function HomeScreen() {
     setLatestLesson(lesson);
     setRecentHomework(homework.filter((h) => h.status !== "graded").slice(0, 2));
     setPrimaryTeacher(teacher);
-    setReady(true);
+    } catch { setLoadError("تعذّر تحديث بياناتك. تحقق من الاتصال وحاول مرة أخرى."); }
+    finally { setReady(true); }
   }, [userId]);
 
   // Refetches every time the home tab comes into focus, so a graded
@@ -101,9 +94,12 @@ export default function HomeScreen() {
         style: "destructive",
         onPress: async () => {
           setCancellingId(id);
-          const ok = await cancelBooking(id);
-          setCancellingId(null);
-          if (ok) setUpcoming((prev) => prev.filter((b) => b.id !== id));
+          try {
+            const ok = await cancelBooking(id);
+            if (!ok) throw new Error("cancel_failed");
+            setUpcoming((prev) => prev.filter((b) => b.id !== id));
+          } catch { Alert.alert("تعذّر إلغاء الحصة", "حاول مرة أخرى بعد التأكد من الاتصال."); }
+          finally { setCancellingId(null); }
         },
       },
     ]);
@@ -135,7 +131,8 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <LinearGradient colors={gradientFor(colors)} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
+        <View style={styles.topBrand}><BrandLogo width={120} /><TouchableOpacity accessibilityRole="button" accessibilityLabel="الإعلانات" style={styles.noticeButton} onPress={() => router.push("/notices")}><Ionicons name="notifications-outline" size={22} color={colors.goldDark} /></TouchableOpacity></View>
+        <View style={styles.hero}>
           <View style={styles.heroText}>
             <Text style={styles.heroGreeting}>أهلًا بك،</Text>
             <Text style={styles.heroName}>{displayName}</Text>
@@ -144,12 +141,47 @@ export default function HomeScreen() {
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{initial}</Text>
           </View>
-        </LinearGradient>
+        </View>
 
+        {loadError ? <View style={styles.card}><Text accessibilityRole="alert" style={styles.cardDesc}>{loadError}</Text><TouchableOpacity accessibilityRole="button" onPress={() => { void load(); }} style={styles.allLessons}><Text style={styles.linkText}>إعادة المحاولة</Text></TouchableOpacity></View> : null}
         {!ready ? (
           <ActivityIndicator color={colors.gold} style={{ marginTop: 12 }} />
         ) : (
           <>
+            {/* Upcoming sessions */}
+            <View style={styles.card}>
+              <View style={styles.cardHeaderRow}>
+                <Ionicons name="calendar-outline" size={18} color={colors.goldDark} />
+                <Text style={styles.cardLabel}>حصتك القادمة</Text>
+              </View>
+              {upcoming.length === 0 ? (
+                <Text style={styles.cardDesc}>لا توجد حصص فردية محجوزة قريبًا</Text>
+              ) : (
+                <View style={{ gap: 10 }}>
+                  {upcoming.slice(0, 1).map((b) => (
+                    <View key={b.id} style={styles.sessionRow}>
+                      <View style={styles.rowText}>
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                          <Text style={styles.sessionTitle}>
+                            {formatDate(b.date)} · {b.time}
+                          </Text>
+                          {liveRooms.get(b.id)?.teacherPresent && <PulseBadge color="red" label="مباشر الآن" />}
+                        </View>
+                        <Text style={styles.cardDesc}>مع {b.teacherName}</Text>
+                      </View>
+                      <TouchableOpacity style={styles.smallJoinButton} onPress={() => router.push(`/room/${b.id}`)}>
+                        <Text style={styles.smallJoinButtonText}>دخول</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={{ minHeight: 48, justifyContent: "center", paddingHorizontal: 10 }} disabled={cancellingId === b.id} onPress={() => handleCancel(b.id)}>
+                        <Text style={styles.cancelText}>إلغاء</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              )}
+              <Link href="/(tabs)/lessons" asChild><TouchableOpacity accessibilityRole="link" style={styles.allLessons}><Text style={styles.linkText}>عرض كل حصصي</Text></TouchableOpacity></Link>
+            </View>
+
             {/* Overall memorization progress */}
             {planData && (
               <View style={styles.card}>
@@ -237,39 +269,6 @@ export default function HomeScreen() {
 
             <PaidLessonsNotice upcoming={upcoming} studentName={fullName} />
 
-            {/* Upcoming sessions */}
-            <View style={styles.card}>
-              <View style={styles.cardHeaderRow}>
-                <Ionicons name="calendar-outline" size={18} color={colors.goldDark} />
-                <Text style={styles.cardLabel}>حصصك القادمة</Text>
-              </View>
-              {upcoming.length === 0 ? (
-                <Text style={styles.cardDesc}>لا توجد حصص فردية محجوزة قريبًا</Text>
-              ) : (
-                <View style={{ gap: 10 }}>
-                  {upcoming.map((b) => (
-                    <View key={b.id} style={styles.sessionRow}>
-                      <View style={styles.rowText}>
-                        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                          <Text style={styles.sessionTitle}>
-                            {formatDate(b.date)} · {b.time}
-                          </Text>
-                          {liveRooms.get(b.id)?.teacherPresent && <PulseBadge color="red" label="مباشر الآن" />}
-                        </View>
-                        <Text style={styles.cardDesc}>مع {b.teacherName}</Text>
-                      </View>
-                      <TouchableOpacity style={styles.smallJoinButton} onPress={() => router.push(`/room/${b.id}`)}>
-                        <Text style={styles.smallJoinButtonText}>دخول</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity disabled={cancellingId === b.id} onPress={() => handleCancel(b.id)}>
-                        <Text style={styles.cancelText}>إلغاء</Text>
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </View>
-
             {/* Homework preview */}
             {recentHomework.length > 0 && (
               <View style={styles.card}>
@@ -291,45 +290,14 @@ export default function HomeScreen() {
           </>
         )}
 
-        <Link href="/(tabs)/groups" asChild>
-          <TouchableOpacity style={styles.rowCard} activeOpacity={0.75}>
-            <View style={[styles.iconBubble, { backgroundColor: colors.goldLight }]}>
-              <Ionicons name="people-outline" size={20} color={colors.goldDark} />
-            </View>
-            <View style={styles.rowCardText}>
-              <Text style={styles.cardTitle}>حلقاتك الجماعية</Text>
-              <Text style={styles.cardDesc}>تابع حلقاتك وانضم إلى حصتك عند الموعد</Text>
-            </View>
+        <Link href="/teachers" asChild><TouchableOpacity accessibilityRole="button" style={styles.bookButton}><Ionicons name="add" size={20} color="#2E2418" /><Text style={styles.bookText}>حجز حصة</Text></TouchableOpacity></Link>
+        <Link href="/study" asChild>
+          <TouchableOpacity accessibilityRole="link" style={styles.rowCard} activeOpacity={0.75}>
+            <View style={styles.iconBubble}><Ionicons name="book-outline" size={22} color={colors.goldDark} /></View>
+            <View style={styles.rowCardText}><Text style={styles.cardTitle}>دراستي</Text><Text style={styles.cardDesc}>البرامج والحلقات والمعلمون وأدوات الدراسة</Text></View>
             <Ionicons name="chevron-back" size={18} color={colors.inkSoft} />
           </TouchableOpacity>
         </Link>
-
-        <Link href="/(tabs)/programs" asChild>
-          <TouchableOpacity style={styles.rowCard} activeOpacity={0.75}>
-            <View style={[styles.iconBubble, { backgroundColor: colors.goldLight }]}>
-              <Ionicons name="book-outline" size={20} color={colors.goldDark} />
-            </View>
-            <View style={styles.rowCardText}>
-              <Text style={styles.cardTitle}>استكشف البرامج</Text>
-              <Text style={styles.cardDesc}>الحفظ، التلاوة والتجويد، المراجعة، والإجازة بالسند</Text>
-            </View>
-            <Ionicons name="chevron-back" size={18} color={colors.inkSoft} />
-          </TouchableOpacity>
-        </Link>
-
-        <Text style={styles.sectionTitle}>قوائمي</Text>
-        <View style={styles.menuGrid}>
-          {MENU_ITEMS.map((item) => (
-            <Link key={item.href} href={item.href as never} asChild>
-              <TouchableOpacity style={styles.menuCard} activeOpacity={0.75}>
-                <View style={styles.menuIconBubble}>
-                  <Ionicons name={item.icon} size={22} color={colors.goldDark} />
-                </View>
-                <Text style={styles.menuLabel}>{item.label}</Text>
-              </TouchableOpacity>
-            </Link>
-          ))}
-        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -339,7 +307,14 @@ function getStyles(colors: Palette) {
   return StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: 20, gap: 14, paddingBottom: 32 },
+  topBrand: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  noticeButton: { minWidth: 48, minHeight: 48, borderRadius: radius.pill, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: colors.line, backgroundColor: colors.card },
+  allLessons: { minHeight: 48, alignItems: "center", justifyContent: "center", marginTop: 8 },
+  linkText: { fontFamily: fonts.bold, fontSize: 14, color: colors.goldDark },
+  bookButton: { flexDirection: "row", gap: 8, minHeight: 52, borderRadius: radius.md, backgroundColor: colors.gold, alignItems: "center", justifyContent: "center", padding: 12 },
+  bookText: { fontFamily: fonts.bold, color: "#2E2418", fontSize: 15 },
   hero: {
+    backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -348,19 +323,19 @@ function getStyles(colors: Palette) {
     ...shadow.card,
   },
   heroText: { flex: 1, gap: 2 },
-  heroGreeting: { fontFamily: fonts.medium, fontSize: 13, color: "rgba(255,255,255,0.85)", textAlign: "right" },
-  heroName: { fontFamily: fonts.extraBold, fontSize: 20, color: "#fff", textAlign: "right" },
-  heroProgram: { fontFamily: fonts.bold, fontSize: 12, color: "#fff", textAlign: "right", marginTop: 6 },
+  heroGreeting: { fontFamily: fonts.medium, fontSize: 13, color: colors.inkSoft, textAlign: "right" },
+  heroName: { fontFamily: fonts.extraBold, fontSize: 22, color: colors.ink, textAlign: "right" },
+  heroProgram: { fontFamily: fonts.bold, fontSize: 12, color: colors.goldDark, textAlign: "right", marginTop: 6 },
   avatar: {
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: "rgba(255,255,255,0.25)",
+    backgroundColor: colors.goldLight,
     alignItems: "center",
     justifyContent: "center",
     marginStart: 12,
   },
-  avatarText: { fontFamily: fonts.extraBold, fontSize: 22, color: "#fff" },
+  avatarText: { fontFamily: fonts.extraBold, fontSize: 22, color: colors.goldDark },
   card: {
     backgroundColor: colors.card,
     borderRadius: radius.lg,
@@ -398,12 +373,12 @@ function getStyles(colors: Palette) {
     ...shadow.soft,
   },
   rowCardText: { flex: 1 },
-  iconBubble: { width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center" },
-  sessionRow: { flexDirection: "row", alignItems: "center", gap: 8, borderTopWidth: 1, borderTopColor: colors.line, paddingTop: 10 },
+  iconBubble: { backgroundColor: colors.goldLight, width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  sessionRow: { flexWrap: "wrap", flexDirection: "row", alignItems: "center", gap: 8, borderTopWidth: 1, borderTopColor: colors.line, paddingTop: 10 },
   rowText: { flex: 1 },
   sessionTitle: { fontFamily: fonts.bold, fontSize: 13, color: colors.ink, textAlign: "right" },
-  smallJoinButton: { backgroundColor: colors.gold, borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 6 },
-  smallJoinButtonText: { color: "#fff", fontFamily: fonts.bold, fontSize: 11 },
+  smallJoinButton: { minHeight: 48, justifyContent: "center", backgroundColor: colors.gold, borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 6 },
+  smallJoinButtonText: { color: "#2E2418", fontFamily: fonts.bold, fontSize: 11 },
   cancelText: { fontFamily: fonts.bold, fontSize: 11, color: colors.danger },
   homeworkRow: { borderTopWidth: 1, borderTopColor: colors.line, paddingTop: 8, marginTop: 8 },
   sectionTitle: { fontFamily: fonts.extraBold, fontSize: 15, color: colors.ink, textAlign: "right", marginTop: 6 },
